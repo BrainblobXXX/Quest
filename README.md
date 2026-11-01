@@ -51,3 +51,34 @@ npx tsx test/engine.test.ts
 npx playwright install chromium   # один раз
 node test/shots.mjs               # shot-library.png, shot-game.png, shot-mobile.png
 ```
+
+## Деплой на ONREZA
+
+Репозиторий `BrainblobXXX/Quest`, ветка `main`, корень проекта — этот каталог (файл
+`package.json` лежит в корне репозитория).
+
+| Настройка | Значение |
+|---|---|
+| Framework | Next.js (определяется автоматически) |
+| Install command | `npm install` |
+| Build command | `npm run build` |
+| Start command | `node .next/standalone/server.js` |
+| Node.js | 20.9+ (лучше 22) |
+| Output directory | оставить пустым |
+| Environment variables | не нужны |
+| Порт | платформа передаёт `PORT`, сервер его слушает |
+
+Почему именно так:
+
+- `prebuild` собирает игры из `games/` в `public/games/` — в git их нет, они генерируются;
+- `postbuild` копирует `public/` и `.next/static/` внутрь `.next/standalone/`. Без этого
+  на хостинге не будет стилей, скриптов и JSON игр: Next.js standalone их не копирует сам;
+- `next.config.ts` включает `output: 'standalone'`;
+- `npm start` запускает standalone-сервер, а не `next start` с жёстким портом.
+
+Локальная проверка прод-сборки:
+
+```bash
+npm run build
+PORT=3120 npm start        # http://127.0.0.1:3120
+```
