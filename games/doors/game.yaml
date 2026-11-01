@@ -1,0 +1,19 @@
+format: quest/1
+id: doors
+title: Три двери
+author: демо-пакет
+language: ru
+start: '1'
+story: story.md
+scenes:
+  '1':
+    title: Глава 1. Коридор
+  '2':
+    title: Глава 2. Красная
+    ending: true
+  '3':
+    title: Глава 3. Чёрная
+    ending: true
+  '4':
+    title: Глава 4. Зелёная
+    ending: true

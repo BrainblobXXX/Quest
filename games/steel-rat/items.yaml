@@ -1,0 +1,20 @@
+items:
+  sword:
+    title: Меч
+    description: Стандартное оружие полевого агента.
+  bow:
+    title: Лук и колчан
+    description: Выбран в сундуке Сейди.
+  morning_star:
+    title: Утренняя звезда
+    description: Шипастая булава из сундука Сейди.
+  smoke_grenades:
+    title: Дымовые гранаты
+    description: Сумка с дымовыми гранатами.
+    countable: true
+    consumable: true
+  sleep_grenades:
+    title: Гранаты с сонным газом
+    description: Усыпляют противника.
+    countable: true
+    consumable: true

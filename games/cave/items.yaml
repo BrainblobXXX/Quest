@@ -1,0 +1,6 @@
+items:
+  sword:
+    title: Меч
+  rusty_key:
+    title: Ржавый ключ
+    description: Ключ от сундука в зале.

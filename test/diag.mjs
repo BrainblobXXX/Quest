@@ -1,0 +1,11 @@
+import { chromium } from 'playwright';
+const browser = await chromium.launch({ args: ['--no-sandbox'] });
+const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+page.on('console', (m) => console.log('CONSOLE', m.type(), m.text().slice(0, 200)));
+page.on('pageerror', (e) => console.log('PAGEERROR', String(e).slice(0, 300)));
+page.on('requestfailed', (r) => console.log('FAILED', r.url(), r.failure()?.errorText));
+await page.goto(process.env.URL ?? 'http://127.0.0.1:3101/');
+await page.waitForTimeout(6000);
+console.log('TEXT:', (await page.locator('body').innerText()).slice(0, 300).replace(/\n/g, ' | '));
+await page.screenshot({ path: 'shot-diag.png' });
+await browser.close();

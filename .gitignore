@@ -1,0 +1,24 @@
+# зависимости
+node_modules/
+
+# сборка Next.js
+.next/
+out/
+*.tsbuildinfo
+
+# собранные игры — генерируются из games/ командой npm run games:build
+public/games/
+
+# окружение
+.env
+.env*.local
+
+# кеши и браузер для скриншотов
+.npm-cache/
+.browsers/
+
+# служебное
+*.log
+page.html
+shot-*.png
+.DS_Store

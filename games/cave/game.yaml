@@ -1,0 +1,35 @@
+format: quest/1
+id: cave
+title: Кощеева пещера
+author: демо-пакет
+language: ru
+start: '1'
+story: story.md
+items: items.yaml
+start_items:
+  sword: 1
+scenes:
+  '1':
+    title: Глава 1. Вход в пещеру
+    image: assets/cave-road.jpg
+  '2':
+    title: Глава 2. Зал
+    image: assets/cave-moons.jpg
+  '3':
+    title: Глава 3. Стены
+  '4':
+    title: Глава 4. Богатая добыча
+    image: assets/cave-pit.jpg
+    ending: true
+  '5':
+    title: Глава 5. С пустыми руками
+    ending: true
+  '6':
+    title: Глава 6. Провал
+    image: assets/cave-night.jpg
+    next:
+      roll: 1d6
+      outcomes:
+        - min: 4
+          goto: '4'
+        - goto: '5'
