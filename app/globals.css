@@ -482,3 +482,76 @@ body {
 @media (max-width: 520px) {
   .restart-label { display: none; }
 }
+
+/* ── телефон в портретной ориентации ────────────────────── */
+
+@media (orientation: portrait) and (max-width: 820px) {
+  body {
+    padding: 6px;
+    overflow: hidden;
+    align-items: stretch;
+  }
+
+  .device {
+    width: 100%;
+    height: calc(100dvh - 12px);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .monitor {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .monitor-bezel {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 10px 0;
+    border-radius: 12px 12px 3px 3px;
+  }
+
+  .screen {
+    flex: 1 1 auto;
+    min-height: 0;
+    aspect-ratio: auto;
+    border-radius: 10px;
+  }
+
+  .monitor-controls {
+    flex: 0 0 26px;
+    height: 26px;
+  }
+
+  .case {
+    flex: 0 0 auto;
+    padding: 8px 10px 6px;
+  }
+
+  .case-front {
+    min-height: 52px;
+    gap: 8px;
+  }
+
+  .case-plate { display: none; }
+
+  .screen-content {
+    padding: 8px 10px 8px;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .scene-image { height: 38%; }
+  .title-line { font-size: 11px; }
+  .screen-heading { font-size: 14px; margin-bottom: 10px; }
+  .choice, .list-item { font-size: 14px; }
+
+  .cdrom { display: none; }
+  .case-vents { display: none; }
+  .power-label { display: none; }
+}
