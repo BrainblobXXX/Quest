@@ -20,6 +20,7 @@ export default function Page() {
   const [state, setState] = useState<GameState | null>(null);
   const [sound, setSound] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [confirmRestart, setConfirmRestart] = useState(false);
   const audioStarted = useRef(false);
   const refreshSavesRef = useRef<() => void>(() => {});
 
@@ -116,8 +117,15 @@ export default function Page() {
     const next = newState(game);
     setState(next);
     saveState(next);
+    setConfirmRestart(false);
     audio.click();
   }, [game]);
+
+  const handlePower = useCallback(() => {
+    if (!game || !state) return;
+    audio.click();
+    setConfirmRestart(true);
+  }, [game, state]);
 
   const handleReset = useCallback(
     (id: string) => {
@@ -159,6 +167,7 @@ export default function Page() {
       gameAvailable={Boolean(game && state)}
       onLibrary={toLibrary}
       onGame={toGame}
+      onPower={handlePower}
     >
       {screen === 'boot' && <Boot onDone={() => setScreen('library')} />}
 
@@ -185,6 +194,22 @@ export default function Page() {
 
       {screen === 'error' && (
         <ErrorScreen message={error ?? 'НЕИЗВЕСТНАЯ ОШИБКА'} onBack={() => setScreen('library')} />
+      )}
+
+      {confirmRestart && (
+        <div className="confirm-overlay">
+          <div className="confirm-box">
+            <div>НАЧАТЬ ИГРУ ЗАНОВО?</div>
+            <div className="choices">
+              <button className="choice" onClick={handleRestart}>
+                1. ДА
+              </button>
+              <button className="choice" onClick={() => setConfirmRestart(false)}>
+                2. НЕТ
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </Monoblock>
   );

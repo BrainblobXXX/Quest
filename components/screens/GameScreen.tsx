@@ -1,12 +1,32 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { availableChoices, inventoryLine, isEnding, sceneOf } from '@/lib/engine';
 import type { Choice, Game, GameState } from '@/lib/types';
 
 function assetUrl(game: Game, path: string): string {
   if (/^(https?:)?\//.test(path)) return path;
   return `/games/${game.id}/${path}`;
+}
+
+function InventoryPanel({ game, state }: { game: Game; state: GameState }) {
+  const items = Object.entries(state.inventory).map(([id, n]) => ({
+    id,
+    n,
+    title: game.items?.[id]?.title ?? id,
+  }));
+
+  return (
+    <div className="inventory-panel">
+      {items.length === 0 && <div className="inventory-empty">ПУСТО</div>}
+      {items.map((it) => (
+        <div key={it.id} className="inventory-row">
+          <span>{it.title.toUpperCase()}</span>
+          <span className="count">{it.n}</span>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default function GameScreen({
@@ -22,11 +42,28 @@ export default function GameScreen({
   onAdvance: () => void;
   onRestart: () => void;
 }) {
-  const [confirmRestart, setConfirmRestart] = useState(false);
   const scene = sceneOf(game, state);
+  const [invOpen, setInvOpen] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollKey = `${game.id}:${state.scene}`;
   const choices = availableChoices(game, state);
   const ending = isEnding(game, state);
   const hasNext = Boolean(scene.next);
+
+  useEffect(() => {
+    setInvOpen(false);
+  }, [scene.key]);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const saved = window.sessionStorage.getItem(`scroll:${scrollKey}`);
+    el.scrollTop = saved ? Number(saved) : 0;
+  }, [scrollKey]);
+
+  const saveScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    window.sessionStorage.setItem(`scroll:${scrollKey}`, String(e.currentTarget.scrollTop));
+  };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -47,18 +84,20 @@ export default function GameScreen({
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div className="title-line">
         <span>{scene.title.toUpperCase()}</span>
-        <span className="inv">{inventoryLine(game, state)}</span>
         <button
-          className="restart-btn"
-          onClick={() => setConfirmRestart(true)}
-          aria-label="Начать игру заново"
-          title="Начать заново"
+          className="inventory-toggle"
+          onClick={() => setInvOpen((v) => !v)}
+          aria-expanded={invOpen}
+          title="Инвентарь"
         >
-          ⟲ <span className="restart-label">заново</span>
+          <span className="inv-inline">{inventoryLine(game, state) || 'ПУСТО'}</span>
+          <span className="inv-label">инвентарь {invOpen ? '▲' : '▼'}</span>
         </button>
       </div>
 
-      <div className="scene-scroll">
+      {invOpen && <InventoryPanel game={game} state={state} />}
+
+      <div className="scene-scroll" ref={scrollRef} onScroll={saveScroll}>
         {scene.image && (
           <figure className="scene-image">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -99,27 +138,6 @@ export default function GameScreen({
         <div className="choices error">СБОЙ: ТУПИК В СЦЕНЕ {scene.key}</div>
       )}
 
-      {confirmRestart && (
-        <div className="confirm-overlay">
-          <div className="confirm-box">
-            <div>НАЧАТЬ ИГРУ ЗАНОВО?</div>
-            <div className="choices">
-              <button
-                className="choice"
-                onClick={() => {
-                  setConfirmRestart(false);
-                  onRestart();
-                }}
-              >
-                1. ДА
-              </button>
-              <button className="choice" onClick={() => setConfirmRestart(false)}>
-                2. НЕТ
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

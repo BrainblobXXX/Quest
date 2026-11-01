@@ -11,12 +11,14 @@ export default function Monoblock({
   children,
   onLibrary,
   onGame,
+  onPower,
 }: {
   screen: ScreenName;
   gameAvailable: boolean;
   children: ReactNode;
   onLibrary: () => void;
   onGame: () => void;
+  onPower: () => void;
 }) {
   return (
     <div className="device crt-on">
@@ -43,7 +45,13 @@ export default function Monoblock({
         <div className="case-front">
           <div className="case-power">
             <div className="power-stack">
-              <button className="power-btn" tabIndex={-1} aria-hidden="true">
+              <button
+                className="power-btn"
+                onClick={onPower}
+                disabled={!gameAvailable}
+                aria-label="Перезапустить игру"
+                title="Перезапустить игру"
+              >
                 ⏻
               </button>
               <span className="power-label">POWER</span>
