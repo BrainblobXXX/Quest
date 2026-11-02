@@ -7,15 +7,19 @@ export default function Library({
   games,
   saves,
   sound,
+  music,
   onStart,
   onToggleSound,
+  onToggleMusic,
   onReset,
 }: {
   games: GameIndexEntry[];
   saves: Record<string, string | undefined>;
   sound: boolean;
+  music: boolean;
   onStart: (id: string) => void;
   onToggleSound: () => void;
+  onToggleMusic: () => void;
   onReset: (id: string) => void;
 }) {
   const [confirmReset, setConfirmReset] = useState<string | null>(null);
@@ -69,6 +73,9 @@ export default function Library({
       <div style={{ marginTop: 18 }}>
         <button className="list-item" onClick={onToggleSound}>
           ЗВУК: {sound ? 'ВКЛ' : 'ВЫКЛ'}
+        </button>
+        <button className="list-item" onClick={onToggleMusic}>
+          МУЗЫКА: {music ? 'ВКЛ' : 'ВЫКЛ'}
         </button>
       </div>
 

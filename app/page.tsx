@@ -20,6 +20,7 @@ export default function Page() {
   const [game, setGame] = useState<Game | null>(null);
   const [state, setState] = useState<GameState | null>(null);
   const [sound, setSound] = useState(true);
+  const [music, setMusic] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [confirmRestart, setConfirmRestart] = useState(false);
   const audioStarted = useRef(false);
@@ -28,7 +29,9 @@ export default function Page() {
   useEffect(() => {
     const settings = loadSettings();
     setSound(settings.sound);
+    setMusic(settings.music);
     audio.setEnabled(settings.sound);
+    audio.setMusicEnabled(settings.music);
 
     loadIndex()
       .then((list) => {
@@ -49,6 +52,7 @@ export default function Page() {
       audioStarted.current = true;
       audio.start();
       audio.setEnabled(sound);
+      audio.setMusicEnabled(music);
     };
     window.addEventListener('pointerdown', startAudio, { once: true });
     window.addEventListener('keydown', startAudio, { once: true });
@@ -56,7 +60,7 @@ export default function Page() {
       window.removeEventListener('pointerdown', startAudio);
       window.removeEventListener('keydown', startAudio);
     };
-  }, [sound]);
+  }, [sound, music]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -168,10 +172,17 @@ export default function Page() {
   const toggleSound = useCallback(() => {
     const next = !sound;
     setSound(next);
-    saveSettings({ sound: next });
+    saveSettings({ sound: next, music });
     audio.setEnabled(next);
     if (next) audio.click();
-  }, [sound]);
+  }, [sound, music]);
+
+  const toggleMusic = useCallback(() => {
+    const next = !music;
+    setMusic(next);
+    saveSettings({ sound, music: next });
+    audio.setMusicEnabled(next);
+  }, [sound, music]);
 
   return (
     <Monoblock
@@ -190,6 +201,8 @@ export default function Page() {
           sound={sound}
           onStart={startGame}
           onToggleSound={toggleSound}
+          onToggleMusic={toggleMusic}
+          music={music}
           onReset={handleReset}
         />
       )}
@@ -201,6 +214,8 @@ export default function Page() {
           onChoose={handleChoose}
           onAdvance={handleAdvance}
           onRestart={handleRestart}
+          music={music}
+          onToggleMusic={toggleMusic}
         />
       )}
 

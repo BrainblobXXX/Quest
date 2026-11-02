@@ -2,6 +2,7 @@ import type { GameState } from './types';
 
 export type Settings = {
   sound: boolean;
+  music: boolean;
 };
 
 const SAVE_KEY = (id: string) => `quest:save:${id}`;
@@ -32,12 +33,13 @@ export function clearSave(id: string): void {
 }
 
 export function loadSettings(): Settings {
-  if (typeof window === 'undefined') return { sound: true };
+  const fallback: Settings = { sound: true, music: true };
+  if (typeof window === 'undefined') return fallback;
   try {
     const raw = window.localStorage.getItem(SETTINGS_KEY);
-    return raw ? { sound: true, ...(JSON.parse(raw) as Partial<Settings>) } : { sound: true };
+    return raw ? { ...fallback, ...(JSON.parse(raw) as Partial<Settings>) } : fallback;
   } catch {
-    return { sound: true };
+    return fallback;
   }
 }
 

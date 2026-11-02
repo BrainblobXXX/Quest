@@ -11,6 +11,7 @@ class AudioEngine {
   private musicFade: number | null = null;
   private pendingMusic: string | null = null;
   private readonly musicVolume = 0.35;
+  private musicEnabled = true;
 
   get isEnabled() {
     return this.enabled;
@@ -66,7 +67,7 @@ class AudioEngine {
     const next = new Audio(url);
     next.loop = true;
     next.volume = 0;
-    void next.play().catch(() => {});
+    if (this.musicEnabled) void next.play().catch(() => {});
     this.music = next;
 
     const target = this.enabled ? this.musicVolume : 0;
@@ -89,6 +90,19 @@ class AudioEngine {
         }
       }
     }, dt);
+  }
+
+  setMusicEnabled(on: boolean): void {
+    this.musicEnabled = on;
+    if (!on) {
+      this.music?.pause();
+    } else if (this.music) {
+      void this.music.play().catch(() => {});
+    }
+  }
+
+  get isMusicEnabled() {
+    return this.musicEnabled;
   }
 
   stopMusic(): void {

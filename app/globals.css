@@ -439,6 +439,7 @@ body {
 }
 
 .title-line > span:first-child {
+  flex: 1 1 auto;
   min-width: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -618,4 +619,23 @@ body {
   .cdrom { display: none; }
   .case-vents { display: none; }
   .power-label { display: none; }
+}
+
+.music-btn {
+  flex: 0 0 auto;
+  background: none;
+  border: none;
+  padding: 0 4px;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1;
+  color: var(--green);
+  text-shadow: 0 0 6px rgba(51, 255, 0, 0.4);
+  cursor: pointer;
+}
+
+.music-btn.off {
+  color: #6b5222;
+  text-shadow: none;
+  text-decoration: line-through;
 }

@@ -35,12 +35,16 @@ export default function GameScreen({
   onChoose,
   onAdvance,
   onRestart,
+  music,
+  onToggleMusic,
 }: {
   game: Game;
   state: GameState;
   onChoose: (choice: Choice) => void;
   onAdvance: () => void;
   onRestart: () => void;
+  music: boolean;
+  onToggleMusic: () => void;
 }) {
   const scene = sceneOf(game, state);
   const [invOpen, setInvOpen] = useState(false);
@@ -84,6 +88,15 @@ export default function GameScreen({
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div className="title-line">
         <span>{scene.title.toUpperCase()}</span>
+        <button
+          className={`music-btn${music ? '' : ' off'}`}
+          onClick={onToggleMusic}
+          aria-pressed={music}
+          aria-label="Музыка"
+          title={music ? 'Выключить музыку' : 'Включить музыку'}
+        >
+          ♪
+        </button>
         <button
           className="inventory-toggle"
           onClick={() => setInvOpen((v) => !v)}
