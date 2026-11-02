@@ -21,6 +21,8 @@ export default function Page() {
   const [state, setState] = useState<GameState | null>(null);
   const [sound, setSound] = useState(true);
   const [music, setMusic] = useState(true);
+  const [soundVolume, setSoundVolume] = useState(1);
+  const [musicVolume, setMusicVolume] = useState(0.7);
   const [error, setError] = useState<string | null>(null);
   const [confirmRestart, setConfirmRestart] = useState(false);
   const audioStarted = useRef(false);
@@ -30,8 +32,12 @@ export default function Page() {
     const settings = loadSettings();
     setSound(settings.sound);
     setMusic(settings.music);
+    setSoundVolume(settings.soundVolume);
+    setMusicVolume(settings.musicVolume);
     audio.setEnabled(settings.sound);
     audio.setMusicEnabled(settings.music);
+    audio.setSoundVolume(settings.soundVolume);
+    audio.setMusicVolume(settings.musicVolume);
 
     loadIndex()
       .then((list) => {
@@ -53,6 +59,8 @@ export default function Page() {
       audio.start();
       audio.setEnabled(sound);
       audio.setMusicEnabled(music);
+      audio.setSoundVolume(soundVolume);
+      audio.setMusicVolume(musicVolume);
     };
     window.addEventListener('pointerdown', startAudio, { once: true });
     window.addEventListener('keydown', startAudio, { once: true });
@@ -60,7 +68,7 @@ export default function Page() {
       window.removeEventListener('pointerdown', startAudio);
       window.removeEventListener('keydown', startAudio);
     };
-  }, [sound, music]);
+  }, [sound, music, soundVolume, musicVolume]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -172,17 +180,37 @@ export default function Page() {
   const toggleSound = useCallback(() => {
     const next = !sound;
     setSound(next);
-    saveSettings({ sound: next, music });
+    saveSettings({ sound: next, music, soundVolume, musicVolume });
     audio.setEnabled(next);
     if (next) audio.click();
-  }, [sound, music]);
+  }, [sound, music, soundVolume, musicVolume]);
 
   const toggleMusic = useCallback(() => {
     const next = !music;
     setMusic(next);
-    saveSettings({ sound, music: next });
+    saveSettings({ sound, music: next, soundVolume, musicVolume });
     audio.setMusicEnabled(next);
-  }, [sound, music]);
+  }, [sound, music, soundVolume, musicVolume]);
+
+  const changeSoundVolume = useCallback(
+    (value: number) => {
+      const v = Math.min(1, Math.max(0, value));
+      setSoundVolume(v);
+      audio.setSoundVolume(v);
+      saveSettings({ sound, music, soundVolume: v, musicVolume });
+    },
+    [sound, music, musicVolume],
+  );
+
+  const changeMusicVolume = useCallback(
+    (value: number) => {
+      const v = Math.min(1, Math.max(0, value));
+      setMusicVolume(v);
+      audio.setMusicVolume(v);
+      saveSettings({ sound, music, soundVolume, musicVolume: v });
+    },
+    [sound, music, soundVolume],
+  );
 
   return (
     <Monoblock
@@ -203,6 +231,10 @@ export default function Page() {
           onToggleSound={toggleSound}
           onToggleMusic={toggleMusic}
           music={music}
+          soundVolume={soundVolume}
+          musicVolume={musicVolume}
+          onSoundVolume={changeSoundVolume}
+          onMusicVolume={changeMusicVolume}
           onReset={handleReset}
         />
       )}

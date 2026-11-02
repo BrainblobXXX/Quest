@@ -639,3 +639,48 @@ body {
   text-shadow: none;
   text-decoration: line-through;
 }
+
+.volume-group { margin-bottom: 10px; }
+.volume-row { display: flex; align-items: center; gap: 12px; padding: 2px 18px 0; }
+.volume-value { flex: 0 0 44px; font-size: 12px; color: #b08a3a; text-align: right; }
+
+.volume {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1 1 auto;
+  height: 14px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.volume::-webkit-slider-runnable-track {
+  height: 4px;
+  background: rgba(255, 176, 0, 0.25);
+  border: 1px solid rgba(255, 176, 0, 0.35);
+}
+
+.volume::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 16px;
+  margin-top: -7px;
+  background: var(--amber);
+  border: 1px solid #1a0e00;
+  box-shadow: 0 0 6px rgba(255, 176, 0, 0.5);
+}
+
+.volume::-moz-range-track {
+  height: 4px;
+  background: rgba(255, 176, 0, 0.25);
+  border: 1px solid rgba(255, 176, 0, 0.35);
+}
+
+.volume::-moz-range-thumb {
+  width: 12px;
+  height: 16px;
+  background: var(--amber);
+  border: 1px solid #1a0e00;
+  border-radius: 0;
+}
+
+.volume:focus-visible { outline: 1px solid var(--amber); outline-offset: 2px; }

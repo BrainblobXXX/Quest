@@ -10,7 +10,9 @@ class AudioEngine {
   private musicUrl: string | null = null;
   private musicFade: number | null = null;
   private pendingMusic: string | null = null;
-  private readonly musicVolume = 0.35;
+  private readonly musicMax = 0.5;
+  private musicVolume = 0.7;
+  private soundVolume = 1;
   private musicEnabled = true;
 
   get isEnabled() {
@@ -38,8 +40,27 @@ class AudioEngine {
       if (this.music) this.music.volume = 0;
     } else if (this.ctx) {
       this.startHum();
-      if (this.music) this.music.volume = this.musicVolume;
+      if (this.music) this.music.volume = this.currentMusicVolume();
     }
+  }
+
+  /** 0..1, влияет на гул, щелчки и писк */
+  setSoundVolume(value: number): void {
+    this.soundVolume = Math.min(1, Math.max(0, value));
+    if (this.humGain) {
+      this.humGain.gain.value = this.enabled ? 0.015 * this.soundVolume : 0;
+    }
+  }
+
+  /** 0..1, влияет только на музыку */
+  setMusicVolume(value: number): void {
+    this.musicVolume = Math.min(1, Math.max(0, value));
+    if (this.music) this.music.volume = this.currentMusicVolume();
+  }
+
+  private currentMusicVolume(): number {
+    if (!this.enabled || !this.musicEnabled) return 0;
+    return this.musicVolume * this.musicMax;
   }
 
   /**
@@ -70,7 +91,7 @@ class AudioEngine {
     if (this.musicEnabled) void next.play().catch(() => {});
     this.music = next;
 
-    const target = this.enabled ? this.musicVolume : 0;
+    const target = this.currentMusicVolume();
     const startPrev = prev?.volume ?? 0;
     const steps = 30;
     const dt = Math.max(20, (fade * 1000) / steps);
@@ -97,6 +118,7 @@ class AudioEngine {
     if (!on) {
       this.music?.pause();
     } else if (this.music) {
+      this.music.volume = this.currentMusicVolume();
       void this.music.play().catch(() => {});
     }
   }
@@ -122,7 +144,7 @@ class AudioEngine {
     const gain = ctx.createGain();
     osc.type = 'sine';
     osc.frequency.value = 55;
-    gain.gain.value = this.enabled ? 0.015 : 0;
+    gain.gain.value = this.enabled ? 0.015 * this.soundVolume : 0;
     osc.connect(gain).connect(ctx.destination);
     osc.start();
     this.humGain = gain;
@@ -140,7 +162,7 @@ class AudioEngine {
     const gain = ctx.createGain();
     osc.type = 'square';
     osc.frequency.value = 180;
-    gain.gain.setValueAtTime(0.05, ctx.currentTime);
+    gain.gain.setValueAtTime(0.05 * this.soundVolume, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.05);
     osc.connect(gain).connect(ctx.destination);
     osc.start();
@@ -154,7 +176,7 @@ class AudioEngine {
     const gain = ctx.createGain();
     osc.type = 'square';
     osc.frequency.value = 880;
-    gain.gain.setValueAtTime(0.06, ctx.currentTime);
+    gain.gain.setValueAtTime(0.06 * this.soundVolume, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.12);
     osc.connect(gain).connect(ctx.destination);
     osc.start();

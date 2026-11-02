@@ -8,9 +8,13 @@ export default function Library({
   saves,
   sound,
   music,
+  soundVolume,
+  musicVolume,
   onStart,
   onToggleSound,
   onToggleMusic,
+  onSoundVolume,
+  onMusicVolume,
   onReset,
 }: {
   games: GameIndexEntry[];
@@ -20,6 +24,10 @@ export default function Library({
   onStart: (id: string) => void;
   onToggleSound: () => void;
   onToggleMusic: () => void;
+  soundVolume: number;
+  musicVolume: number;
+  onSoundVolume: (value: number) => void;
+  onMusicVolume: (value: number) => void;
   onReset: (id: string) => void;
 }) {
   const [confirmReset, setConfirmReset] = useState<string | null>(null);
@@ -71,12 +79,41 @@ export default function Library({
       ))}
 
       <div style={{ marginTop: 18 }}>
-        <button className="list-item" onClick={onToggleSound}>
-          ЗВУК: {sound ? 'ВКЛ' : 'ВЫКЛ'}
-        </button>
-        <button className="list-item" onClick={onToggleMusic}>
-          МУЗЫКА: {music ? 'ВКЛ' : 'ВЫКЛ'}
-        </button>
+        <div className="volume-group">
+          <button className="list-item" onClick={onToggleSound}>
+            ЗВУК: {sound ? 'ВКЛ' : 'ВЫКЛ'}
+          </button>
+          <div className="volume-row">
+            <input
+              className="volume"
+              type="range"
+              min={0}
+              max={100}
+              value={Math.round(soundVolume * 100)}
+              onChange={(e) => onSoundVolume(Number(e.target.value) / 100)}
+              aria-label="Громкость звука"
+            />
+            <span className="volume-value">{Math.round(soundVolume * 100)}%</span>
+          </div>
+        </div>
+
+        <div className="volume-group">
+          <button className="list-item" onClick={onToggleMusic}>
+            МУЗЫКА: {music ? 'ВКЛ' : 'ВЫКЛ'}
+          </button>
+          <div className="volume-row">
+            <input
+              className="volume"
+              type="range"
+              min={0}
+              max={100}
+              value={Math.round(musicVolume * 100)}
+              onChange={(e) => onMusicVolume(Number(e.target.value) / 100)}
+              aria-label="Громкость музыки"
+            />
+            <span className="volume-value">{Math.round(musicVolume * 100)}%</span>
+          </div>
+        </div>
       </div>
 
       <div className="hint">
