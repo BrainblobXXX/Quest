@@ -7,6 +7,7 @@ import Library from '@/components/screens/Library';
 import GameScreen from '@/components/screens/GameScreen';
 import ErrorScreen from '@/components/screens/ErrorScreen';
 import { audio } from '@/lib/audio';
+import { trackFor } from '@/lib/music';
 import { loadGame, loadIndex } from '@/lib/games';
 import { advance, choose, newState } from '@/lib/engine';
 import { clearSave, loadSave, saveState, loadSettings, saveSettings } from '@/lib/storage';
@@ -76,12 +77,22 @@ export default function Page() {
 
   refreshSavesRef.current = refreshSaves;
 
+  // музыка по настроению сцены
+  useEffect(() => {
+    if (!game || !state) return;
+    const scene = game.scenes[state.scene];
+    if (!scene) return;
+    const track = trackFor(game, scene);
+    if (track) audio.playMusic(`/games/${game.id}/${track}`);
+  }, [game, state]);
+
   const startGame = useCallback(async (id: string) => {
     try {
       const g = await loadGame(id);
       const save = loadSave(id);
       const valid = save && save.format === g.format && save.game === g.id && g.scenes[save.scene];
       const next = valid ? save : newState(g);
+      audio.stopMusic();
       audio.click();
       setGame(g);
       setState(next);
@@ -132,6 +143,7 @@ export default function Page() {
       clearSave(id);
       audio.click();
       if (game?.id === id) {
+        audio.stopMusic();
         setState(null);
         setGame(null);
       }

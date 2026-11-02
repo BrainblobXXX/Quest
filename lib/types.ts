@@ -17,11 +17,15 @@ export type Choice = {
 
 export type RollOutcome = { min?: number; goto: string };
 
+export type MoodTracks = string | string[];
+
 export type Scene = {
   key: string;
   title: string;
   text: string;
   image?: string;
+  mood?: string;
+  music?: string;
   choices?: Choice[];
   next?: string | { roll: string; outcomes: RollOutcome[] };
   ending?: boolean;
@@ -36,6 +40,7 @@ export type Game = {
   start: string;
   startItems?: Record<string, number>;
   items?: Record<string, ItemDef>;
+  moods?: Record<string, MoodTracks>;
   scenes: Record<string, Scene>;
 };
 

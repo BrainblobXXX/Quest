@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { availableChoices, advance, choose, inventoryLine, isEnding, newState, sceneOf } from '../lib/engine';
+import { trackFor } from '../lib/music';
 import type { Game } from '../lib/types';
 
 const game: Game = JSON.parse(readFileSync('public/games/cave.json', 'utf8'));
@@ -39,6 +40,18 @@ const linear = { ...s, scene: '6' };
 const after = advance(game, linear);
 ok('бросок уводит в 4 или 5', ['4', '5'].includes(after.scene));
 ok('название сцены есть', sceneOf(game, after).title.length > 0);
+
+// музыка по настроению
+const scene1 = game.scenes['1'];
+ok('трек по настроению сцены', trackFor(game, scene1) === 'assets/audio/calm.wav');
+ok('сцена без mood не меняет музыку', trackFor(game, { ...scene1, mood: undefined }) === null);
+ok(
+  'music важнее mood',
+  trackFor(game, { ...scene1, music: 'assets/audio/x.ogg' }) === 'assets/audio/x.ogg',
+);
+const listGame: Game = { ...game, moods: { calm: ['a.ogg', 'b.ogg'] } };
+const picked = trackFor(listGame, { ...scene1, mood: 'calm' });
+ok('список треков даёт один из вариантов', picked === 'a.ogg' || picked === 'b.ogg');
 
 console.log(fail.length ? `\nПРОВАЛЕНО: ${fail.length}` : '\nВСЕ ПРОВЕРКИ ПРОЙДЕНЫ');
 process.exit(fail.length ? 1 : 0);

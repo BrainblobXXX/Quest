@@ -101,6 +101,7 @@ function buildPackage(id) {
     scene.title = m.title ?? `Глава ${key}`;
     if (m.image) scene.image = m.image;
     if (m.music) scene.music = m.music;
+    if (m.mood) scene.mood = m.mood;
     if (m.ending) scene.ending = true;
     if (m.next) scene.next = m.next;
     if (m.on_enter) warn(pkg, `сцена ${key}: on_enter не поддерживается движком MVP`);
@@ -115,6 +116,23 @@ function buildPackage(id) {
       items = parseYaml(readFileSync(join(dir, manifest.items), 'utf8')).items ?? {};
     } catch (e) {
       fail(pkg, `${manifest.items} не читается: ${e.message}`);
+    }
+  }
+
+  const moods = manifest.moods ?? {};
+  for (const [key, value] of Object.entries(moods)) {
+    const files = Array.isArray(value) ? value : [value];
+    for (const f of files) {
+      if (typeof f !== 'string' || !f.trim()) fail(pkg, `moods.${key}: пустой путь к треку`);
+      else if (!existsSync(join(dir, f))) fail(pkg, `moods.${key}: нет файла «${f}»`);
+    }
+  }
+  for (const [key, scene] of Object.entries(scenes)) {
+    if (scene.mood && !moods[scene.mood]) {
+      fail(pkg, `сцена ${key}: mood «${scene.mood}» не объявлен в moods`);
+    }
+    if (scene.music && !existsSync(join(dir, scene.music))) {
+      fail(pkg, `сцена ${key}: нет файла музыки «${scene.music}»`);
     }
   }
 
@@ -190,6 +208,7 @@ function buildPackage(id) {
     start: String(manifest.start),
     startItems,
     items,
+    moods,
     scenes: Object.fromEntries(Object.entries(scenes).map(([k, s]) => [k, { ...s, key: k }])),
     dir,
   };
