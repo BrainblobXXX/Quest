@@ -6,11 +6,15 @@ import type { Game, Scene } from './types';
  * - mood без трека в moods — ошибка сборки, здесь просто ничего не меняем;
  * - несколько треков на настроение выбираются случайно (расширение поверх MVP).
  */
-export function trackFor(game: Game, scene: Scene): string | null {
-  if (scene.music) return scene.music;
-  if (!scene.mood) return null;
-  const value = game.moods?.[scene.mood];
+function trackOf(game: Game, mood: string | null | undefined): string | null {
+  if (!mood) return null;
+  const value = game.moods?.[mood];
   if (!value) return null;
   if (Array.isArray(value)) return value.length ? value[Math.floor(Math.random() * value.length)] : null;
   return value;
+}
+
+export function trackFor(game: Game, scene: Scene): string | null {
+  if (scene.music) return scene.music;
+  return trackOf(game, scene.mood) ?? trackOf(game, game.defaultMood) ?? null;
 }

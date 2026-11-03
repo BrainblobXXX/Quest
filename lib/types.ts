@@ -41,6 +41,7 @@ export type Game = {
   startItems?: Record<string, number>;
   items?: Record<string, ItemDef>;
   moods?: Record<string, MoodTracks>;
+  defaultMood?: string | null;
   scenes: Record<string, Scene>;
 };
 

@@ -119,6 +119,7 @@ function buildPackage(id) {
     }
   }
 
+  const defaultMood = manifest.default_mood ?? null;
   const moods = manifest.moods ?? {};
   for (const [key, value] of Object.entries(moods)) {
     // null — настроение объявлено по плану soundtrack.md, трека пока нет
@@ -128,6 +129,9 @@ function buildPackage(id) {
       if (typeof f !== 'string' || !f.trim()) fail(pkg, `moods.${key}: пустой путь к треку`);
       else if (!existsSync(join(dir, f))) fail(pkg, `moods.${key}: нет файла «${f}»`);
     }
+  }
+  if (defaultMood && !(defaultMood in moods)) {
+    fail(pkg, `default_mood «${defaultMood}» не объявлен в moods`);
   }
   for (const [key, scene] of Object.entries(scenes)) {
     if (scene.mood && !(scene.mood in moods)) {
@@ -211,6 +215,7 @@ function buildPackage(id) {
     startItems,
     items,
     moods,
+    defaultMood,
     scenes: Object.fromEntries(Object.entries(scenes).map(([k, s]) => [k, { ...s, key: k }])),
     dir,
   };
