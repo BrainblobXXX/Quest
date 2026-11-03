@@ -154,15 +154,20 @@ export function roll(dice: string): number {
   return sum;
 }
 
-export function advance(game: Game, state: GameState): GameState {
+export function resolveRoll(game: Game, state: GameState, value: number): GameState {
   const scene = sceneOf(game, state);
-  if (!scene.next) throw new Error('E_NO_NEXT');
-  if (typeof scene.next === 'string') return goTo(state, scene.next);
-  const value = roll(scene.next.roll);
+  if (!scene.next || typeof scene.next === 'string') throw new Error('E_NO_DICE');
   const outcome =
     scene.next.outcomes.find((o) => o.min !== undefined && value >= o.min) ??
     scene.next.outcomes[scene.next.outcomes.length - 1];
   return goTo(state, outcome.goto);
+}
+
+export function advance(game: Game, state: GameState): GameState {
+  const scene = sceneOf(game, state);
+  if (!scene.next) throw new Error('E_NO_NEXT');
+  if (typeof scene.next === 'string') return goTo(state, scene.next);
+  return resolveRoll(game, state, roll(scene.next.roll));
 }
 
 export function isEnding(game: Game, state: GameState): boolean {

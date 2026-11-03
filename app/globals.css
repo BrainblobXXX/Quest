@@ -684,3 +684,67 @@ body {
 }
 
 .volume:focus-visible { outline: 1px solid var(--amber); outline-offset: 2px; }
+
+
+/* ── бросок монеты и кубика ─────────────────────────────── */
+
+.roll-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: rgba(26, 14, 0, 0.55);
+}
+
+.roll-coin,
+.roll-die {
+  width: 96px;
+  height: 96px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--amber);
+  color: var(--amber);
+  font-family: var(--mono);
+  font-size: 40px;
+  text-shadow: 0 0 12px rgba(255, 176, 0, 0.6);
+  box-shadow: 0 0 22px rgba(255, 176, 0, 0.35), inset 0 0 18px rgba(255, 176, 0, 0.18);
+  background: radial-gradient(circle at 50% 40%, rgba(255, 176, 0, 0.18), rgba(26, 14, 0, 0.9));
+}
+
+.roll-coin {
+  border-radius: 50%;
+  animation: coin-flip 1.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.roll-die {
+  border-radius: 8px;
+  animation: die-roll 1.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.roll-caption {
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: var(--amber);
+  text-shadow: 0 0 8px rgba(255, 176, 0, 0.45);
+}
+
+@keyframes coin-flip {
+  0% { transform: rotateY(0) scale(0.6); }
+  60% { transform: rotateY(1080deg) scale(1.15); }
+  100% { transform: rotateY(1440deg) scale(1); }
+}
+
+@keyframes die-roll {
+  0% { transform: rotate(0) translateY(-46px) scale(0.7); }
+  55% { transform: rotate(520deg) translateY(8px) scale(1.12); }
+  78% { transform: rotate(670deg) translateY(-8px) scale(0.98); }
+  100% { transform: rotate(720deg) translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .roll-coin, .roll-die { animation-duration: 0.25s; }
+}

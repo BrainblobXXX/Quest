@@ -9,7 +9,7 @@ import ErrorScreen from '@/components/screens/ErrorScreen';
 import { audio } from '@/lib/audio';
 import { trackFor } from '@/lib/music';
 import { loadGame, loadIndex } from '@/lib/games';
-import { advance, choose, newState } from '@/lib/engine';
+import { advance, choose, newState, resolveRoll } from '@/lib/engine';
 import { clearSave, loadSave, saveState, loadSettings, saveSettings } from '@/lib/storage';
 import type { Choice, Game, GameIndexEntry, GameState } from '@/lib/types';
 
@@ -127,13 +127,16 @@ export default function Page() {
     [game, state],
   );
 
-  const handleAdvance = useCallback(() => {
-    if (!game || !state) return;
-    audio.click();
-    const next = advance(game, state);
-    setState(next);
-    saveState(next);
-  }, [game, state]);
+  const handleAdvance = useCallback(
+    (value?: number) => {
+      if (!game || !state) return;
+      audio.click();
+      const next = value === undefined ? advance(game, state) : resolveRoll(game, state, value);
+      setState(next);
+      saveState(next);
+    },
+    [game, state],
+  );
 
   const handleRestart = useCallback(() => {
     if (!game) return;

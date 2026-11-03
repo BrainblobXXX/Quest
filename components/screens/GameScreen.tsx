@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { availableChoices, inventoryLine, isEnding, sceneOf } from '@/lib/engine';
+import { availableChoices, inventoryLine, isEnding, roll as rollDice, sceneOf } from '@/lib/engine';
+import { audio } from '@/lib/audio';
 import type { Choice, Game, GameState } from '@/lib/types';
 
 function assetUrl(game: Game, path: string): string {
@@ -41,7 +42,7 @@ export default function GameScreen({
   game: Game;
   state: GameState;
   onChoose: (choice: Choice) => void;
-  onAdvance: () => void;
+  onAdvance: (value?: number) => void;
   onRestart: () => void;
   music: boolean;
   onToggleMusic: () => void;
@@ -53,6 +54,28 @@ export default function GameScreen({
   const choices = availableChoices(game, state);
   const ending = isEnding(game, state);
   const hasNext = Boolean(scene.next);
+  const dice = !ending && scene.next && typeof scene.next === 'object' ? scene.next : null;
+  const isCoin = dice ? /d2$/i.test(dice.roll.trim()) : false;
+  const [rollView, setRollView] = useState<{ kind: 'coin' | 'dice'; value: number; phase: 'spin' | 'result' } | null>(null);
+  const [tick, setTick] = useState(0);
+  const rollTimers = useRef<number[]>([]);
+
+  const startRoll = () => {
+    if (!dice || rollView) return;
+    const value = rollDice(dice.roll);
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const spinMs = reduced ? 250 : 1300;
+    const resultMs = reduced ? 500 : 900;
+    setRollView({ kind: isCoin ? 'coin' : 'dice', value, phase: 'spin' });
+    audio.click();
+    rollTimers.current.push(
+      window.setTimeout(() => setRollView((r) => (r ? { ...r, phase: 'result' } : r)), spinMs),
+      window.setTimeout(() => {
+        setRollView(null);
+        onAdvance(value);
+      }, spinMs + resultMs),
+    );
+  };
 
   useEffect(() => {
     setInvOpen(false);
@@ -70,19 +93,40 @@ export default function GameScreen({
   };
 
   useEffect(() => {
+    setRollView(null);
+    for (const id of rollTimers.current) window.clearTimeout(id);
+    rollTimers.current = [];
+  }, [scene.key]);
+
+  useEffect(() => {
+    if (!rollView || rollView.phase !== 'spin') return;
+    const id = window.setInterval(() => setTick((t) => t + 1), 90);
+    return () => window.clearInterval(id);
+  }, [rollView?.phase]);
+
+  useEffect(() => () => {
+    for (const id of rollTimers.current) window.clearTimeout(id);
+  }, []);
+
+  useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') return;
-      if (ending) return;
+      if (e.key === 'Escape' || ending) return;
+      if (rollView) return;
       if (/^[1-9]$/.test(e.key)) {
+        if (dice) {
+          if (e.key === '1') startRoll();
+          return;
+        }
         const choice = choices[Number(e.key) - 1];
         if (choice) onChoose(choice);
       } else if (e.key === 'Enter' && hasNext) {
-        onAdvance();
+        if (dice) startRoll();
+        else onAdvance();
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [choices, ending, hasNext, onChoose, onAdvance]);
+  }, [choices, ending, hasNext, onChoose, onAdvance, dice, rollView]);
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -139,11 +183,46 @@ export default function GameScreen({
         </div>
       )}
 
-      {!ending && choices.length === 0 && hasNext && (
+      {!ending && choices.length === 0 && hasNext && !dice && (
         <div className="choices">
-          <button className="choice" onClick={onAdvance}>
+          <button className="choice" onClick={() => onAdvance()}>
             1. ДАЛЕЕ
           </button>
+        </div>
+      )}
+
+      {!ending && dice && !rollView && (
+        <div className="choices">
+          <button className="choice" onClick={startRoll}>
+            1. {isCoin ? 'БРОСИТЬ МОНЕТКУ' : 'БРОСИТЬ КУБИК'}
+          </button>
+        </div>
+      )}
+
+      {rollView && (
+        <div className="roll-stage">
+          <div className={rollView.kind === 'coin' ? 'roll-coin' : 'roll-die'}>
+            {rollView.kind === 'coin'
+              ? rollView.phase === 'result'
+                ? rollView.value === 1
+                  ? 'О'
+                  : 'Р'
+                : '◉'
+              : rollView.phase === 'result'
+                ? rollView.value
+                : 1 + (tick % 6)}
+          </div>
+          <div className="roll-caption">
+            {rollView.phase === 'result'
+              ? rollView.kind === 'coin'
+                ? rollView.value === 1
+                  ? 'ОРЁЛ'
+                  : 'РЕШКА'
+                : `ВЫПАЛО ${rollView.value}`
+              : rollView.kind === 'coin'
+                ? 'БРОСАЕМ МОНЕТУ…'
+                : 'БРОСАЕМ КУБИК…'}
+          </div>
         </div>
       )}
 

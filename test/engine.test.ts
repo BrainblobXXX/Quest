@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { availableChoices, advance, choose, inventoryLine, isEnding, newState, sceneOf } from '../lib/engine';
+import { availableChoices, advance, choose, inventoryLine, isEnding, newState, resolveRoll, sceneOf } from '../lib/engine';
 import { trackFor } from '../lib/music';
 import type { Game } from '../lib/types';
 
@@ -40,6 +40,11 @@ const linear = { ...s, scene: '6' };
 const after = advance(game, linear);
 ok('бросок уводит в 4 или 5', ['4', '5'].includes(after.scene));
 ok('название сцены есть', sceneOf(game, after).title.length > 0);
+
+// фиксированный бросок
+const diceState = { ...s, scene: '6' };
+ok('бросок 6 уводит в 4', resolveRoll(game, diceState, 6).scene === '4');
+ok('бросок 1 уводит в 5', resolveRoll(game, diceState, 1).scene === '5');
 
 // музыка по настроению
 const scene1 = game.scenes['1'];

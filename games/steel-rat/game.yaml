@@ -163,11 +163,11 @@ scenes:
     title: Глава 34
     mood: tense
     next:
-      roll: 1d6
+      roll: 1d2
       outcomes:
-      - min: 4
-        goto: '32'
-      - goto: '118'
+      - min: 2
+        goto: '118'
+      - goto: '32'
   '35':
     title: Глава 35
     mood: calm
@@ -421,11 +421,11 @@ scenes:
     title: Глава 99
     mood: tense
     next:
-      roll: 1d6
+      roll: 1d2
       outcomes:
-      - min: 4
-        goto: '189'
-      - goto: '106'
+      - min: 2
+        goto: '106'
+      - goto: '189'
   '100':
     title: Глава 100
     mood: tense
@@ -507,11 +507,11 @@ scenes:
     title: Глава 121
     mood: tense
     next:
-      roll: 1d6
+      roll: 1d2
       outcomes:
-      - min: 4
-        goto: '37'
-      - goto: '18'
+      - min: 2
+        goto: '18'
+      - goto: '37'
   '122':
     title: Глава 122
     mood: tense
@@ -520,11 +520,11 @@ scenes:
     title: Глава 123
     mood: calm
     next:
-      roll: 1d6
+      roll: 1d2
       outcomes:
-      - min: 4
-        goto: '191'
-      - goto: '17'
+      - min: 2
+        goto: '17'
+      - goto: '191'
   '124':
     title: Глава 124
     mood: tense
@@ -787,11 +787,11 @@ scenes:
     title: Глава 188
     mood: danger
     next:
-      roll: 1d6
+      roll: 1d2
       outcomes:
-      - min: 4
-        goto: '267'
-      - goto: '150'
+      - min: 2
+        goto: '150'
+      - goto: '267'
   '189':
     title: Глава 189
     mood: danger
@@ -829,20 +829,20 @@ scenes:
     title: Глава 198
     mood: victory
     next:
-      roll: 1d6
+      roll: 1d2
       outcomes:
-      - min: 4
-        goto: '28'
-      - goto: '196'
+      - min: 2
+        goto: '196'
+      - goto: '28'
   '199':
     title: Глава 199
     mood: danger
     next:
-      roll: 1d6
+      roll: 1d2
       outcomes:
-      - min: 4
-        goto: '117'
-      - goto: '327'
+      - min: 2
+        goto: '327'
+      - goto: '117'
   '200':
     title: Глава 200
     mood: tense
@@ -1076,11 +1076,11 @@ scenes:
     title: Глава 261
     mood: calm
     next:
-      roll: 1d6
+      roll: 1d2
       outcomes:
-      - min: 4
-        goto: '190'
-      - goto: '277'
+      - min: 2
+        goto: '277'
+      - goto: '190'
   '262':
     title: Глава 262
     mood: tense
@@ -1158,20 +1158,20 @@ scenes:
     title: Глава 282
     mood: calm
     next:
-      roll: 1d6
+      roll: 1d2
       outcomes:
-      - min: 4
-        goto: '209'
-      - goto: '233'
+      - min: 2
+        goto: '233'
+      - goto: '209'
   '283':
     title: Глава 283
     mood: tense
     next:
-      roll: 1d6
+      roll: 1d2
       outcomes:
-      - min: 4
-        goto: '274'
-      - goto: '243'
+      - min: 2
+        goto: '243'
+      - goto: '274'
   '284':
     title: Глава 284
     mood: calm
