@@ -5,6 +5,11 @@ author: Гарри Гаррисон
 language: ru
 start: '0'
 story: story.md
+items: items.yaml
+start_items:
+  sword: 1
+  smoke_grenades: 2
+  sleep_grenades: 2
 moods:
   intro: assets/audio/intro.mp3
   calm: null
@@ -1424,3 +1429,7 @@ scenes:
   '350':
     title: Глава 350
     mood: tense
+  gg_no_grenades:
+    title: 'Конец: без гранат'
+    mood: danger
+    ending: true
