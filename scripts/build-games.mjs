@@ -121,6 +121,8 @@ function buildPackage(id) {
 
   const moods = manifest.moods ?? {};
   for (const [key, value] of Object.entries(moods)) {
+    // null — настроение объявлено по плану soundtrack.md, трека пока нет
+    if (value === null) continue;
     const files = Array.isArray(value) ? value : [value];
     for (const f of files) {
       if (typeof f !== 'string' || !f.trim()) fail(pkg, `moods.${key}: пустой путь к треку`);
@@ -128,7 +130,7 @@ function buildPackage(id) {
     }
   }
   for (const [key, scene] of Object.entries(scenes)) {
-    if (scene.mood && !moods[scene.mood]) {
+    if (scene.mood && !(scene.mood in moods)) {
       fail(pkg, `сцена ${key}: mood «${scene.mood}» не объявлен в moods`);
     }
     if (scene.music && !existsSync(join(dir, scene.music))) {

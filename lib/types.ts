@@ -17,7 +17,7 @@ export type Choice = {
 
 export type RollOutcome = { min?: number; goto: string };
 
-export type MoodTracks = string | string[];
+export type MoodTracks = string | string[] | null;
 
 export type Scene = {
   key: string;

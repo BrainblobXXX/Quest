@@ -49,6 +49,8 @@ ok(
   'music важнее mood',
   trackFor(game, { ...scene1, music: 'assets/audio/x.ogg' }) === 'assets/audio/x.ogg',
 );
+const plannedGame: Game = { ...game, moods: { calm: null } };
+ok('настроение без трека молчит', trackFor(plannedGame, { ...scene1, mood: 'calm' }) === null);
 const listGame: Game = { ...game, moods: { calm: ['a.ogg', 'b.ogg'] } };
 const picked = trackFor(listGame, { ...scene1, mood: 'calm' });
 ok('список треков даёт один из вариантов', picked === 'a.ogg' || picked === 'b.ogg');
