@@ -22,16 +22,28 @@ const warn = (pkg, msg) => warnings.push(`${pkg}: ${msg}`);
 
 const CHOICE_RE = /^- \[(?<label>.+?)\]\((?<target>[^)\s]+)\)\s*(?:\{(?<mods>.*)\})?\s*$/;
 
+function parseMods(pkg, key, raw) {
+  const mods = {};
+  if (!raw) return mods;
+  for (const part of raw.split(',')) {
+    const kv = /^\s*(\w+)\s*:\s*(.+?)\s*$/.exec(part);
+    if (!kv) { fail(pkg, `сцена ${key}: не разобран модификатор «${part.trim()}»`); continue; }
+    mods[kv[1]] = kv[2];
+  }
+  return mods;
+}
+
 function parseStory(pkg, md) {
   const scenes = {};
   let key = null;
   let buffer = [];
   let choices = null;
+  let markers = [];
 
   const flush = () => {
     if (key === null) return;
     const text = buffer.join('\n').trim();
-    scenes[key] = { key, text, choices: choices ?? [] };
+    scenes[key] = { key, text, choices: choices ?? [], markers };
   };
 
   for (const raw of md.split('\n')) {
@@ -42,6 +54,7 @@ function parseStory(pkg, md) {
       key = heading[1];
       buffer = [];
       choices = null;
+      markers = [];
       if (scenes[key]) fail(pkg, `дубль сцены «${key}»`);
       continue;
     }
@@ -49,17 +62,15 @@ function parseStory(pkg, md) {
       if (line.trim()) fail(pkg, `текст до первой сцены: «${line.slice(0, 40)}»`);
       continue;
     }
+    const vm = /^Вариант\s+([А-ЯЁA-Z])\s*(?:\{([^}]*)\})?\s*$/.exec(line.trim());
+    if (vm) {
+      markers.push({ letter: vm[1], mods: parseMods(pkg, key, vm[2]) });
+      continue;
+    }
     const m = CHOICE_RE.exec(line.trim());
     if (m) {
       if (choices === null) choices = [];
-      const mods = {};
-      if (m.groups.mods) {
-        for (const part of m.groups.mods.split(',')) {
-          const kv = /^\s*(\w+)\s*:\s*(.+?)\s*$/.exec(part);
-          if (!kv) { fail(pkg, `сцена ${key}: не разобран модификатор «${part.trim()}»`); continue; }
-          mods[kv[1]] = kv[2];
-        }
-      }
+      const mods = parseMods(pkg, key, m.groups.mods);
       choices.push({ label: m.groups.label, goto: m.groups.target, ...mods });
       continue;
     }
@@ -108,6 +119,53 @@ function buildPackage(id) {
   }
   for (const key of Object.keys(meta)) {
     if (!scenes[key]) fail(pkg, `в game.yaml есть сцена «${key}», а в story.md её нет`);
+  }
+
+  // аннотированный story.md: {А}…{/А} + [А], цели в meta.scenes[k].variants
+  for (const [key, scene] of Object.entries(scenes)) {
+    const variants = meta[key]?.variants;
+    if (!variants) continue;
+    const tags = [...scene.text.matchAll(/\{([А-ЯЁA-Z])\}([\s\S]*?)\{\/\1\}/g)];
+    const letters = Object.keys(variants);
+    if (!tags.length) fail(pkg, `сцена ${key}: есть variants, но нет тегов {А}…{/А}`);
+    scene.choices = tags.map((t) => {
+      const letter = t[1];
+      const target = variants[letter];
+      if (!target) fail(pkg, `сцена ${key}: для тега ${letter} нет цели в variants`);
+      let label = t[2]
+        .replace(/\s*(?:на|в|к|с|от|до|из|по|за)?\s*\[[А-ЯЁA-Z]\]/g, ' ')
+        .replace(/\s+/g, ' ').trim()
+        .replace(/^(?:Если|Или|А если|Если же|Или же)\s+/i, '')
+        .replace(/^(?:Решай|Реши|Выбирай|Смотри)\s*,?\s*/i, '')
+        .replace(/(?:^|[,\s])то(?=[,\s]|$)\s*.*$/i, '')
+        .replace(/[\s,]+$/, '');
+      if (label) label = label[0].toUpperCase() + label.slice(1);
+      label = label.replace(/^[А-ЯЁ]/, (c) => c.toUpperCase());
+      label = label.replace(/[\s,;:—–-]+$/, '').replace(/^(?:Если|Или|А если|Если же|Или же)[,\s]+/i, '');
+      if (label.length > 70) {
+        const cut = Math.max(label.lastIndexOf(',', 70), label.lastIndexOf(' ', 70));
+        label = (cut > 20 ? label.slice(0, cut) : label.slice(0, 70)).trim();
+        label = label.replace(/[\s,]+$/, '');
+      }
+      if (label) label = label[0].toUpperCase() + label.slice(1);
+      if (!label) label = `Вариант ${letter}`;
+      return { label, goto: String(target) };
+    });
+    const modsByLetter = Object.fromEntries(scene.markers.map((m) => [m.letter, m.mods]));
+    scene.choices.forEach((c, i) => Object.assign(c, modsByLetter[tags[i][1]] || {}));
+    const tagLetters = new Set(tags.map((t) => t[1]));
+    for (const l of letters) {
+      if (!tagLetters.has(l)) fail(pkg, `сцена ${key}: variants.${l} без тега {${l}}…{/${l}}`);
+    }
+    for (const m of scene.text.matchAll(/\[([А-ЯЁA-Z])\]/g)) {
+      if (!variants[m[1]]) fail(pkg, `сцена ${key}: отсылка [${m[1]}] без цели в variants`);
+    }
+    scene.text = scene.text
+      .replace(/\{([А-ЯЁA-Z])\}([\s\S]*?)\{\/\1\}/g, '$2')
+      .replace(/\s+(?:на|в|к)\s*\[([А-ЯЁA-Z])\]/g, '')
+      .replace(/\s*\[([А-ЯЁA-Z])\]/g, '')
+      .replace(/\s*([.,!?;:])\s*/g, '$1 ')
+      .replace(/\s+/g, ' ').trim();
   }
 
   let items = {};
