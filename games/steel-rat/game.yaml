@@ -138,7 +138,7 @@ scenes:
     title: Глава 21
     mood: calm
     next: '80'
-    image: assets/illustrations/city.jpg
+    image: assets/illustrations/arena.jpg
   '22':
     title: Глава 22
     mood: calm
@@ -365,7 +365,7 @@ scenes:
     title: Глава 59
     mood: calm
     next: '80'
-    image: assets/illustrations/city.jpg
+    image: assets/illustrations/arena.jpg
   '60':
     title: Глава 60
     mood: tense
@@ -484,7 +484,7 @@ scenes:
       Г: '159'
       Д: '21'
       Е: '168'
-    image: assets/illustrations/city.jpg
+    image: assets/illustrations/arena.jpg
   '81':
     title: Глава 81
     mood: tense
@@ -698,7 +698,7 @@ scenes:
     title: Глава 115
     mood: tense
     next: '96'
-    image: assets/illustrations/prison.jpg
+    image: assets/illustrations/mountains.jpg
   '116':
     title: Глава 116
     mood: danger
@@ -745,7 +745,7 @@ scenes:
     title: Глава 122
     mood: tense
     next: '333'
-    image: assets/illustrations/prison.jpg
+    image: assets/illustrations/mountains.jpg
   '123':
     title: Глава 123
     mood: calm
@@ -1258,12 +1258,12 @@ scenes:
     variants:
       А: '208'
       Б: '264'
-    image: assets/illustrations/prison.jpg
+    image: assets/illustrations/cave.jpg
   '204':
     title: Глава 204
     mood: tense
     next: '333'
-    image: assets/illustrations/prison.jpg
+    image: assets/illustrations/mountains.jpg
   '205':
     title: Глава 205
     mood: tense
@@ -1305,14 +1305,14 @@ scenes:
       А: '297'
       Б: '241'
       В: '281'
-    image: assets/illustrations/prison.jpg
+    image: assets/illustrations/mountains.jpg
   '212':
     title: Глава 212
     mood: tense
     variants:
       А: '240'
       Б: '296'
-    image: assets/illustrations/prison.jpg
+    image: assets/illustrations/mountains.jpg
   '213':
     title: Глава 213
     mood: calm
@@ -1339,7 +1339,7 @@ scenes:
     title: Глава 217
     mood: calm
     next: '300'
-    image: assets/illustrations/prison.jpg
+    image: assets/illustrations/mountains.jpg
   '218':
     title: Глава 218
     mood: tense
@@ -1357,7 +1357,7 @@ scenes:
       А: '240'
       Б: '235'
       В: '234'
-    image: assets/illustrations/prison.jpg
+    image: assets/illustrations/mountains.jpg
   '221':
     title: Глава 221
     mood: tense
@@ -1369,7 +1369,7 @@ scenes:
     variants:
       А: '228'
       Б: '235'
-    image: assets/illustrations/prison.jpg
+    image: assets/illustrations/mountains.jpg
   '223':
     title: Глава 223
     mood: calm
@@ -1402,12 +1402,12 @@ scenes:
       А: '253'
       Б: '341'
       В: '297'
-    image: assets/illustrations/prison.jpg
+    image: assets/illustrations/mountains.jpg
   '228':
     title: Глава 228
     mood: calm
     next: '222'
-    image: assets/illustrations/prison.jpg
+    image: assets/illustrations/mountains.jpg
   '229':
     title: Глава 229
     mood: calm
@@ -1441,14 +1441,14 @@ scenes:
     variants:
       А: '220'
       Б: '241'
-    image: assets/illustrations/prison.jpg
+    image: assets/illustrations/mountains.jpg
   '235':
     title: Глава 235
     mood: tense
     variants:
       А: '222'
       Б: '220'
-    image: assets/illustrations/prison.jpg
+    image: assets/illustrations/mountains.jpg
   '236':
     title: Глава 236
     mood: calm
@@ -1463,7 +1463,7 @@ scenes:
     title: Глава 238
     mood: calm
     next: '241'
-    image: assets/illustrations/prison.jpg
+    image: assets/illustrations/mountains.jpg
   '239':
     title: Глава 239
     mood: danger
@@ -1477,7 +1477,7 @@ scenes:
     variants:
       А: '220'
       Б: '212'
-    image: assets/illustrations/prison.jpg
+    image: assets/illustrations/mountains.jpg
   '241':
     title: Глава 241
     mood: calm
@@ -1485,7 +1485,7 @@ scenes:
       А: '234'
       Б: '211'
       В: '238'
-    image: assets/illustrations/prison.jpg
+    image: assets/illustrations/mountains.jpg
   '242':
     title: Глава 242
     mood: danger
@@ -1541,7 +1541,7 @@ scenes:
     title: Глава 251
     mood: tense
     next: '239'
-    image: assets/illustrations/castle.jpg
+    image: assets/illustrations/arena.jpg
   '252':
     title: Глава 252
     mood: calm
@@ -1635,7 +1635,7 @@ scenes:
     variants:
       А: '294'
       Б: '203'
-    image: assets/illustrations/prison.jpg
+    image: assets/illustrations/cave.jpg
   '265':
     title: Глава 265
     mood: danger
@@ -1732,7 +1732,7 @@ scenes:
     variants:
       А: '300'
       Б: '211'
-    image: assets/illustrations/prison.jpg
+    image: assets/illustrations/mountains.jpg
   '282':
     title: Глава 282
     mood: calm
@@ -1847,7 +1847,7 @@ scenes:
     variants:
       А: '227'
       Б: '211'
-    image: assets/illustrations/prison.jpg
+    image: assets/illustrations/mountains.jpg
   '298':
     title: Глава 298
     mood: calm
@@ -1864,7 +1864,7 @@ scenes:
     variants:
       А: '217'
       Б: '281'
-    image: assets/illustrations/prison.jpg
+    image: assets/illustrations/mountains.jpg
   '301':
     title: Глава 301
     mood: danger
@@ -2033,7 +2033,7 @@ scenes:
     title: Глава 330
     mood: calm
     next: '80'
-    image: assets/illustrations/city.jpg
+    image: assets/illustrations/arena.jpg
   '331':
     title: Глава 331
     mood: calm
@@ -2096,7 +2096,7 @@ scenes:
     title: Глава 341
     mood: calm
     next: '269'
-    image: assets/illustrations/prison.jpg
+    image: assets/illustrations/mountains.jpg
   '342':
     title: Глава 342
     mood: danger
