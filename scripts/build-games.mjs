@@ -6,6 +6,7 @@
  * Формат описан в QuestRules.md (вне репозитория), пайплайн — в MVP.md §8.3.
  */
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, cpSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { join, dirname } from 'node:path';
 import { parse as parseYaml } from 'yaml';
 
@@ -103,7 +104,8 @@ function buildPackage(id) {
   const storyPath = join(dir, storyFile);
   if (!existsSync(storyPath)) { fail(pkg, `нет ${storyFile}`); return null; }
 
-  const scenes = parseStory(pkg, readFileSync(storyPath, 'utf8'));
+  const storyRaw = readFileSync(storyPath, 'utf8');
+  const scenes = parseStory(pkg, storyRaw);
   const meta = manifest.scenes ?? {};
 
   for (const [key, scene] of Object.entries(scenes)) {
@@ -302,6 +304,7 @@ function buildPackage(id) {
     scenes: Object.fromEntries(Object.entries(scenes).map(([k, s]) => [k, { ...s, key: k }])),
     dir,
     assets: [...assets],
+    storyHash: createHash('sha1').update(storyRaw).digest('hex').slice(0, 12),
   };
 }
 
@@ -318,10 +321,11 @@ const ids = readdirSync(GAMES_DIR, { withFileTypes: true })
   .sort();
 
 const index = [];
+const stamp = [];
 for (const id of ids) {
   const game = buildPackage(id);
   if (!game) continue;
-  const { dir, assets, ...data } = game;
+  const { dir, assets, storyHash, ...data } = game;
   writeFileSync(join(OUT_DIR, `${id}.json`), JSON.stringify(data, null, 2));
 
   // ассеты копируются с сохранением относительных путей рядом с json
@@ -331,9 +335,16 @@ for (const id of ids) {
     cpSync(join(dir, rel), target);
   }
   index.push({ id, title: data.title });
+  stamp.push({ id, title: data.title, scenes: Object.keys(data.scenes).length, storyHash, assets: assets.length });
 }
 
 writeFileSync(join(OUT_DIR, 'index.json'), JSON.stringify(index, null, 2));
+
+// отпечаток сборки: по нему видно, какая версия игр реально живёт на сервере
+writeFileSync(
+  join(OUT_DIR, 'build.json'),
+  JSON.stringify({ builtAt: new Date().toISOString(), games: stamp }, null, 2),
+);
 
 for (const w of warnings) console.warn('WARN', w);
 if (errors.length) {
