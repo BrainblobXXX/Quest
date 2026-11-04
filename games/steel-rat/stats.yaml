@@ -1,0 +1,5 @@
+stats:
+  arena_wins:
+    title: Победы на арене
+    initial: 0
+    min: 0

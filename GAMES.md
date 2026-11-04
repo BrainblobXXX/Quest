@@ -15,13 +15,16 @@ public/games/steel-rat.json + public/games/steel-rat/assets/…
 
 ## 0. Что происходит при запуске
 
-`npm start` перед стартом сервера пересобирает игры и подкладывает результат в
-standalone-сборку (`scripts/start.mjs`):
+Перед стартом сервера игры пересобираются штатным хуком `prestart` в `package.json`:
 
 ```text
 games/*          →  public/games/*.json        (scripts/build-games.mjs)
 public/games/*   →  .next/standalone/public/   (копия, иначе сервер отдаёт старое)
 ```
+
+`scripts.start` при этом остаётся обычным `node .next/standalone/server.js`: этого
+требует хостинг, который по `scripts.start` определяет способ запуска приложения.
+Поэтому пересборка висит на `prestart`, а не на отдельной обёртке запуска.
 
 Практические следствия:
 
@@ -37,9 +40,15 @@ public/games/*   →  .next/standalone/public/   (копия, иначе сер�
 - `npm run dev` собирает игры один раз при старте (хук `predev`); если правишь пакет
   на ходу — перезапусти dev либо выполни `npm run games:build`.
 
-Ограничение: сервер читает статику из `.next/standalone/public`, поэтому на хостинге
-нужны и `games/`, и `scripts/`, и `node_modules` — выкатывать один каталог
-`.next/standalone` больше нельзя, `start.mjs` его пересоберёт из `games/`.
+Ограничения:
+
+- `prestart` срабатывает только при запуске через npm. Если хостинг берёт команду из
+  `scripts.start` и исполняет её напрямую (без `npm start`), пересборка на старте не
+  произойдёт — но деплой всё равно соберёт игры заново, потому что `prebuild` вызывает
+  `games:build` перед `next build`;
+- сервер читает статику из `.next/standalone/public`, поэтому на хостинге нужны и
+  `games/`, и `scripts/`, и `node_modules`: выкатывать один каталог `.next/standalone`
+  нельзя — при запуске его содержимое берётся из `public/`.
 
 ## 1. Куда положить книгу
 

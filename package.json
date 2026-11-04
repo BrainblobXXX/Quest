@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev -p 3100",
     "build": "next build",
-    "start": "node scripts/start.mjs",
+    "start": "node .next/standalone/server.js",
+    "prestart": "node scripts/build-games.mjs && node scripts/copy-standalone.mjs",
     "start:server": "node .next/standalone/server.js",
     "lint": "next lint",
     "games:build": "node scripts/build-games.mjs",

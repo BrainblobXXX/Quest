@@ -11,7 +11,7 @@
 npm install
 npm run dev     # сборка игр + http://127.0.0.1:3100
 npm run build   # сборка игр + продакшн-сборка
-npm start       # пересборка игр из games/ + сервер (порт 3000, или $PORT)
+npm start       # пересборка игр из games/ (prestart) + сервер, порт 3000 или $PORT
 npm run games:build   # только игры + валидация пакетов
 ```
 

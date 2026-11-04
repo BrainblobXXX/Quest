@@ -6,7 +6,7 @@
  * Формат описан в QuestRules.md (вне репозитория), пайплайн — в MVP.md §8.3.
  */
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, cpSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
 import { parse as parseYaml } from 'yaml';
 
 const ROOT = process.cwd();
@@ -185,7 +185,7 @@ function buildPackage(id) {
     const files = Array.isArray(value) ? value : [value];
     for (const f of files) {
       if (typeof f !== 'string' || !f.trim()) fail(pkg, `moods.${key}: пустой путь к треку`);
-      else if (!existsSync(join(dir, f))) fail(pkg, `moods.${key}: нет файла «${f}»`);
+      // существование файла проверяется при сборе ассетов ниже (addAsset)
     }
   }
   if (defaultMood && !(defaultMood in moods)) {
@@ -194,9 +194,6 @@ function buildPackage(id) {
   for (const [key, scene] of Object.entries(scenes)) {
     if (scene.mood && !(scene.mood in moods)) {
       fail(pkg, `сцена ${key}: mood «${scene.mood}» не объявлен в moods`);
-    }
-    if (scene.music && !existsSync(join(dir, scene.music))) {
-      fail(pkg, `сцена ${key}: нет файла музыки «${scene.music}»`);
     }
   }
 
@@ -263,6 +260,34 @@ function buildPackage(id) {
     if (!Number.isInteger(n) || n < 1) fail(pkg, `start_items: у «${itemId}» количество ${n}`);
   }
 
+  // ассеты: копируются по путям, а не «папкой assets/» — пакет может держать
+  // иллюстрации и музыку где угодно (assets/, illustrations/, music/, …)
+  const assets = new Set();
+  const addAsset = (path, where) => {
+    if (/^(\/|[A-Za-z]:\\)/.test(path) || path.split(/[\\/]/).includes('..')) {
+      fail(pkg, `${where}: путь «${path}» выходит за пределы пакета`);
+      return;
+    }
+    if (!existsSync(join(dir, path))) {
+      fail(pkg, `${where}: нет файла «${path}»`);
+      return;
+    }
+    assets.add(path);
+  };
+  for (const [key, scene] of Object.entries(scenes)) {
+    if (scene.image) addAsset(scene.image, `сцена ${key}: image`);
+    if (scene.music) addAsset(scene.music, `сцена ${key}: music`);
+  }
+  for (const [key, value] of Object.entries(moods)) {
+    if (value === null) continue;
+    for (const file of Array.isArray(value) ? value : [value]) {
+      if (typeof file === 'string' && file.trim()) addAsset(file, `moods.${key}`);
+    }
+  }
+  for (const [itemId, item] of Object.entries(items)) {
+    if (item?.icon) addAsset(item.icon, `предмет ${itemId}: icon`);
+  }
+
   return {
     format: manifest.format,
     id: manifest.id ?? id,
@@ -276,6 +301,7 @@ function buildPackage(id) {
     defaultMood,
     scenes: Object.fromEntries(Object.entries(scenes).map(([k, s]) => [k, { ...s, key: k }])),
     dir,
+    assets: [...assets],
   };
 }
 
@@ -295,12 +321,14 @@ const index = [];
 for (const id of ids) {
   const game = buildPackage(id);
   if (!game) continue;
-  const { dir, ...data } = game;
+  const { dir, assets, ...data } = game;
   writeFileSync(join(OUT_DIR, `${id}.json`), JSON.stringify(data, null, 2));
 
-  // ассеты пакета копируются рядом с json
-  if (existsSync(join(dir, 'assets'))) {
-    cpSync(join(dir, 'assets'), join(OUT_DIR, id, 'assets'), { recursive: true });
+  // ассеты копируются с сохранением относительных путей рядом с json
+  for (const rel of assets) {
+    const target = join(OUT_DIR, id, rel);
+    mkdirSync(dirname(target), { recursive: true });
+    cpSync(join(dir, rel), target);
   }
   index.push({ id, title: data.title });
 }
