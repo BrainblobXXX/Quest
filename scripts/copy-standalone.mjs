@@ -3,7 +3,7 @@
  * Next.js standalone не копирует public/ и .next/static/ в .next/standalone.
  * Без этого шага на хостинге не грузятся стили, скрипты и игры из public/games.
  */
-import { cpSync, existsSync } from 'node:fs';
+import { cpSync, existsSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 
 const root = process.cwd();
@@ -19,6 +19,8 @@ for (const [from, to] of [
   [join(root, '.next', 'static'), join(standalone, '.next', 'static')],
 ]) {
   if (!existsSync(from)) continue;
+  // чистим приёмник: cpSync копирует поверх и оставляет файлы удалённых игр
+  rmSync(to, { recursive: true, force: true });
   cpSync(from, to, { recursive: true });
   console.log('скопировано:', from.replace(root + '/', ''), '→', to.replace(root + '/', ''));
 }
