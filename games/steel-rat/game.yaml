@@ -27,6 +27,7 @@ scenes:
     variants:
       А: '229'
       Б: '347'
+    image: assets/illustrations/forest.jpg
   '2':
     title: Глава 2
     mood: calm
@@ -38,6 +39,7 @@ scenes:
     title: Глава 3
     mood: calm
     next: '218'
+    image: assets/illustrations/road.jpg
   '4':
     title: Глава 4
     mood: tense
@@ -59,6 +61,7 @@ scenes:
     variants:
       А: '232'
       Б: '76'
+    image: assets/illustrations/road.jpg
   '7':
     title: Глава 7
     mood: calm
@@ -68,6 +71,7 @@ scenes:
     title: Глава 8
     mood: tense
     next: '253'
+    image: assets/illustrations/desert.jpg
   '9':
     title: Глава 9
     mood: victory
@@ -82,14 +86,17 @@ scenes:
     title: Глава 11
     mood: calm
     next: '140'
+    image: assets/illustrations/city.jpg
   '12':
     title: Глава 12
     mood: victory
     next: '65'
+    image: assets/illustrations/city.jpg
   '13':
     title: Глава 13
     mood: calm
     next: '88'
+    image: assets/illustrations/forest.jpg
   '14':
     title: Глава 14
     mood: calm
@@ -109,25 +116,29 @@ scenes:
     title: Глава 17
     mood: calm
     next: '115'
+    image: assets/illustrations/road.jpg
   '18':
     title: Глава 18
     mood: danger
     next: '87'
+    image: assets/illustrations/road.jpg
   '19':
     title: Глава 19
     mood: tense
     variants:
       А: '124'
       Б: '49'
+    image: assets/illustrations/road.jpg
   '20':
     title: Глава 20
     mood: calm
     next: '339'
+    image: assets/illustrations/city.jpg
   '21':
     title: Глава 21
     mood: calm
     next: '80'
-    image: assets/illustrations/arena.jpg
+    image: assets/illustrations/forest.jpg
   '22':
     title: Глава 22
     mood: calm
@@ -151,6 +162,7 @@ scenes:
     variants:
       А: '167'
       Б: '90'
+    image: assets/illustrations/city.jpg
   '26':
     title: Глава 26
     mood: calm
@@ -170,10 +182,12 @@ scenes:
     title: Глава 28
     mood: tense
     next: '121'
+    image: assets/illustrations/road.jpg
   '29':
     title: Глава 29
     mood: calm
     next: '64'
+    image: assets/illustrations/arena.jpg
   '30':
     title: Глава 30
     mood: danger
@@ -186,6 +200,7 @@ scenes:
       А: '346'
       Б: '292'
       В: '344'
+    image: assets/illustrations/forest.jpg
   '32':
     title: Глава 32
     mood: calm
@@ -195,6 +210,7 @@ scenes:
     title: Глава 33
     mood: calm
     next: '12'
+    image: assets/illustrations/city.jpg
   '34':
     title: Глава 34
     mood: tense
@@ -209,14 +225,17 @@ scenes:
     title: Глава 35
     mood: calm
     next: '197'
+    image: assets/illustrations/forest.jpg
   '36':
     title: Глава 36
     mood: calm
     next: '120'
+    image: assets/illustrations/road.jpg
   '37':
     title: Глава 37
     mood: tense
     next: '18'
+    image: assets/illustrations/road.jpg
   '38':
     title: Глава 38
     mood: danger
@@ -236,6 +255,7 @@ scenes:
       - min: 4
         goto: '254'
       - goto: '284'
+    image: assets/illustrations/forest.jpg
   '41':
     title: Глава 41
     mood: tense
@@ -248,6 +268,7 @@ scenes:
     title: Глава 42
     mood: victory
     next: '62'
+    image: assets/illustrations/city.jpg
   '43':
     title: Глава 43
     mood: calm
@@ -257,20 +278,24 @@ scenes:
     title: Глава 44
     mood: calm
     next: '23'
+    image: assets/illustrations/forest.jpg
   '45':
     title: Глава 45
     mood: tense
     next: '215'
+    image: assets/illustrations/forest.jpg
   '46':
     title: Глава 46
     mood: calm
     variants:
       А: '193'
       Б: '339'
+    image: assets/illustrations/city.jpg
   '47':
     title: Глава 47
     mood: tense
     next: '98'
+    image: assets/illustrations/road.jpg
   '48':
     title: Глава 48
     mood: calm
@@ -296,6 +321,7 @@ scenes:
     variants:
       А: '215'
       Б: '45'
+    image: assets/illustrations/forest.jpg
   '52':
     title: Глава 52
     mood: tense
@@ -327,6 +353,7 @@ scenes:
     title: Глава 57
     mood: tense
     next: '255'
+    image: assets/illustrations/road.jpg
   '58':
     title: Глава 58
     mood: tense
@@ -338,7 +365,7 @@ scenes:
     title: Глава 59
     mood: calm
     next: '80'
-    image: assets/illustrations/arena.jpg
+    image: assets/illustrations/forest.jpg
   '60':
     title: Глава 60
     mood: tense
@@ -367,6 +394,7 @@ scenes:
     variants:
       А: '114'
       Б: '345'
+    image: assets/illustrations/arena.jpg
   '65':
     title: Глава 65
     mood: tense
@@ -376,12 +404,14 @@ scenes:
     title: Глава 66
     mood: victory
     next: '181'
+    image: assets/illustrations/road.jpg
   '67':
     title: Глава 67
     mood: tense
     variants:
       А: '97'
       Б: '146'
+    image: assets/illustrations/city.jpg
   '68':
     title: Глава 68
     mood: tense
@@ -411,6 +441,7 @@ scenes:
     title: Глава 73
     mood: tense
     next: '313'
+    image: assets/illustrations/road.jpg
   '74':
     title: Глава 74
     mood: calm
@@ -427,6 +458,7 @@ scenes:
     variants:
       А: '310'
       Б: '237'
+    image: assets/illustrations/road.jpg
   '77':
     title: Глава 77
     mood: calm
@@ -441,6 +473,7 @@ scenes:
     title: Глава 79
     mood: tense
     next: '51'
+    image: assets/illustrations/forest.jpg
   '80':
     title: Глава 80
     mood: danger
@@ -451,11 +484,12 @@ scenes:
       Г: '159'
       Д: '21'
       Е: '168'
-    image: assets/illustrations/arena.jpg
+    image: assets/illustrations/forest.jpg
   '81':
     title: Глава 81
     mood: tense
     next: '51'
+    image: assets/illustrations/road.jpg
   '82':
     title: Глава 82
     mood: tense
@@ -480,30 +514,36 @@ scenes:
     title: Глава 85
     mood: tense
     next: '31'
+    image: assets/illustrations/forest.jpg
   '86':
     title: Глава 86
     mood: calm
     variants:
       А: '137'
       Б: '25'
+    image: assets/illustrations/city.jpg
   '87':
     title: Глава 87
     mood: tense
     next: '306'
+    image: assets/illustrations/road.jpg
   '88':
     title: Глава 88
     mood: tense
     variants:
       А: '249'
       Б: '131'
+    image: assets/illustrations/forest.jpg
   '89':
     title: Глава 89
     mood: calm
     next: '1'
+    image: assets/illustrations/forest.jpg
   '90':
     title: Глава 90
     mood: tense
     next: '175'
+    image: assets/illustrations/arena.jpg
   '91':
     title: Глава 91
     mood: calm
@@ -523,6 +563,7 @@ scenes:
       А: '103'
       Б: '221'
       В: '158'
+    image: assets/illustrations/forest.jpg
   '94':
     title: Глава 94
     mood: danger
@@ -543,6 +584,7 @@ scenes:
       Б: '47'
       В: '123'
       Г: '66'
+    image: assets/illustrations/road.jpg
   '97':
     title: Глава 97
     mood: calm
@@ -551,10 +593,12 @@ scenes:
       Б: '174'
       В: '186'
       Г: '129'
+    image: assets/illustrations/city.jpg
   '98':
     title: Глава 98
     mood: victory
     next: '181'
+    image: assets/illustrations/road.jpg
   '99':
     title: Глава 99
     mood: tense
@@ -564,6 +608,7 @@ scenes:
       - min: 2
         goto: '106'
       - goto: '189'
+    image: assets/illustrations/forest.jpg
   '100':
     title: Глава 100
     mood: tense
@@ -573,6 +618,7 @@ scenes:
     title: Глава 101
     mood: calm
     next: '20'
+    image: assets/illustrations/city.jpg
   '102':
     title: Глава 102
     mood: danger
@@ -582,6 +628,7 @@ scenes:
     title: Глава 103
     mood: tense
     next: '221'
+    image: assets/illustrations/forest.jpg
   '104':
     title: Глава 104
     mood: calm
@@ -594,12 +641,14 @@ scenes:
     title: Глава 105
     mood: victory
     next: '181'
+    image: assets/illustrations/road.jpg
   '106':
     title: Глава 106
     mood: danger
     variants:
       А: '94'
       Б: '65'
+    image: assets/illustrations/city.jpg
   '107':
     title: Глава 107
     mood: tense
@@ -607,10 +656,12 @@ scenes:
       А: '145'
       Б: '111'
       В: '110'
+    image: assets/illustrations/road.jpg
   '108':
     title: Глава 108
     mood: tense
     next: '110'
+    image: assets/illustrations/road.jpg
   '109':
     title: Глава 109
     mood: calm
@@ -620,10 +671,12 @@ scenes:
     title: Глава 110
     mood: calm
     next: '207'
+    image: assets/illustrations/road.jpg
   '111':
     title: Глава 111
     mood: calm
     next: '108'
+    image: assets/illustrations/road.jpg
   '112':
     title: Глава 112
     mood: calm
@@ -640,10 +693,12 @@ scenes:
     variants:
       А: '137'
       Б: '25'
+    image: assets/illustrations/arena.jpg
   '115':
     title: Глава 115
     mood: tense
     next: '96'
+    image: assets/illustrations/road.jpg
   '116':
     title: Глава 116
     mood: danger
@@ -660,12 +715,14 @@ scenes:
     variants:
       А: '36'
       Б: '120'
+    image: assets/illustrations/road.jpg
   '119':
     title: Глава 119
     mood: tense
     variants:
       А: '248'
       Б: '165'
+    image: assets/illustrations/forest.jpg
   '120':
     title: Глава 120
     mood: tense
@@ -673,6 +730,7 @@ scenes:
       А: '57'
       Б: '276'
       В: '39'
+    image: assets/illustrations/road.jpg
   '121':
     title: Глава 121
     mood: tense
@@ -682,10 +740,12 @@ scenes:
       - min: 2
         goto: '18'
       - goto: '37'
+    image: assets/illustrations/road.jpg
   '122':
     title: Глава 122
     mood: tense
     next: '333'
+    image: assets/illustrations/road.jpg
   '123':
     title: Глава 123
     mood: calm
@@ -695,12 +755,14 @@ scenes:
       - min: 2
         goto: '17'
       - goto: '191'
+    image: assets/illustrations/road.jpg
   '124':
     title: Глава 124
     mood: tense
     variants:
       А: '304'
       Б: '337'
+    image: assets/illustrations/road.jpg
   '125':
     title: Глава 125
     mood: tense
@@ -731,6 +793,7 @@ scenes:
     title: Глава 129
     mood: calm
     next: '180'
+    image: assets/illustrations/city.jpg
   '130':
     title: Глава 130
     mood: calm
@@ -747,6 +810,7 @@ scenes:
       - min: 4
         goto: '257'
       - goto: '40'
+    image: assets/illustrations/forest.jpg
   '132':
     title: Глава 132
     mood: tense
@@ -775,6 +839,7 @@ scenes:
     variants:
       А: '230'
       Б: '13'
+    image: assets/illustrations/forest.jpg
   '136':
     title: Глава 136
     mood: tense
@@ -805,6 +870,7 @@ scenes:
     title: Глава 140
     mood: calm
     next: '179'
+    image: assets/illustrations/city.jpg
   '141':
     title: Глава 141
     mood: calm
@@ -835,6 +901,7 @@ scenes:
     title: Глава 145
     mood: calm
     next: '108'
+    image: assets/illustrations/road.jpg
   '146':
     title: Глава 146
     mood: danger
@@ -843,6 +910,7 @@ scenes:
       Б: '174'
       В: '186'
       Г: '129'
+    image: assets/illustrations/city.jpg
   '147':
     title: Глава 147
     mood: calm
@@ -864,6 +932,7 @@ scenes:
     title: Глава 150
     mood: calm
     next: '119'
+    image: assets/illustrations/forest.jpg
   '151':
     title: Глава 151
     mood: calm
@@ -878,6 +947,7 @@ scenes:
     title: Глава 153
     mood: tense
     next: '28'
+    image: assets/illustrations/road.jpg
   '154':
     title: Глава 154
     mood: tense
@@ -899,6 +969,7 @@ scenes:
       В: '59'
       Г: '159'
       Д: '21'
+    image: assets/illustrations/city.jpg
   '157':
     title: Глава 157
     mood: calm
@@ -910,6 +981,7 @@ scenes:
     title: Глава 158
     mood: tense
     next: '299'
+    image: assets/illustrations/forest.jpg
   '159':
     title: Глава 159
     mood: calm
@@ -929,6 +1001,7 @@ scenes:
     title: Глава 162
     mood: calm
     ending: true
+    image: assets/illustrations/prologue.jpg
   '163':
     title: Глава 163
     mood: calm
@@ -967,6 +1040,7 @@ scenes:
     variants:
       А: '92'
       Б: '53'
+    image: assets/illustrations/city.jpg
   '168':
     title: Глава 168
     mood: tense
@@ -991,6 +1065,7 @@ scenes:
     title: Глава 172
     mood: tense
     next: '88'
+    image: assets/illustrations/forest.jpg
   '173':
     title: Глава 173
     mood: tense
@@ -1002,10 +1077,12 @@ scenes:
     variants:
       А: '101'
       Б: '20'
+    image: assets/illustrations/city.jpg
   '175':
     title: Глава 175
     mood: tense
     next: '29'
+    image: assets/illustrations/arena.jpg
   '176':
     title: Глава 176
     mood: calm
@@ -1025,18 +1102,21 @@ scenes:
     title: Глава 179
     mood: danger
     next: '156'
+    image: assets/illustrations/city.jpg
   '180':
     title: Глава 180
     mood: tense
     variants:
       А: '339'
       Б: '46'
+    image: assets/illustrations/city.jpg
   '181':
     title: Глава 181
     mood: calm
     variants:
       А: '204'
       Б: '122'
+    image: assets/illustrations/road.jpg
   '182':
     title: Глава 182
     mood: calm
@@ -1056,6 +1136,7 @@ scenes:
       - min: 4
         goto: '5'
       - goto: '342'
+    image: assets/illustrations/forest.jpg
   '185':
     title: Глава 185
     mood: calm
@@ -1067,6 +1148,7 @@ scenes:
     variants:
       А: '12'
       Б: '33'
+    image: assets/illustrations/city.jpg
   '187':
     title: Глава 187
     mood: calm
@@ -1081,12 +1163,14 @@ scenes:
       - min: 2
         goto: '150'
       - goto: '267'
+    image: assets/illustrations/forest.jpg
   '189':
     title: Глава 189
     mood: danger
     variants:
       А: '94'
       Б: '65'
+    image: assets/illustrations/city.jpg
   '190':
     title: Глава 190
     mood: tense
@@ -1098,6 +1182,7 @@ scenes:
     title: Глава 191
     mood: tense
     next: '98'
+    image: assets/illustrations/road.jpg
   '192':
     title: Глава 192
     mood: tense
@@ -1109,6 +1194,7 @@ scenes:
     variants:
       А: '175'
       Б: '86'
+    image: assets/illustrations/city.jpg
   '194':
     title: Глава 194
     mood: calm
@@ -1118,14 +1204,17 @@ scenes:
     title: Глава 195
     mood: calm
     next: '88'
+    image: assets/illustrations/forest.jpg
   '196':
     title: Глава 196
     mood: tense
     next: '153'
+    image: assets/illustrations/road.jpg
   '197':
     title: Глава 197
     mood: tense
     next: '242'
+    image: assets/illustrations/forest.jpg
   '198':
     title: Глава 198
     mood: victory
@@ -1135,6 +1224,7 @@ scenes:
       - min: 2
         goto: '196'
       - goto: '28'
+    image: assets/illustrations/road.jpg
   '199':
     title: Глава 199
     mood: danger
@@ -1144,6 +1234,7 @@ scenes:
       - min: 2
         goto: '327'
       - goto: '117'
+    image: assets/illustrations/road.jpg
   '200':
     title: Глава 200
     mood: tense
@@ -1153,28 +1244,33 @@ scenes:
     title: Глава 201
     mood: tense
     next: '85'
+    image: assets/illustrations/forest.jpg
   '202':
     title: Глава 202
     mood: tense
     variants:
       А: '226'
       Б: '210'
+    image: assets/illustrations/desert.jpg
   '203':
     title: Глава 203
     mood: calm
     variants:
       А: '208'
       Б: '264'
+    image: assets/illustrations/desert.jpg
   '204':
     title: Глава 204
     mood: tense
     next: '333'
+    image: assets/illustrations/road.jpg
   '205':
     title: Глава 205
     mood: tense
     variants:
       А: '198'
       Б: '3'
+    image: assets/illustrations/road.jpg
   '206':
     title: Глава 206
     mood: calm
@@ -1186,10 +1282,12 @@ scenes:
     variants:
       А: '224'
       Б: '266'
+    image: assets/illustrations/road.jpg
   '208':
     title: Глава 208
     mood: danger
     next: '261'
+    image: assets/illustrations/desert.jpg
   '209':
     title: Глава 209
     mood: calm
@@ -1199,6 +1297,7 @@ scenes:
     title: Глава 210
     mood: danger
     next: '202'
+    image: assets/illustrations/desert.jpg
   '211':
     title: Глава 211
     mood: calm
@@ -1206,12 +1305,14 @@ scenes:
       А: '297'
       Б: '241'
       В: '281'
+    image: assets/illustrations/desert.jpg
   '212':
     title: Глава 212
     mood: tense
     variants:
       А: '240'
       Б: '296'
+    image: assets/illustrations/desert.jpg
   '213':
     title: Глава 213
     mood: calm
@@ -1238,14 +1339,17 @@ scenes:
     title: Глава 217
     mood: calm
     next: '300'
+    image: assets/illustrations/desert.jpg
   '218':
     title: Глава 218
     mood: tense
     next: '28'
+    image: assets/illustrations/road.jpg
   '219':
     title: Глава 219
     mood: victory
     next: '266'
+    image: assets/illustrations/road.jpg
   '220':
     title: Глава 220
     mood: tense
@@ -1253,30 +1357,36 @@ scenes:
       А: '240'
       Б: '235'
       В: '234'
+    image: assets/illustrations/desert.jpg
   '221':
     title: Глава 221
     mood: tense
     next: '299'
+    image: assets/illustrations/forest.jpg
   '222':
     title: Глава 222
     mood: calm
     variants:
       А: '228'
       Б: '235'
+    image: assets/illustrations/desert.jpg
   '223':
     title: Глава 223
     mood: calm
     next: '96'
+    image: assets/illustrations/road.jpg
   '224':
     title: Глава 224
     mood: calm
     next: '219'
+    image: assets/illustrations/road.jpg
   '225':
     title: Глава 225
     mood: danger
     variants:
       А: '96'
       Б: '223'
+    image: assets/illustrations/road.jpg
   '226':
     title: Глава 226
     mood: calm
@@ -1284,6 +1394,7 @@ scenes:
       А: '294'
       Б: '202'
       В: '296'
+    image: assets/illustrations/desert.jpg
   '227':
     title: Глава 227
     mood: calm
@@ -1291,20 +1402,24 @@ scenes:
       А: '253'
       Б: '341'
       В: '297'
+    image: assets/illustrations/desert.jpg
   '228':
     title: Глава 228
     mood: calm
     next: '222'
+    image: assets/illustrations/desert.jpg
   '229':
     title: Глава 229
     mood: calm
     variants:
       А: '35'
       Б: '197'
+    image: assets/illustrations/forest.jpg
   '230':
     title: Глава 230
     mood: tense
     next: '88'
+    image: assets/illustrations/forest.jpg
   '231':
     title: Глава 231
     mood: calm
@@ -1314,6 +1429,7 @@ scenes:
     title: Глава 232
     mood: tense
     next: '81'
+    image: assets/illustrations/road.jpg
   '233':
     title: Глава 233
     mood: calm
@@ -1325,24 +1441,29 @@ scenes:
     variants:
       А: '220'
       Б: '241'
+    image: assets/illustrations/desert.jpg
   '235':
     title: Глава 235
     mood: tense
     variants:
       А: '222'
       Б: '220'
+    image: assets/illustrations/desert.jpg
   '236':
     title: Глава 236
     mood: calm
     ending: true
+    image: assets/illustrations/prologue.jpg
   '237':
     title: Глава 237
     mood: tense
     next: '79'
+    image: assets/illustrations/road.jpg
   '238':
     title: Глава 238
     mood: calm
     next: '241'
+    image: assets/illustrations/desert.jpg
   '239':
     title: Глава 239
     mood: danger
@@ -1356,6 +1477,7 @@ scenes:
     variants:
       А: '220'
       Б: '212'
+    image: assets/illustrations/desert.jpg
   '241':
     title: Глава 241
     mood: calm
@@ -1363,10 +1485,12 @@ scenes:
       А: '234'
       Б: '211'
       В: '238'
+    image: assets/illustrations/desert.jpg
   '242':
     title: Глава 242
     mood: danger
     next: '8'
+    image: assets/illustrations/forest.jpg
   '243':
     title: Глава 243
     mood: calm
@@ -1378,6 +1502,7 @@ scenes:
     variants:
       А: '259'
       Б: '295'
+    image: assets/illustrations/desert.jpg
   '245':
     title: Глава 245
     mood: tense
@@ -1396,14 +1521,17 @@ scenes:
     title: Глава 247
     mood: tense
     next: '296'
+    image: assets/illustrations/desert.jpg
   '248':
     title: Глава 248
     mood: calm
     next: '165'
+    image: assets/illustrations/forest.jpg
   '249':
     title: Глава 249
     mood: calm
     next: '131'
+    image: assets/illustrations/forest.jpg
   '250':
     title: Глава 250
     mood: tense
@@ -1427,6 +1555,7 @@ scenes:
     variants:
       А: '269'
       Б: '227'
+    image: assets/illustrations/desert.jpg
   '254':
     title: Глава 254
     mood: calm
@@ -1468,6 +1597,7 @@ scenes:
     title: Глава 259
     mood: calm
     next: '244'
+    image: assets/illustrations/desert.jpg
   '260':
     title: Глава 260
     mood: tense
@@ -1498,26 +1628,31 @@ scenes:
     variants:
       А: '172'
       Б: '195'
+    image: assets/illustrations/forest.jpg
   '264':
     title: Глава 264
     mood: tense
     variants:
       А: '294'
       Б: '203'
+    image: assets/illustrations/desert.jpg
   '265':
     title: Глава 265
     mood: danger
     variants:
       А: '135'
       Б: '263'
+    image: assets/illustrations/forest.jpg
   '266':
     title: Глава 266
     mood: tense
     next: '73'
+    image: assets/illustrations/road.jpg
   '267':
     title: Глава 267
     mood: calm
     next: '119'
+    image: assets/illustrations/forest.jpg
   '268':
     title: Глава 268
     mood: tense
@@ -1530,6 +1665,7 @@ scenes:
       А: '253'
       Б: '293'
       В: '341'
+    image: assets/illustrations/desert.jpg
   '270':
     title: Глава 270
     mood: tense
@@ -1552,6 +1688,7 @@ scenes:
       А: '285'
       Б: '239'
       В: '251'
+    image: assets/illustrations/road.jpg
   '274':
     title: Глава 274
     mood: calm
@@ -1566,6 +1703,7 @@ scenes:
     title: Глава 276
     mood: tense
     next: '95'
+    image: assets/illustrations/road.jpg
   '277':
     title: Глава 277
     mood: calm
@@ -1594,6 +1732,7 @@ scenes:
     variants:
       А: '300'
       Б: '211'
+    image: assets/illustrations/desert.jpg
   '282':
     title: Глава 282
     mood: calm
@@ -1623,6 +1762,7 @@ scenes:
       - min: 4
         goto: '184'
       - goto: '286'
+    image: assets/illustrations/forest.jpg
   '285':
     title: Глава 285
     mood: danger
@@ -1634,6 +1774,7 @@ scenes:
     title: Глава 286
     mood: danger
     next: '44'
+    image: assets/illustrations/forest.jpg
   '287':
     title: Глава 287
     mood: calm
@@ -1643,6 +1784,7 @@ scenes:
     title: Глава 288
     mood: calm
     ending: true
+    image: assets/illustrations/prologue.jpg
   '289':
     title: Глава 289
     mood: calm
@@ -1659,32 +1801,38 @@ scenes:
     variants:
       А: '132'
       Б: '154'
+    image: assets/illustrations/prologue.jpg
   '291':
     title: Глава 291
     mood: tense
     next: '350'
+    image: assets/illustrations/forest.jpg
   '292':
     title: Глава 292
     mood: calm
     next: '229'
+    image: assets/illustrations/forest.jpg
   '293':
     title: Глава 293
     mood: tense
     variants:
       А: '295'
       Б: '269'
+    image: assets/illustrations/desert.jpg
   '294':
     title: Глава 294
     mood: calm
     variants:
       А: '226'
       Б: '264'
+    image: assets/illustrations/desert.jpg
   '295':
     title: Глава 295
     mood: calm
     variants:
       А: '244'
       Б: '293'
+    image: assets/illustrations/desert.jpg
   '296':
     title: Глава 296
     mood: victory
@@ -1692,32 +1840,38 @@ scenes:
       А: '247'
       Б: '226'
       В: '212'
+    image: assets/illustrations/desert.jpg
   '297':
     title: Глава 297
     mood: calm
     variants:
       А: '227'
       Б: '211'
+    image: assets/illustrations/desert.jpg
   '298':
     title: Глава 298
     mood: calm
     next: '229'
+    image: assets/illustrations/forest.jpg
   '299':
     title: Глава 299
     mood: tense
     next: '350'
+    image: assets/illustrations/forest.jpg
   '300':
     title: Глава 300
     mood: calm
     variants:
       А: '217'
       Б: '281'
+    image: assets/illustrations/desert.jpg
   '301':
     title: Глава 301
     mood: danger
     variants:
       А: '336'
       Б: '271'
+    image: assets/illustrations/forest.jpg
   '302':
     title: Глава 302
     mood: calm
@@ -1732,6 +1886,7 @@ scenes:
     title: Глава 304
     mood: calm
     next: '93'
+    image: assets/illustrations/forest.jpg
   '305':
     title: Глава 305
     mood: tense
@@ -1744,6 +1899,7 @@ scenes:
       А: '3'
       Б: '198'
       В: '2'
+    image: assets/illustrations/road.jpg
   '307':
     title: Глава 307
     mood: tense
@@ -1778,6 +1934,7 @@ scenes:
     title: Глава 313
     mood: calm
     next: '245'
+    image: assets/illustrations/road.jpg
   '314':
     title: Глава 314
     mood: calm
@@ -1876,7 +2033,7 @@ scenes:
     title: Глава 330
     mood: calm
     next: '80'
-    image: assets/illustrations/arena.jpg
+    image: assets/illustrations/forest.jpg
   '331':
     title: Глава 331
     mood: calm
@@ -1891,10 +2048,12 @@ scenes:
     title: Глава 333
     mood: tense
     next: '19'
+    image: assets/illustrations/road.jpg
   '334':
     title: Глава 334
     mood: danger
     next: '273'
+    image: assets/illustrations/road.jpg
   '335':
     title: Глава 335
     mood: tense
@@ -1908,10 +2067,12 @@ scenes:
     title: Глава 336
     mood: tense
     next: '271'
+    image: assets/illustrations/forest.jpg
   '337':
     title: Глава 337
     mood: tense
     next: '93'
+    image: assets/illustrations/forest.jpg
   '338':
     title: Глава 338
     mood: victory
@@ -1925,6 +2086,7 @@ scenes:
       Б: '174'
       В: '186'
       Г: '129'
+    image: assets/illustrations/city.jpg
   '340':
     title: Глава 340
     mood: danger
@@ -1934,6 +2096,7 @@ scenes:
     title: Глава 341
     mood: calm
     next: '269'
+    image: assets/illustrations/desert.jpg
   '342':
     title: Глава 342
     mood: danger
@@ -1948,18 +2111,22 @@ scenes:
     title: Глава 344
     mood: calm
     next: '89'
+    image: assets/illustrations/forest.jpg
   '345':
     title: Глава 345
     mood: tense
     next: '339'
+    image: assets/illustrations/arena.jpg
   '346':
     title: Глава 346
     mood: calm
     next: '89'
+    image: assets/illustrations/forest.jpg
   '347':
     title: Глава 347
     mood: calm
     next: '298'
+    image: assets/illustrations/forest.jpg
   '348':
     title: Глава 348
     mood: tense
@@ -1972,10 +2139,12 @@ scenes:
     title: Глава 349
     mood: calm
     ending: true
+    image: assets/illustrations/prologue.jpg
   '350':
     title: Глава 350
     mood: tense
     variants:
       А: '201'
       Б: '291'
+    image: assets/illustrations/forest.jpg
 default_mood: calm
