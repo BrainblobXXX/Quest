@@ -4,6 +4,7 @@ export function newState(game: Game): GameState {
   return {
     game: game.id,
     format: game.format,
+    rev: game.rev,
     scene: game.start,
     inventory: { ...(game.startItems ?? {}) },
     flags: [],

@@ -326,7 +326,9 @@ for (const id of ids) {
   const game = buildPackage(id);
   if (!game) continue;
   const { dir, assets, storyHash, ...data } = game;
-  writeFileSync(join(OUT_DIR, `${id}.json`), JSON.stringify(data, null, 2));
+  // rev — версия книги; клиент сравнивает её с сохранением, чтобы старая
+  // закладка не открывала середину обновлённой книги
+  writeFileSync(join(OUT_DIR, `${id}.json`), JSON.stringify({ ...data, rev: storyHash }, null, 2));
 
   // ассеты копируются с сохранением относительных путей рядом с json
   for (const rel of assets) {

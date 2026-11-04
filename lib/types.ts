@@ -42,12 +42,16 @@ export type Game = {
   items?: Record<string, ItemDef>;
   moods?: Record<string, MoodTracks>;
   defaultMood?: string | null;
+  /** отпечаток версии книги: sha1 от story.md, пишется сборщиком */
+  rev?: string;
   scenes: Record<string, Scene>;
 };
 
 export type GameState = {
   game: string;
   format: string;
+  /** версия книги, на которой сделано сохранение */
+  rev?: string;
   scene: string;
   inventory: Record<string, number>;
   flags: string[];

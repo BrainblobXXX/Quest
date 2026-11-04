@@ -102,7 +102,12 @@ export default function Page() {
     try {
       const g = await loadGame(id);
       const save = loadSave(id);
-      const valid = save && save.format === g.format && save.game === g.id && g.scenes[save.scene];
+      const valid =
+        save &&
+        save.format === g.format &&
+        save.game === g.id &&
+        (!g.rev || save.rev === g.rev) &&
+        g.scenes[save.scene];
       const next = valid ? save : newState(g);
       audio.stopMusic();
       audio.click();
