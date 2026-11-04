@@ -9,16 +9,18 @@ import ErrorScreen from '@/components/screens/ErrorScreen';
 import { audio } from '@/lib/audio';
 import { trackFor } from '@/lib/music';
 import { loadGame, loadIndex } from '@/lib/games';
+import { PackageError } from '@/lib/parse';
 import { advance, choose, newState, resolveRoll } from '@/lib/engine';
 import { clearSave, loadSave, saveState, loadSettings, saveSettings } from '@/lib/storage';
 import { hardRefresh } from '@/lib/refresh';
-import type { Choice, Game, GameIndexEntry, GameState } from '@/lib/types';
+import type { Choice, Game, GameIndexEntry, GameState, ParseProblem } from '@/lib/types';
 
 export default function Page() {
   const [screen, setScreen] = useState<ScreenName>('boot');
   const [games, setGames] = useState<GameIndexEntry[]>([]);
   const [saves, setSaves] = useState<Record<string, string | undefined>>({});
-  const [buildAt, setBuildAt] = useState<string | null>(null);
+  const [sourceAt, setSourceAt] = useState<string | null>(null);
+  const [problems, setProblems] = useState<ParseProblem[]>([]);
   const [game, setGame] = useState<Game | null>(null);
   const [state, setState] = useState<GameState | null>(null);
   const [sound, setSound] = useState(true);
@@ -41,17 +43,14 @@ export default function Page() {
     audio.setSoundVolume(settings.soundVolume);
     audio.setMusicVolume(settings.musicVolume);
 
-    fetch('/games/build.json', { cache: 'no-store' })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => setBuildAt(typeof d?.builtAt === 'string' ? d.builtAt : null))
-      .catch(() => setBuildAt(null));
-
     loadIndex()
       .then((list) => {
         setGames(list);
         const map: Record<string, string | undefined> = {};
         for (const g of list) map[g.id] = loadSave(g.id)?.scene;
         setSaves(map);
+        const stamps = list.map((g) => g.updatedAt ?? '').sort();
+        setSourceAt(stamps.at(-1) || null);
       })
       .catch((e: unknown) => {
         setError(String(e));
@@ -102,12 +101,13 @@ export default function Page() {
     const scene = game.scenes[state.scene];
     if (!scene) return;
     const track = trackFor(game, scene);
-    if (track) audio.playMusic(`/games/${game.id}/${track}`);
+    if (track) audio.playMusic(`/api/games/${game.id}/${track}`);
   }, [game, state]);
 
   const startGame = useCallback(async (id: string) => {
     try {
-      const g = await loadGame(id);
+      const { game: g, problems: parsed } = await loadGame(id);
+      setProblems(parsed);
       const save = loadSave(id);
       const valid =
         save &&
@@ -123,7 +123,8 @@ export default function Page() {
       setScreen('game');
       saveState(next);
     } catch (e: unknown) {
-      setError(String(e));
+      setProblems(e instanceof PackageError ? e.problems : []);
+      setError(String(e instanceof Error ? e.message : e));
       setScreen('error');
     }
   }, []);
@@ -238,7 +239,7 @@ export default function Page() {
       onGame={toGame}
       onPower={handlePower}
     >
-      {screen === 'boot' && <Boot buildAt={buildAt} gamesCount={games.length} onDone={() => setScreen('library')} />}
+      {screen === 'boot' && <Boot buildAt={sourceAt} gamesCount={games.length} onDone={() => setScreen('library')} />}
 
       {screen === 'library' && (
         <Library
@@ -254,7 +255,7 @@ export default function Page() {
           onSoundVolume={changeSoundVolume}
           onMusicVolume={changeMusicVolume}
           onReset={handleReset}
-          buildAt={buildAt}
+          buildAt={sourceAt}
         />
       )}
 
@@ -267,11 +268,16 @@ export default function Page() {
           onRestart={handleRestart}
           music={music}
           onToggleMusic={toggleMusic}
+          problems={problems}
         />
       )}
 
       {screen === 'error' && (
-        <ErrorScreen message={error ?? 'НЕИЗВЕСТНАЯ ОШИБКА'} onBack={() => setScreen('library')} />
+        <ErrorScreen
+          message={error ?? 'НЕИЗВЕСТНАЯ ОШИБКА'}
+          problems={problems}
+          onBack={() => setScreen('library')}
+        />
       )}
 
       {confirmRestart && (

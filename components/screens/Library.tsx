@@ -49,7 +49,7 @@ export default function Library({
       <h1 className="screen-heading">=== БИБЛИОТЕКА ===</h1>
       {buildAt && (
         <div className="screen-note">
-          СБОРКА {new Date(buildAt).toISOString().slice(0, 16).replace('T', ' ')} UTC
+          ИСТОЧНИК: {new Date(buildAt).toISOString().slice(0, 16).replace('T', ' ')} UTC
         </div>
       )}
 

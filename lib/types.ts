@@ -42,7 +42,7 @@ export type Game = {
   items?: Record<string, ItemDef>;
   moods?: Record<string, MoodTracks>;
   defaultMood?: string | null;
-  /** отпечаток версии книги: sha1 от story.md, пишется сборщиком */
+  /** отпечаток версии книги: считается в браузере по тексту story.md */
   rev?: string;
   scenes: Record<string, Scene>;
 };
@@ -60,4 +60,17 @@ export type GameState = {
   updated: string;
 };
 
-export type GameIndexEntry = { id: string; title: string };
+export type GameIndexEntry = {
+  id: string;
+  title: string;
+  /** когда в последний раз менялся пакет на диске (ISO) */
+  updatedAt?: string;
+};
+
+/** проблема разбора пакета: показывается в интерфейсе, а не в консоли */
+export type ParseProblem = {
+  level: 'error' | 'warn';
+  code: string;
+  message: string;
+  scene?: string;
+};

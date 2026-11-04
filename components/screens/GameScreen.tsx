@@ -3,11 +3,19 @@
 import { useEffect, useRef, useState } from 'react';
 import { availableChoices, inventoryLine, isEnding, roll as rollDice, sceneOf } from '@/lib/engine';
 import { audio } from '@/lib/audio';
-import type { Choice, Game, GameState } from '@/lib/types';
+import type { Choice, Game, GameState, ParseProblem } from '@/lib/types';
+
+function remark(n: number): string {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return 'замечание';
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'замечания';
+  return 'замечаний';
+}
 
 function assetUrl(game: Game, path: string): string {
   if (/^(https?:)?\//.test(path)) return path;
-  return `/games/${game.id}/${path}`;
+  return `/api/games/${game.id}/${path}`;
 }
 
 function InventoryPanel({ game, state }: { game: Game; state: GameState }) {
@@ -38,6 +46,7 @@ export default function GameScreen({
   onRestart,
   music,
   onToggleMusic,
+  problems = [],
 }: {
   game: Game;
   state: GameState;
@@ -46,6 +55,7 @@ export default function GameScreen({
   onRestart: () => void;
   music: boolean;
   onToggleMusic: () => void;
+  problems?: ParseProblem[];
 }) {
   const scene = sceneOf(game, state);
   const [invOpen, setInvOpen] = useState(false);
@@ -153,6 +163,22 @@ export default function GameScreen({
       </div>
 
       {invOpen && <InventoryPanel game={game} state={state} />}
+
+      {problems.length > 0 && (
+        <details className="parse-report">
+          <summary>
+            РАЗБОР: {problems.length} {remark(problems.length)}
+          </summary>
+          <ul className="parse-problems">
+            {problems.slice(0, 50).map((problem, index) => (
+              <li key={`${problem.code}-${index}`} data-level={problem.level}>
+                <span className="parse-code">{problem.code}</span>
+                {problem.scene ? ` [${problem.scene}]` : ''} {problem.message}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
 
       <div className="scene-scroll" ref={scrollRef} onScroll={saveScroll}>
         {scene.image && (

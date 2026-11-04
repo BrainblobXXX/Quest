@@ -1,7 +1,11 @@
 #!/usr/bin/env node
 /**
- * Next.js standalone не копирует public/ и .next/static/ в .next/standalone.
- * Без этого шага на хостинге не грузятся стили, скрипты и игры из public/games.
+ * Next.js в режиме `output: 'standalone'` не кладёт в .next/standalone ни
+ * статику, ни public/, ни пакеты игр. Сервер читает их относительно своей
+ * папки, поэтому перед запуском они должны лежать рядом с server.js.
+ *
+ * Здесь же копируются games/ — именно оттуда API читает story.md, game.yaml
+ * и ассеты в рантайме (сборки JSON больше нет).
  */
 import { cpSync, existsSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
@@ -15,11 +19,11 @@ if (!existsSync(standalone)) {
 }
 
 for (const [from, to] of [
-  [join(root, 'public'), join(standalone, 'public')],
   [join(root, '.next', 'static'), join(standalone, '.next', 'static')],
+  [join(root, 'public'), join(standalone, 'public')],
+  [join(root, 'games'), join(standalone, 'games')],
 ]) {
   if (!existsSync(from)) continue;
-  // чистим приёмник: cpSync копирует поверх и оставляет файлы удалённых игр
   rmSync(to, { recursive: true, force: true });
   cpSync(from, to, { recursive: true });
   console.log('скопировано:', from.replace(root + '/', ''), '→', to.replace(root + '/', ''));

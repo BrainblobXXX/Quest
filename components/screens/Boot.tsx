@@ -40,7 +40,7 @@ export default function Boot({
   const base = LINES.map((line) =>
     line.replace('{N}', String(gamesCount ?? 0)),
   );
-  const lines = seen ? [...base.slice(0, 6), `BUILD ............... ${seen}`, ...base.slice(6)] : base;
+  const lines = seen ? [...base.slice(0, 6), `GAMES SOURCE ........ ${seen}`, ...base.slice(6)] : base;
 
   const finish = useCallback(() => {
     if (doneRef.current) return;

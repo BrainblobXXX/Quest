@@ -1,9 +1,17 @@
 import { readFileSync } from 'node:fs';
+import { parse as parseYaml } from 'yaml';
 import { availableChoices, advance, choose, inventoryLine, isEnding, newState, resolveRoll, sceneOf } from '../lib/engine';
 import { trackFor } from '../lib/music';
+import { parsePackage } from '../lib/parse';
 import type { Game } from '../lib/types';
 
-const game: Game = JSON.parse(readFileSync('public/games/cave.json', 'utf8'));
+// игра разбирается тем же кодом, что и в браузере
+const { game, problems } = parsePackage(
+  'cave',
+  parseYaml(readFileSync('games/cave/game.yaml', 'utf8')) as Record<string, unknown>,
+  readFileSync('games/cave/story.md', 'utf8'),
+  readFileSync('games/cave/items.yaml', 'utf8'),
+) as { game: Game; problems: { level: string; code: string; message: string }[] };
 const fail: string[] = [];
 const ok = (name: string, cond: boolean) => {
   console.log(`${cond ? 'OK  ' : 'FAIL'} | ${name}`);

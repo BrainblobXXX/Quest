@@ -6,9 +6,6 @@ node_modules/
 out/
 *.tsbuildinfo
 
-# собранные игры — генерируются из games/ командой npm run games:build
-public/games/
-
 # окружение
 .env
 .env*.local
