@@ -574,7 +574,7 @@ PRESS ANY KEY
 ### 8.3. Сборка
 
 ```text
-games/<id>/            game.yaml, story.md, items.yaml, …
+games/<id>/            game.yaml, story.md, items.yaml, storyGraph.md, …
         ↓  parser (скрипт сборки)
 public/games/<id>.json + public/games/index.json
         ↓  приложение
