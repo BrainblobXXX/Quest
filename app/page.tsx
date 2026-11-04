@@ -11,12 +11,14 @@ import { trackFor } from '@/lib/music';
 import { loadGame, loadIndex } from '@/lib/games';
 import { advance, choose, newState, resolveRoll } from '@/lib/engine';
 import { clearSave, loadSave, saveState, loadSettings, saveSettings } from '@/lib/storage';
+import { hardRefresh } from '@/lib/refresh';
 import type { Choice, Game, GameIndexEntry, GameState } from '@/lib/types';
 
 export default function Page() {
   const [screen, setScreen] = useState<ScreenName>('boot');
   const [games, setGames] = useState<GameIndexEntry[]>([]);
   const [saves, setSaves] = useState<Record<string, string | undefined>>({});
+  const [buildAt, setBuildAt] = useState<string | null>(null);
   const [game, setGame] = useState<Game | null>(null);
   const [state, setState] = useState<GameState | null>(null);
   const [sound, setSound] = useState(true);
@@ -38,6 +40,11 @@ export default function Page() {
     audio.setMusicEnabled(settings.music);
     audio.setSoundVolume(settings.soundVolume);
     audio.setMusicVolume(settings.musicVolume);
+
+    fetch('/games/build.json', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => setBuildAt(typeof d?.builtAt === 'string' ? d.builtAt : null))
+      .catch(() => setBuildAt(null));
 
     loadIndex()
       .then((list) => {
@@ -168,6 +175,9 @@ export default function Page() {
         setGame(null);
       }
       refreshSaves();
+      // сброс прогресса = начать с чистого листа: заодно подтягиваем свежую
+      // сборку приложения, чтобы старый кэш не показывал прошлую версию книги
+      void hardRefresh();
     },
     [game, refreshSaves],
   );
@@ -228,7 +238,7 @@ export default function Page() {
       onGame={toGame}
       onPower={handlePower}
     >
-      {screen === 'boot' && <Boot onDone={() => setScreen('library')} />}
+      {screen === 'boot' && <Boot buildAt={buildAt} gamesCount={games.length} onDone={() => setScreen('library')} />}
 
       {screen === 'library' && (
         <Library
@@ -244,6 +254,7 @@ export default function Page() {
           onSoundVolume={changeSoundVolume}
           onMusicVolume={changeMusicVolume}
           onReset={handleReset}
+          buildAt={buildAt}
         />
       )}
 

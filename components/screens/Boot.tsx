@@ -8,14 +8,39 @@ const LINES = [
   '',
   'MEMORY TEST ......... 16384 KB OK',
   'DETECTING DISK ...... OK',
-  'LOADING GAMES ....... 2 FOUND',
+  'LOADING GAMES ....... {N} FOUND',
   '',
   'PRESS ANY KEY',
 ];
 
-export default function Boot({ onDone }: { onDone: () => void }) {
+/** дата сборки игр из /games/build.json — по ней видно, какая версия загружена */
+function stamp(buildAt?: string | null): string | null {
+  if (!buildAt) return null;
+  const iso = new Date(buildAt);
+  if (Number.isNaN(iso.getTime())) return null;
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${iso.getUTCFullYear()}-${pad(iso.getUTCMonth() + 1)}-${pad(iso.getUTCDate())} ${pad(
+    iso.getUTCHours(),
+  )}:${pad(iso.getUTCMinutes())} UTC`;
+}
+
+export default function Boot({
+  buildAt,
+  gamesCount,
+  onDone,
+}: {
+  buildAt?: string | null;
+  gamesCount?: number;
+  onDone: () => void;
+}) {
   const [shown, setShown] = useState(0);
   const doneRef = useRef(false);
+
+  const seen = stamp(buildAt);
+  const base = LINES.map((line) =>
+    line.replace('{N}', String(gamesCount ?? 0)),
+  );
+  const lines = seen ? [...base.slice(0, 6), `BUILD ............... ${seen}`, ...base.slice(6)] : base;
 
   const finish = useCallback(() => {
     if (doneRef.current) return;
@@ -25,13 +50,13 @@ export default function Boot({ onDone }: { onDone: () => void }) {
   }, [onDone]);
 
   useEffect(() => {
-    if (shown >= LINES.length) {
+    if (shown >= lines.length) {
       const t = setTimeout(finish, 700);
       return () => clearTimeout(t);
     }
     const t = setTimeout(() => setShown((s) => s + 1), shown === 0 ? 250 : 260);
     return () => clearTimeout(t);
-  }, [shown, finish]);
+  }, [shown, finish, lines.length]);
 
   useEffect(() => {
     const skip = () => finish();
@@ -45,7 +70,7 @@ export default function Boot({ onDone }: { onDone: () => void }) {
 
   return (
     <div>
-      {LINES.slice(0, shown).map((line, i) => (
+      {lines.slice(0, shown).map((line, i) => (
         <div key={i} className="boot-line">
           {line || '\u00a0'}
         </div>

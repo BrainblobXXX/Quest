@@ -16,6 +16,7 @@ export default function Library({
   onSoundVolume,
   onMusicVolume,
   onReset,
+  buildAt,
 }: {
   games: GameIndexEntry[];
   saves: Record<string, string | undefined>;
@@ -29,6 +30,7 @@ export default function Library({
   onSoundVolume: (value: number) => void;
   onMusicVolume: (value: number) => void;
   onReset: (id: string) => void;
+  buildAt?: string | null;
 }) {
   const [confirmReset, setConfirmReset] = useState<string | null>(null);
   useEffect(() => {
@@ -45,6 +47,11 @@ export default function Library({
   return (
     <div>
       <h1 className="screen-heading">=== БИБЛИОТЕКА ===</h1>
+      {buildAt && (
+        <div className="screen-note">
+          СБОРКА {new Date(buildAt).toISOString().slice(0, 16).replace('T', ' ')} UTC
+        </div>
+      )}
 
       {games.length === 0 && <div className="error">ИГРЫ НЕ НАЙДЕНЫ</div>}
 
