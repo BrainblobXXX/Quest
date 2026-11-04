@@ -52,7 +52,22 @@ export default function Monoblock({
                 aria-label="Перезапустить игру"
                 title="Перезапустить игру"
               >
-                ⏻
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+                  <path
+                    d="M12 2.8v9.4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M6.4 6.6a8.2 8.2 0 1 0 11.2 0"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                  />
+                </svg>
               </button>
               <span className="power-label">POWER</span>
             </div>

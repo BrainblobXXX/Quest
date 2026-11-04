@@ -1,9 +1,36 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react';
 import { availableChoices, inventoryLine, isEnding, roll as rollDice, sceneOf } from '@/lib/engine';
 import { audio } from '@/lib/audio';
 import type { Choice, Game, GameState, ParseProblem } from '@/lib/types';
+
+/** подсветка исходной разметки story.md: теги вариантов, отсылки, маркеры */
+function rawMarkup(raw: string): ReactNode[] {
+  const re = /\{([АБВГД])\}([\s\S]*?)\{\/\1\}|\[([АБВГД])\]/g;
+  const out: ReactNode[] = [];
+  let last = 0;
+  let index = 0;
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(raw))) {
+    if (match.index > last) out.push(raw.slice(last, match.index));
+    if (match[1]) {
+      out.push(
+        <span key={`o${index}`} className="raw-tag">{`{${match[1]}}`}</span>,
+        <mark key={`m${index}`} data-variant={match[1]}>{match[2]}</mark>,
+        <span key={`c${index}`} className="raw-tag">{`{/${match[1]}}`}</span>,
+      );
+    } else {
+      out.push(<span key={`r${index}`} className="raw-ref">{`[${match[3]}]`}</span>);
+    }
+    index += 1;
+    last = re.lastIndex;
+  }
+  out.push(raw.slice(last));
+  return out;
+}
+
+const LETTER = /\[([А-ЯЁA-Z])\]/g;
 
 function remark(n: number): string {
   const mod10 = n % 10;
@@ -59,9 +86,46 @@ export default function GameScreen({
 }) {
   const scene = sceneOf(game, state);
   const [invOpen, setInvOpen] = useState(false);
+  const [rawOpen, setRawOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrollKey = `${game.id}:${state.scene}`;
   const choices = availableChoices(game, state);
+  const chooseByLetter = (letter: string) => choices.find((choice) => choice.letter === letter);
+
+  /** отсылки [А] остаются в прозе и работают как кнопки */
+  const refNodes = (text: string): ReactNode[] => {
+    const re = new RegExp(LETTER.source, 'g');
+    const out: ReactNode[] = [];
+    let last = 0;
+    let index = 0;
+    let match: RegExpExecArray | null;
+    while ((match = re.exec(text))) {
+      if (match.index > last) out.push(text.slice(last, match.index));
+      const letter = match[1];
+      const choice = chooseByLetter(letter);
+      out.push(
+        choice ? (
+          <button
+            key={`ref${index}`}
+            className="choice-ref"
+            data-variant={letter}
+            onClick={() => onChoose(choice)}
+            title={`Вариант ${letter}`}
+          >
+            [{letter}]
+          </button>
+        ) : (
+          <span key={`ref${index}`} className="choice-ref muted" data-variant={letter}>
+            [{letter}]
+          </span>
+        ),
+      );
+      index += 1;
+      last = re.lastIndex;
+    }
+    out.push(text.slice(last));
+    return out;
+  };
   const ending = isEnding(game, state);
   const hasNext = Boolean(scene.next);
   const dice = !ending && scene.next && typeof scene.next === 'object' ? scene.next : null;
@@ -87,8 +151,24 @@ export default function GameScreen({
     );
   };
 
+  /** текст сцены с подсветкой фраз вариантов: цвет берётся из тега {А}…{/А} */
+  const sceneText = (): ReactNode[] => {
+    const segments = scene.rich?.length ? scene.rich : [{ text: scene.text }];
+    return segments.map((segment, index) => {
+      const inner = refNodes(segment.text);
+      return segment.letter ? (
+        <mark key={`v${index}`} data-variant={segment.letter} className="variant-phrase">
+          {inner}
+        </mark>
+      ) : (
+        <Fragment key={`t${index}`}>{inner}</Fragment>
+      );
+    });
+  };
+
   useEffect(() => {
     setInvOpen(false);
+    setRawOpen(false);
   }, [scene.key]);
 
   useEffect(() => {
@@ -152,6 +232,14 @@ export default function GameScreen({
           ♪
         </button>
         <button
+          className={`raw-btn${rawOpen ? ' on' : ''}`}
+          onClick={() => setRawOpen((v) => !v)}
+          aria-pressed={rawOpen}
+          title="Показать исходную разметку story.md"
+        >
+          MD
+        </button>
+        <button
           className="inventory-toggle"
           onClick={() => setInvOpen((v) => !v)}
           aria-expanded={invOpen}
@@ -187,7 +275,11 @@ export default function GameScreen({
             <img src={assetUrl(game, scene.image)} alt="" />
           </figure>
         )}
-        <div className="scene-text">{scene.text}</div>
+        {rawOpen && scene.raw ? (
+          <div className="scene-raw">{rawMarkup(scene.raw)}</div>
+        ) : (
+          <div className="scene-text">{sceneText()}</div>
+        )}
       </div>
 
       {ending && (
@@ -202,7 +294,12 @@ export default function GameScreen({
       {!ending && choices.length > 0 && (
         <div className="choices">
           {choices.map((c, i) => (
-            <button key={`${c.goto}-${i}`} className="choice" onClick={() => onChoose(c)}>
+            <button
+              key={`${c.goto}-${i}`}
+              className="choice"
+              data-variant={c.letter}
+              onClick={() => onChoose(c)}
+            >
               {i + 1}. {c.label.toUpperCase()}
             </button>
           ))}

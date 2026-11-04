@@ -13,10 +13,10 @@ const LINES = [
   'PRESS ANY KEY',
 ];
 
-/** дата сборки игр из /games/build.json — по ней видно, какая версия загружена */
-function stamp(buildAt?: string | null): string | null {
-  if (!buildAt) return null;
-  const iso = new Date(buildAt);
+/** дата последней правки пакета: приходит из /api/games, видно, что загружено */
+function stamp(sourceAt?: string | null): string | null {
+  if (!sourceAt) return null;
+  const iso = new Date(sourceAt);
   if (Number.isNaN(iso.getTime())) return null;
   const pad = (n: number) => String(n).padStart(2, '0');
   return `${iso.getUTCFullYear()}-${pad(iso.getUTCMonth() + 1)}-${pad(iso.getUTCDate())} ${pad(
@@ -25,18 +25,18 @@ function stamp(buildAt?: string | null): string | null {
 }
 
 export default function Boot({
-  buildAt,
+  sourceAt,
   gamesCount,
   onDone,
 }: {
-  buildAt?: string | null;
+  sourceAt?: string | null;
   gamesCount?: number;
   onDone: () => void;
 }) {
   const [shown, setShown] = useState(0);
   const doneRef = useRef(false);
 
-  const seen = stamp(buildAt);
+  const seen = stamp(sourceAt);
   const base = LINES.map((line) =>
     line.replace('{N}', String(gamesCount ?? 0)),
   );

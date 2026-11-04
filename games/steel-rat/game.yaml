@@ -16,6 +16,7 @@ default_mood: calm
 scenes:
   prologue:
     title: Добро пожаловать!
+    image: illustrations/prologue.webp
     mood: calm
     next: "30"
   "1":
@@ -96,6 +97,7 @@ scenes:
     next: "139"
   "17":
     title: Глава 17
+    image: illustrations/underground.webp
     mood: calm
     next: "115"
   "18":
@@ -126,6 +128,7 @@ scenes:
     next: "340"
   "24":
     title: Глава 24
+    image: illustrations/arena_lion.webp
     mood: danger
     variants:
       А: "332"
@@ -159,6 +162,7 @@ scenes:
     next: "64"
   "30":
     title: Глава 30
+    image: illustrations/prologue.webp
     mood: tense
     next: "42"
   "31":
@@ -178,6 +182,7 @@ scenes:
     next: "12"
   "34":
     title: Глава 34
+    image: illustrations/castle_slaves.webp
     mood: tense
     next:
       roll: 1d2
@@ -223,6 +228,7 @@ scenes:
       В: "50"
   "42":
     title: Глава 42
+    image: illustrations/arrival.webp
     mood: calm
     next: "62"
   "43":
@@ -275,6 +281,7 @@ scenes:
     next: "307"
   "53":
     title: Глава 53
+    image: illustrations/street_tavern.webp
     mood: calm
     variants:
       А: "139"

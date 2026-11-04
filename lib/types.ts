@@ -9,6 +9,8 @@ export type ItemDef = {
 export type Choice = {
   label: string;
   goto: string;
+  /** буква варианта: А, Б, В… — ею помечена фраза в тексте и отсылка [А] */
+  letter?: string;
   if?: string;
   take?: string | Record<string, number>;
   use?: string;
@@ -29,6 +31,10 @@ export type Scene = {
   choices?: Choice[];
   next?: string | { roll: string; outcomes: RollOutcome[] };
   ending?: boolean;
+  /** исходный текст сцены из story.md: теги, отсылки, строки «Вариант А» */
+  raw?: string;
+  /** текст, разбитый по тегам вариантов: из него рисуется подсветка */
+  rich?: { text: string; letter?: string }[];
 };
 
 export type Game = {

@@ -4,9 +4,9 @@ import type { Choice, Game, ItemDef, ParseProblem, Scene } from './types';
 /**
  * Разбор пакета игры прямо в браузере: story.md + game.yaml → объект Game.
  *
- * Раньше это делал scripts/build-games.mjs на этапе сборки и складывал JSON в
- * public/games. Теперь пакет — единственный источник: файлы читаются с диска
- * через /api/games/*, а разбор и все проверки выполняются здесь.
+ * Раньше разбор шёл на этапе сборки и складывал готовый JSON в public/. Теперь
+ * пакет — единственный источник: файлы читаются с диска через /api/games/*,
+ * а разбор и все проверки выполняются здесь, в браузере.
  * Ошибки не бросаются молча: они возвращаются списком и показываются в UI.
  */
 
@@ -30,32 +30,14 @@ function hash(text: string): string {
   return (h >>> 0).toString(16);
 }
 
-/** подпись кнопки из фразы, обёрнутой тегом {А}…{/А} */
-function labelFrom(raw: string): string {
-  let label = raw
-    .replace(new RegExp(`\\s*(?:на|в|к|с|от|до|из|по|за)?\\s*\\[${LETTERS}\\]`, 'g'), ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .replace(/^(?:Если|Или|А если|Если же|Или же)\s+/i, '')
-    .replace(/^(?:Решай|Реши|Выбирай|Смотри)\s*,?\s*/i, '')
-    .replace(/(?:^|[,\s])то(?=[,\s]|$)\s*.*$/i, '')
-    .replace(/[\s,]+$/, '');
-
-  label = label.replace(/[\s,;:—–-]+$/, '').replace(/^(?:Если|Или|А если|Если же|Или же)[,\s]+/i, '');
-  if (label.length > 70) {
-    const cut = Math.max(label.lastIndexOf(',', 70), label.lastIndexOf(' ', 70));
-    label = (cut > 20 ? label.slice(0, cut) : label.slice(0, 70)).trim();
-  }
-  if (label) label = label[0].toUpperCase() + label.slice(1);
-  return label;
-}
-
 type RawScene = {
   key: string;
   text: string;
+  raw: string;
   choices: Choice[];
   markers: { letter: string; mods: Record<string, string> }[];
   title: string;
+  rich?: { text: string; letter?: string }[];
 };
 
 function parseStory(md: string, problems: ParseProblem[]): Record<string, RawScene> {
@@ -64,10 +46,18 @@ function parseStory(md: string, problems: ParseProblem[]): Record<string, RawSce
   let buffer: string[] = [];
   let choices: Choice[] | null = null;
   let markers: RawScene['markers'] = [];
+  let rawLines: string[] = [];
 
   const flush = () => {
     if (key === null) return;
-    scenes[key] = { key, text: buffer.join('\n').trim(), choices: choices ?? [], markers, title: '' };
+    scenes[key] = {
+      key,
+      text: buffer.join('\n').trim(),
+      raw: rawLines.join('\n').trim(),
+      choices: choices ?? [],
+      markers,
+      title: '',
+    };
   };
 
   for (const raw of md.split('\n')) {
@@ -79,6 +69,7 @@ function parseStory(md: string, problems: ParseProblem[]): Record<string, RawSce
       buffer = [];
       choices = null;
       markers = [];
+      rawLines = [];
       if (scenes[key]) {
         problems.push({ level: 'error', code: 'E_SCENE_DUPLICATE', message: 'сцена объявлена дважды', scene: key });
       }
@@ -94,6 +85,7 @@ function parseStory(md: string, problems: ParseProblem[]): Record<string, RawSce
       }
       continue;
     }
+    rawLines.push(line);
     const marker = new RegExp(`^Вариант\\s+([${LETTERS}])\\s*(?:\\{([^}]*)\\})?\\s*$`).exec(line.trim());
     if (marker) {
       const mods: Record<string, string> = {};
@@ -169,30 +161,44 @@ export function parsePackage(
           scene: key,
         });
       }
-      scene.choices = tags.map((tag) => {
-        const target = variants[tag[1]];
+      // подпись варианта — сама буква («Вариант А»), а не вырезанная из прозы фраза
+      const tagLetters = new Set(tags.map((tag) => tag[1]));
+      const letters: string[] = [];
+      for (const tag of tags) if (!letters.includes(tag[1])) letters.push(tag[1]);
+      for (const letter of Object.keys(variants)) if (!letters.includes(letter)) letters.push(letter);
+
+      scene.choices = letters.map((letter) => {
+        const target = variants[letter];
         if (!target) {
           problems.push({
             level: 'error',
             code: 'E_CHOICE_TARGET_MISSING',
-            message: `для тега ${tag[1]} нет цели в variants`,
+            message: `для буквы ${letter} нет цели в variants`,
             scene: key,
           });
         }
-        const label = labelFrom(tag[2]) || `Вариант ${tag[1]}`;
-        return { label, goto: String(target ?? '') };
+        return { label: `Вариант ${letter}`, goto: String(target ?? ''), letter };
       });
 
       const modsByLetter = Object.fromEntries(scene.markers.map((marker) => [marker.letter, marker.mods]));
-      scene.choices.forEach((choice, index) => Object.assign(choice, modsByLetter[tags[index]?.[1] ?? ''] ?? {}));
+      scene.choices.forEach((choice) => Object.assign(choice, modsByLetter[choice.letter ?? ''] ?? {}));
 
-      const tagLetters = new Set(tags.map((tag) => tag[1]));
       for (const letter of Object.keys(variants)) {
         if (!tagLetters.has(letter)) {
           problems.push({
             level: 'error',
             code: 'E_CHOICE_NO_TAG',
             message: `variants.${letter} без тега {${letter}}…{/${letter}}`,
+            scene: key,
+          });
+        }
+      }
+      for (const letter of tagLetters) {
+        if (!(letter in variants)) {
+          problems.push({
+            level: 'error',
+            code: 'E_CHOICE_NO_TARGET',
+            message: `тег {${letter}}…{/${letter}} без цели в variants`,
             scene: key,
           });
         }
@@ -208,12 +214,22 @@ export function parsePackage(
         }
       }
 
-      scene.text = scene.text
-        .replace(tagRe, '$2')
-        .replace(new RegExp(`\\s+(?:на|в|к)\\s*\\[([${LETTERS}])\\]`, 'g'), '')
-        .replace(new RegExp(`\\s*\\[([${LETTERS}])\\]`, 'g'), '')
-        .replace(/\s*([.,!?;:])\s*/g, '$1 ')
-        .replace(/\s+/g, ' ')
+      // в тексте остаются и фраза, и отсылка [А]; убираются только фигурные теги,
+      // а границы фразы сохраняются сегментами — по ним рисуется подсветка
+      const rich: { text: string; letter?: string }[] = [];
+      let last = 0;
+      for (const tag of tags) {
+        const start = tag.index ?? 0;
+        if (start > last) rich.push({ text: scene.text.slice(last, start) });
+        rich.push({ text: tag[2], letter: tag[1] });
+        last = start + tag[0].length;
+      }
+      if (last < scene.text.length) rich.push({ text: scene.text.slice(last) });
+      scene.rich = rich;
+      scene.text = rich
+        .map((segment) => segment.text)
+        .join('')
+        .replace(/ {2,}/g, ' ')
         .trim();
     }
   }
@@ -246,6 +262,8 @@ export function parsePackage(
       key,
       title: scene.title,
       text: scene.text,
+      raw: scene.raw,
+      rich: scene.rich,
       choices: scene.choices,
     };
     if (m.image) out.image = String(m.image);
@@ -277,7 +295,7 @@ export function parsePackage(
     out.choices?.forEach((choice) => {
       if (choice.goto) targets.push(choice.goto);
       for (const field of Object.keys(choice)) {
-        if (!['label', 'goto', 'if', 'take', 'use', 'drop'].includes(field)) {
+        if (!['label', 'goto', 'letter', 'if', 'take', 'use', 'drop'].includes(field)) {
           problems.push({ level: 'error', code: 'E_CHOICE_UNKNOWN_KEY', message: `неизвестный ключ выбора «${field}»`, scene: key });
         }
       }

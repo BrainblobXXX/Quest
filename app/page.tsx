@@ -12,7 +12,6 @@ import { loadGame, loadIndex } from '@/lib/games';
 import { PackageError } from '@/lib/parse';
 import { advance, choose, newState, resolveRoll } from '@/lib/engine';
 import { clearSave, loadSave, saveState, loadSettings, saveSettings } from '@/lib/storage';
-import { hardRefresh } from '@/lib/refresh';
 import type { Choice, Game, GameIndexEntry, GameState, ParseProblem } from '@/lib/types';
 
 export default function Page() {
@@ -176,9 +175,6 @@ export default function Page() {
         setGame(null);
       }
       refreshSaves();
-      // сброс прогресса = начать с чистого листа: заодно подтягиваем свежую
-      // сборку приложения, чтобы старый кэш не показывал прошлую версию книги
-      void hardRefresh();
     },
     [game, refreshSaves],
   );
@@ -239,7 +235,7 @@ export default function Page() {
       onGame={toGame}
       onPower={handlePower}
     >
-      {screen === 'boot' && <Boot buildAt={sourceAt} gamesCount={games.length} onDone={() => setScreen('library')} />}
+      {screen === 'boot' && <Boot sourceAt={sourceAt} gamesCount={games.length} onDone={() => setScreen('library')} />}
 
       {screen === 'library' && (
         <Library
@@ -255,7 +251,7 @@ export default function Page() {
           onSoundVolume={changeSoundVolume}
           onMusicVolume={changeMusicVolume}
           onReset={handleReset}
-          buildAt={sourceAt}
+          sourceAt={sourceAt}
         />
       )}
 

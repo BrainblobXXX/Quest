@@ -508,6 +508,47 @@ body {
 .screen-heading { font-size: 16px; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 14px; }
 .hint { font-size: 11px; color: #8a6a2f; margin-top: 10px; }
 .screen-note { font-size: 10px; letter-spacing: 1px; color: #4a3a1a; margin: -6px 0 12px; }
+/* просмотр исходной разметки story.md (кнопка MD) */
+.raw-btn {
+  background: none; border: 1px solid #5a4318; color: #c9a24a; cursor: pointer;
+  font: inherit; font-size: 10px; letter-spacing: 1px; padding: 2px 6px; border-radius: 3px;
+  margin-left: 6px;
+}
+.raw-btn.on { color: #1a1206; background: #c9a24a; }
+.scene-raw {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 12px; line-height: 1.6; white-space: pre-wrap; color: #d8b25a;
+  border-left: 2px solid #4a3a1a; padding-left: 10px;
+}
+.raw-tag { color: #6f5620; }
+/* отсылка [А] в тексте сцены — работает как кнопка выбора */
+.choice-ref {
+  background: none; border: 0; padding: 0 1px; margin: 0; font: inherit;
+  color: #ff9b3d; cursor: pointer; text-decoration: underline; text-underline-offset: 3px;
+}
+.choice-ref:hover { filter: brightness(1.35); }
+.choice-ref.muted,
+.choice-ref.muted[data-variant] { color: #6f5620; text-decoration: none; cursor: default; }
+/* фраза варианта в обычном тексте: те же цвета, что в просмотре разметки */
+.scene-text mark.variant-phrase {
+  background: none; color: inherit; text-decoration: underline; text-underline-offset: 3px;
+}
+.raw-ref { color: #ff9b3d; font-weight: 600; }
+
+/* цвет варианта един для фразы, отсылки [А] и подписи кнопки */
+.scene-text mark[data-variant='А'], .scene-raw mark[data-variant='А'], .choice-ref[data-variant='А'], .choice[data-variant='А'] { color: #ff5c5c; }
+.scene-text mark[data-variant='Б'], .scene-raw mark[data-variant='Б'], .choice-ref[data-variant='Б'], .choice[data-variant='Б'] { color: #6ea8ff; }
+.scene-text mark[data-variant='В'], .scene-raw mark[data-variant='В'], .choice-ref[data-variant='В'], .choice[data-variant='В'] { color: #6ee787; }
+.scene-text mark[data-variant='Г'], .scene-raw mark[data-variant='Г'], .choice-ref[data-variant='Г'], .choice[data-variant='Г'] { color: #22d3ee; }
+.scene-text mark[data-variant='Д'], .scene-raw mark[data-variant='Д'], .choice-ref[data-variant='Д'], .choice[data-variant='Д'] { color: #c792ea; }
+.scene-text mark[data-variant='Е'], .scene-raw mark[data-variant='Е'], .choice-ref[data-variant='Е'], .choice[data-variant='Е'] { color: #ff7ab6; }
+.scene-text mark[data-variant='Ж'], .scene-raw mark[data-variant='Ж'], .choice-ref[data-variant='Ж'], .choice[data-variant='Ж'] { color: #a3e635; }
+.scene-text mark[data-variant='З'], .scene-raw mark[data-variant='З'], .choice-ref[data-variant='З'], .choice[data-variant='З'] { color: #f5f5f5; }
+.scene-text mark[data-variant='И'], .scene-raw mark[data-variant='И'], .choice-ref[data-variant='И'], .choice[data-variant='И'] { color: #94a3b8; }
+/* наведение и фокус: инверсия важнее цвета варианта */
+.choice[data-variant]:hover, .choice[data-variant]:focus-visible { color: var(--screen-bg); }
+
+.scene-raw mark { background: none; color: inherit; text-decoration: underline; text-underline-offset: 3px; }
 .parse-report { margin: 0 0 10px; font-size: 11px; color: #c9a24a; }
 .parse-report summary { cursor: pointer; letter-spacing: 1px; }
 .parse-problems { margin: 6px 0 0; padding-left: 18px; font-size: 10px; line-height: 1.5; color: #b08a3a; }

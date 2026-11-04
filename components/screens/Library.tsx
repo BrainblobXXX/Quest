@@ -16,7 +16,7 @@ export default function Library({
   onSoundVolume,
   onMusicVolume,
   onReset,
-  buildAt,
+  sourceAt,
 }: {
   games: GameIndexEntry[];
   saves: Record<string, string | undefined>;
@@ -30,7 +30,7 @@ export default function Library({
   onSoundVolume: (value: number) => void;
   onMusicVolume: (value: number) => void;
   onReset: (id: string) => void;
-  buildAt?: string | null;
+  sourceAt?: string | null;
 }) {
   const [confirmReset, setConfirmReset] = useState<string | null>(null);
   useEffect(() => {
@@ -47,9 +47,9 @@ export default function Library({
   return (
     <div>
       <h1 className="screen-heading">=== БИБЛИОТЕКА ===</h1>
-      {buildAt && (
+      {sourceAt && (
         <div className="screen-note">
-          ИСТОЧНИК: {new Date(buildAt).toISOString().slice(0, 16).replace('T', ' ')} UTC
+          ИСТОЧНИК: {new Date(sourceAt).toISOString().slice(0, 16).replace('T', ' ')} UTC
         </div>
       )}
 
