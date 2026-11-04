@@ -91,13 +91,13 @@ export default function Monoblock({
           <div className="case-vents" aria-hidden="true" />
 
           <div className="case-nav">
-            <PanelButton label="Движок" latched={screen === 'library'} onClick={onLibrary} />
             <PanelButton
               label="Игра"
               latched={screen === 'game'}
               disabled={!gameAvailable}
               onClick={onGame}
             />
+            <PanelButton label="Библиотека" latched={screen === 'library'} onClick={onLibrary} />
           </div>
         </div>
         <div className="case-plate" aria-hidden="true">

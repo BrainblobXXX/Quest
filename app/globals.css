@@ -407,6 +407,22 @@ body {
   justify-content: center;
 }
 
+.scene-image-zoom {
+  background: none; border: 0; padding: 0; margin: 0;
+  height: 100%; display: flex; align-items: center; cursor: zoom-in;
+}
+
+/* просмотр иллюстрации на весь экран */
+.lightbox {
+  position: fixed; inset: 0; z-index: 9999; cursor: zoom-out;
+  background: rgba(4, 2, 0, 0.97);
+  backdrop-filter: blur(2px);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; padding: 3vh 3vw;
+}
+.lightbox img { max-width: 94vw; max-height: 88vh; object-fit: contain; }
+.lightbox-caption { font-size: 11px; letter-spacing: 1px; color: #8a6a2f; text-transform: uppercase; }
+
 .scene-image img {
   display: block;
   height: 100%;
@@ -529,6 +545,9 @@ body {
 .choice-ref:hover { filter: brightness(1.35); }
 .choice-ref.muted,
 .choice-ref.muted[data-variant] { color: #6f5620; text-decoration: none; cursor: default; }
+
+/* ярлык исхода броска монеты */
+.outcome-chip { font-size: 0.8em; margin: 0 6px 0 5px; opacity: 0.85; }
 /* фраза варианта в обычном тексте: те же цвета, что в просмотре разметки */
 .scene-text mark.variant-phrase {
   background: none; color: inherit; text-decoration: underline; text-underline-offset: 3px;
@@ -545,6 +564,10 @@ body {
 .scene-text mark[data-variant='Ж'], .scene-raw mark[data-variant='Ж'], .choice-ref[data-variant='Ж'], .choice[data-variant='Ж'] { color: #a3e635; }
 .scene-text mark[data-variant='З'], .scene-raw mark[data-variant='З'], .choice-ref[data-variant='З'], .choice[data-variant='З'] { color: #f5f5f5; }
 .scene-text mark[data-variant='И'], .scene-raw mark[data-variant='И'], .choice-ref[data-variant='И'], .choice[data-variant='И'] { color: #94a3b8; }
+
+/* исходы монеты: орёл и решка */
+.scene-text mark[data-variant='О'] { color: #7dd3fc; }
+.scene-text mark[data-variant='Р'] { color: #fda4af; }
 /* наведение и фокус: инверсия важнее цвета варианта */
 .choice[data-variant]:hover, .choice[data-variant]:focus-visible { color: var(--screen-bg); }
 
@@ -567,6 +590,9 @@ body {
 
 @media (max-width: 720px) {
   .scene-image { height: 42%; }
+  /* широкие иллюстрации на телефоне: заполняем кадр и обрезаем поля */
+  .scene-image.wide { height: 50%; }
+  .scene-image.wide img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
   body { padding: 10px; }
   .device { --w: min(900px, 94vw, calc((100vh - 120px) * 1.02)); }
   .case { width: 100%; padding: 10px 12px 6px; }
@@ -659,6 +685,7 @@ body {
   }
 
   .scene-image { height: 38%; }
+  .scene-image.wide { height: 46%; }
   .title-line { font-size: 11px; }
   .screen-heading { font-size: 14px; margin-bottom: 10px; }
   .choice, .list-item { font-size: 14px; }
@@ -764,6 +791,8 @@ body {
 
 .roll-coin {
   border-radius: 50%;
+  font-size: 15px;
+  letter-spacing: 1px;
   animation: coin-flip 1.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 

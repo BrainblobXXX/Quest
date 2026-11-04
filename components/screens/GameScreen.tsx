@@ -1,6 +1,7 @@
 'use client';
 
 import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { availableChoices, inventoryLine, isEnding, roll as rollDice, sceneOf } from '@/lib/engine';
 import { audio } from '@/lib/audio';
 import type { Choice, Game, GameState, ParseProblem } from '@/lib/types';
@@ -87,6 +88,8 @@ export default function GameScreen({
   const scene = sceneOf(game, state);
   const [invOpen, setInvOpen] = useState(false);
   const [rawOpen, setRawOpen] = useState(false);
+  const [zoom, setZoom] = useState(false);
+  const [wideImage, setWideImage] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrollKey = `${game.id}:${state.scene}`;
   const choices = availableChoices(game, state);
@@ -151,8 +154,28 @@ export default function GameScreen({
     );
   };
 
+  /** исходы броска монеты: подсвечиваем фразы с «орлом» и «решкой» и вешаем ярлык */
+  const coinText = (text: string): ReactNode[] => {
+    const sentences = text.match(/[^.!?]+[.!?]*\s*/g) ?? [text];
+    return sentences.map((sentence, index) => {
+      const hit = [
+        { re: /ор[её]?л/i, letter: 'О', label: 'Орёл' },
+        { re: /решк/i, letter: 'Р', label: 'Решка' },
+      ].find((outcome) => outcome.re.test(sentence));
+      const inner = refNodes(sentence);
+      if (!hit) return <Fragment key={`c${index}`}>{inner}</Fragment>;
+      return (
+        <mark key={`c${index}`} data-variant={hit.letter} className="variant-phrase">
+          {inner}
+          <span className="outcome-chip">[{hit.label}]</span>
+        </mark>
+      );
+    });
+  };
+
   /** текст сцены с подсветкой фраз вариантов: цвет берётся из тега {А}…{/А} */
   const sceneText = (): ReactNode[] => {
+    if (!scene.rich?.length && isCoin) return coinText(scene.text);
     const segments = scene.rich?.length ? scene.rich : [{ text: scene.text }];
     return segments.map((segment, index) => {
       const inner = refNodes(segment.text);
@@ -169,7 +192,22 @@ export default function GameScreen({
   useEffect(() => {
     setInvOpen(false);
     setRawOpen(false);
+    setZoom(false);
+    setWideImage(false);
   }, [scene.key]);
+
+  // лайтбокс: Esc и клик по фону закрывают, и Esc не уводит в библиотеку
+  useEffect(() => {
+    if (!zoom) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.stopPropagation();
+        setZoom(false);
+      }
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [zoom]);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -270,9 +308,24 @@ export default function GameScreen({
 
       <div className="scene-scroll" ref={scrollRef} onScroll={saveScroll}>
         {scene.image && (
-          <figure className="scene-image">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={assetUrl(game, scene.image)} alt="" />
+          <figure className={`scene-image${wideImage ? ' wide' : ''}`}>
+            <button
+              type="button"
+              className="scene-image-zoom"
+              onClick={() => setZoom(true)}
+              aria-label="Рассмотреть иллюстрацию"
+              title="Рассмотреть иллюстрацию"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={assetUrl(game, scene.image)}
+                alt=""
+                onLoad={(event) => {
+                  const img = event.currentTarget;
+                  setWideImage(img.naturalWidth / Math.max(1, img.naturalHeight) > 1.5);
+                }}
+              />
+            </button>
           </figure>
         )}
         {rawOpen && scene.raw ? (
@@ -328,8 +381,8 @@ export default function GameScreen({
             {rollView.kind === 'coin'
               ? rollView.phase === 'result'
                 ? rollView.value === 1
-                  ? 'О'
-                  : 'Р'
+                  ? 'ОРЁЛ'
+                  : 'РЕШКА'
                 : '◉'
               : rollView.phase === 'result'
                 ? rollView.value
@@ -352,6 +405,24 @@ export default function GameScreen({
       {!ending && choices.length === 0 && !hasNext && (
         <div className="choices error">СБОЙ: ТУПИК В СЦЕНЕ {scene.key}</div>
       )}
+
+      {zoom &&
+        scene.image &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <div
+            className="lightbox"
+            role="dialog"
+            aria-modal="true"
+            aria-label={scene.title}
+            onClick={() => setZoom(false)}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={assetUrl(game, scene.image)} alt={scene.title} />
+            <div className="lightbox-caption">{scene.title} · нажмите или Esc, чтобы закрыть</div>
+          </div>,
+          document.body,
+        )}
 
     </div>
   );
