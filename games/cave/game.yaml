@@ -2,6 +2,7 @@ format: quest/1
 id: cave
 title: Кощеева пещера
 author: демо-пакет
+genre: демо
 language: ru
 start: '1'
 story: story.md

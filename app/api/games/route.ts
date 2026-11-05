@@ -2,7 +2,7 @@ import { readdir, readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { parse as parseYaml } from 'yaml';
 import type { GameIndexEntry } from '@/lib/types';
-import { GAMES_DIR } from '@/lib/server/games';
+import { gamesDir } from '@/lib/server/games';
 
 /**
  * Список игр: читается прямо из games/ на диске.
@@ -12,27 +12,43 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function GET() {
+  const dir = gamesDir();
+  if (!dir) {
+    // каталога games/ нет ни по одному пути — это сбой развёртывания
+    return Response.json(
+      { error: 'games directory is not available' },
+      { status: 500, headers: { 'Cache-Control': 'no-store' } },
+    );
+  }
+
   let entries: string[] = [];
   try {
-    entries = (await readdir(GAMES_DIR, { withFileTypes: true }))
+    entries = (await readdir(dir, { withFileTypes: true }))
       .filter((entry) => entry.isDirectory())
       .map((entry) => entry.name)
       .sort();
   } catch {
-    return Response.json([] satisfies GameIndexEntry[], { headers: { 'Cache-Control': 'no-store' } });
+    return Response.json([], { status: 200, headers: { 'Cache-Control': 'no-store' } });
   }
 
   const games: GameIndexEntry[] = [];
   for (const id of entries) {
-    const dir = join(GAMES_DIR, id);
+    const gameDir = join(dir, id);
     try {
-      const manifest = parseYaml(await readFile(join(dir, 'game.yaml'), 'utf8')) as {
+      const manifest = parseYaml(await readFile(join(gameDir, 'game.yaml'), 'utf8')) as {
         title?: string;
+        author?: string;
+        genre?: string;
+        annotation?: string;
       } | null;
-      const story = await stat(join(dir, 'story.md'));
+      const story = await stat(join(gameDir, 'story.md'));
+      const text = (value: unknown) => (typeof value === 'string' && value.trim() ? value.trim() : undefined);
       games.push({
         id,
         title: String(manifest?.title ?? id),
+        author: text(manifest?.author),
+        genre: text(manifest?.genre),
+        annotation: text(manifest?.annotation),
         updatedAt: story.mtime.toISOString(),
       });
     } catch {

@@ -11,10 +11,30 @@ const BASE = '/api/games';
 
 export type LoadedGame = { game: Game; problems: ParseProblem[] };
 
-export async function loadIndex(): Promise<GameIndexEntry[]> {
-  const res = await fetch(BASE, { cache: 'no-store' });
+async function fetchIndex(): Promise<GameIndexEntry[]> {
+  // ?t= — чтобы прокси и CDN не отдали список от прошлого деплоя
+  const res = await fetch(`${BASE}?t=${Date.now()}`, { cache: 'no-store' });
   if (!res.ok) throw new Error(`E_INDEX: ${res.status}`);
   return (await res.json()) as GameIndexEntry[];
+}
+
+/**
+ * Список игр с повторами: во время деплоя инстанс может на секунду оказаться без
+ * каталога games/, и раньше приложение навсегда запоминало пустую библиотеку.
+ */
+export async function loadIndex(attempts = 3): Promise<GameIndexEntry[]> {
+  let lastError: unknown = new Error('E_INDEX');
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try {
+      const list = await fetchIndex();
+      if (list.length) return list;
+      lastError = new Error('E_INDEX_EMPTY');
+    } catch (error) {
+      lastError = error;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)));
+  }
+  throw lastError instanceof Error ? lastError : new Error('E_INDEX');
 }
 
 async function text(url: string, what: string): Promise<string> {

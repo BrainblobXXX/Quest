@@ -31,6 +31,21 @@ export default function Page() {
   const audioStarted = useRef(false);
   const refreshSavesRef = useRef<() => void>(() => {});
 
+  const refreshLibrary = useCallback(async () => {
+    try {
+      const list = await loadIndex();
+      setGames(list);
+      const map: Record<string, string | undefined> = {};
+      for (const g of list) map[g.id] = loadSave(g.id)?.scene;
+      setSaves(map);
+      const stamps = list.map((g) => g.updatedAt ?? '').sort();
+      setSourceAt(stamps.at(-1) || null);
+    } catch (e: unknown) {
+      setError(String(e instanceof Error ? e.message : e));
+      setScreen('error');
+    }
+  }, []);
+
   useEffect(() => {
     const settings = loadSettings();
     setSound(settings.sound);
@@ -42,20 +57,8 @@ export default function Page() {
     audio.setSoundVolume(settings.soundVolume);
     audio.setMusicVolume(settings.musicVolume);
 
-    loadIndex()
-      .then((list) => {
-        setGames(list);
-        const map: Record<string, string | undefined> = {};
-        for (const g of list) map[g.id] = loadSave(g.id)?.scene;
-        setSaves(map);
-        const stamps = list.map((g) => g.updatedAt ?? '').sort();
-        setSourceAt(stamps.at(-1) || null);
-      })
-      .catch((e: unknown) => {
-        setError(String(e));
-        setScreen('error');
-      });
-  }, []);
+    void refreshLibrary();
+  }, [refreshLibrary]);
 
   useEffect(() => {
     const startAudio = () => {
@@ -251,6 +254,7 @@ export default function Page() {
           onSoundVolume={changeSoundVolume}
           onMusicVolume={changeMusicVolume}
           onReset={handleReset}
+          onReload={refreshLibrary}
           sourceAt={sourceAt}
         />
       )}

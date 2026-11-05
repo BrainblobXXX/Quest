@@ -523,7 +523,18 @@ body {
 
 .screen-heading { font-size: 16px; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 14px; }
 .hint { font-size: 11px; color: #8a6a2f; margin-top: 10px; }
-.screen-note { font-size: 10px; letter-spacing: 1px; color: #4a3a1a; margin: -6px 0 12px; }
+.screen-note { font-size: 10px; letter-spacing: 1px; color: #4a3a1a; margin: 0 0 12px; }
+/* описание книги в библиотеке */
+.game-meta {
+  margin: 2px 0 12px 18px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #9a7a3a;
+}
+.game-meta .meta-key { color: #6f5620; letter-spacing: 1px; margin-right: 4px; }
+@media (max-width: 720px) {
+  .game-meta { font-size: 10px; margin-left: 14px; }
+}
 /* просмотр исходной разметки story.md (кнопка MD) */
 .raw-btn {
   background: none; border: 1px solid #5a4318; color: #c9a24a; cursor: pointer;

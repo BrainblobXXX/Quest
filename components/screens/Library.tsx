@@ -16,6 +16,7 @@ export default function Library({
   onSoundVolume,
   onMusicVolume,
   onReset,
+  onReload,
   sourceAt,
 }: {
   games: GameIndexEntry[];
@@ -30,6 +31,7 @@ export default function Library({
   onSoundVolume: (value: number) => void;
   onMusicVolume: (value: number) => void;
   onReset: (id: string) => void;
+  onReload: () => void;
   sourceAt?: string | null;
 }) {
   const [confirmReset, setConfirmReset] = useState<string | null>(null);
@@ -47,13 +49,20 @@ export default function Library({
   return (
     <div>
       <h1 className="screen-heading">=== БИБЛИОТЕКА ===</h1>
-      {sourceAt && (
+      {sourceAt && new Date(sourceAt).getUTCFullYear() > 2000 && (
         <div className="screen-note">
           ИСТОЧНИК: {new Date(sourceAt).toISOString().slice(0, 16).replace('T', ' ')} UTC
         </div>
       )}
 
-      {games.length === 0 && <div className="error">ИГРЫ НЕ НАЙДЕНЫ</div>}
+      {games.length === 0 && (
+        <>
+          <div className="error">ИГРЫ НЕ НАЙДЕНЫ</div>
+          <button className="list-item" onClick={onReload}>
+            ОБНОВИТЬ СПИСОК
+          </button>
+        </>
+      )}
 
       {games.map((g, i) => (
         <div key={g.id}>
@@ -61,6 +70,17 @@ export default function Library({
             {i + 1}. {g.title.toUpperCase()}
             {saves[g.id] ? ` · ГЛАВА ${saves[g.id]}` : ''}
           </button>
+          <div className="game-meta">
+            <div>
+              <span className="meta-key">АВТОР:</span> {g.author || '—'}
+            </div>
+            <div>
+              <span className="meta-key">ЖАНР:</span> {g.genre || '—'}
+            </div>
+            <div>
+              <span className="meta-key">АННОТАЦИЯ:</span> {g.annotation || '—'}
+            </div>
+          </div>
           {saves[g.id] &&
             (confirmReset === g.id ? (
               <div className="reset-line">

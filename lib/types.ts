@@ -69,6 +69,9 @@ export type GameState = {
 export type GameIndexEntry = {
   id: string;
   title: string;
+  author?: string;
+  genre?: string;
+  annotation?: string;
   /** когда в последний раз менялся пакет на диске (ISO) */
   updatedAt?: string;
 };

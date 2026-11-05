@@ -89,7 +89,7 @@ export default function GameScreen({
   const [invOpen, setInvOpen] = useState(false);
   const [rawOpen, setRawOpen] = useState(false);
   const [zoom, setZoom] = useState(false);
-  const [wideImage, setWideImage] = useState(false);
+  const [imageFit, setImageFit] = useState<{ src: string; wide: boolean } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrollKey = `${game.id}:${state.scene}`;
   const choices = availableChoices(game, state);
@@ -193,7 +193,6 @@ export default function GameScreen({
     setInvOpen(false);
     setRawOpen(false);
     setZoom(false);
-    setWideImage(false);
   }, [scene.key]);
 
   // лайтбокс: Esc и клик по фону закрывают, и Esc не уводит в библиотеку
@@ -308,7 +307,9 @@ export default function GameScreen({
 
       <div className="scene-scroll" ref={scrollRef} onScroll={saveScroll}>
         {scene.image && (
-          <figure className={`scene-image${wideImage ? ' wide' : ''}`}>
+          <figure
+            className={`scene-image${imageFit?.src === scene.image && imageFit.wide ? ' wide' : ''}`}
+          >
             <button
               type="button"
               className="scene-image-zoom"
@@ -322,7 +323,10 @@ export default function GameScreen({
                 alt=""
                 onLoad={(event) => {
                   const img = event.currentTarget;
-                  setWideImage(img.naturalWidth / Math.max(1, img.naturalHeight) > 1.5);
+                  const wide = img.naturalWidth / Math.max(1, img.naturalHeight) > 1.5;
+                  // привязываем признак к адресу картинки: если следующая сцена
+                  // показывает тот же файл, он остаётся широким без повторной загрузки
+                  setImageFit({ src: scene.image ?? '', wide });
                 }}
               />
             </button>

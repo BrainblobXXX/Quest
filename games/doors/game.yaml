@@ -2,6 +2,7 @@ format: quest/1
 id: doors
 title: Три двери
 author: демо-пакет
+genre: демо
 language: ru
 start: '1'
 story: story.md
