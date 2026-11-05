@@ -273,6 +273,13 @@ export function parsePackage(
       if (!(out.mood in moods)) {
         problems.push({ level: 'error', code: 'E_MOOD_UNKNOWN', message: `mood «${out.mood}» не объявлен в moods`, scene: key });
       }
+    } else if (Object.keys(moods).length > 0) {
+      problems.push({
+        level: 'warn',
+        code: 'W_MOOD_MISSING',
+        message: 'у сцены не задано mood, хотя музыка в пакете есть',
+        scene: key,
+      });
     }
     if (m.ending) out.ending = true;
     if (m.next) out.next = m.next as Scene['next'];

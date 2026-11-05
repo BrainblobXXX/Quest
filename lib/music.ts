@@ -16,5 +16,12 @@ function trackOf(game: Game, mood: string | null | undefined): string | null {
 
 export function trackFor(game: Game, scene: Scene): string | null {
   if (scene.music) return scene.music;
-  return trackOf(game, scene.mood) ?? trackOf(game, game.defaultMood) ?? null;
+
+  // настроение задано: если трек для него есть — играем, если нет — продолжаем
+  // текущий трек. Падать в default_mood здесь нельзя: «mystery» без музыки не
+  // должен звучать как «calm».
+  if (scene.mood) return trackOf(game, scene.mood);
+
+  // настроения нет вовсе — вот здесь работает запасное
+  return trackOf(game, game.defaultMood) ?? null;
 }
