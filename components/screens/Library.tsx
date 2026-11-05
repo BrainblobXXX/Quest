@@ -144,7 +144,7 @@ export default function Library({
       </div>
 
       <div className="hint">
-        ВЫБОР — МЫШЬЮ ИЛИ ЦИФРОЙ · ESC — В БИБЛИОТЕКУ · PRESS ANY KEY — ПРОПУСК ЗАГРУЗКИ
+        ВЫБОР — МЫШЬЮ, ЦИФРОЙ ИЛИ ↑↓ + ENTER · ESC — В БИБЛИОТЕКУ · PRESS ANY KEY — ПРОПУСК ЗАГРУЗКИ
       </div>
     </div>
   );

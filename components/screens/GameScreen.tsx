@@ -90,6 +90,7 @@ export default function GameScreen({
   const [rawOpen, setRawOpen] = useState(false);
   const [zoom, setZoom] = useState(false);
   const [imageFit, setImageFit] = useState<{ src: string; wide: boolean } | null>(null);
+  const [selected, setSelected] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrollKey = `${game.id}:${state.scene}`;
   const choices = availableChoices(game, state);
@@ -221,6 +222,7 @@ export default function GameScreen({
 
   useEffect(() => {
     setRollView(null);
+    setSelected(0);
     for (const id of rollTimers.current) window.clearTimeout(id);
     rollTimers.current = [];
   }, [scene.key]);
@@ -237,8 +239,24 @@ export default function GameScreen({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' || ending) return;
-      if (rollView) return;
+      if (e.key === 'Escape' || rollView) return;
+
+      // сколько пунктов можно выбрать: варианты, «далее» или бросок
+      const items = ending ? 0 : choices.length > 0 ? choices.length : dice || hasNext ? 1 : 0;
+      if (!items) return;
+
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        const step = e.key === 'ArrowDown' ? 1 : -1;
+        setSelected((prev) => (prev + step + items) % items);
+        return;
+      }
+
+      // на кнопке в фокусе Enter должен сработать как обычный клик
+      const active = document.activeElement;
+      const onControl = active instanceof HTMLElement && /^(BUTTON|INPUT|TEXTAREA)$/.test(active.tagName);
+      if (onControl) return;
+
       if (/^[1-9]$/.test(e.key)) {
         if (dice) {
           if (e.key === '1') startRoll();
@@ -246,14 +264,17 @@ export default function GameScreen({
         }
         const choice = choices[Number(e.key) - 1];
         if (choice) onChoose(choice);
-      } else if (e.key === 'Enter' && hasNext) {
+      } else if (e.key === 'Enter') {
+        if (ending) return;
+        e.preventDefault();
         if (dice) startRoll();
-        else onAdvance();
+        else if (choices.length > 0) onChoose(choices[Math.min(selected, choices.length - 1)]);
+        else if (hasNext) onAdvance();
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [choices, ending, hasNext, onChoose, onAdvance, dice, rollView]);
+  }, [choices, ending, hasNext, onChoose, onAdvance, dice, rollView, selected, startRoll]);
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -353,7 +374,7 @@ export default function GameScreen({
           {choices.map((c, i) => (
             <button
               key={`${c.goto}-${i}`}
-              className="choice"
+              className={`choice${i === selected ? ' selected' : ''}`}
               data-variant={c.letter}
               onClick={() => onChoose(c)}
             >

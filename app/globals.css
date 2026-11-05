@@ -482,6 +482,8 @@ body {
   flex: 1;
   overflow-y: auto;
   padding-right: 6px;
+  /* запас снизу: последняя строка не должна упираться в виньетку и маску */
+  padding-bottom: 36px;
   mask-image: linear-gradient(to bottom, #000 calc(100% - 14px), transparent 100%);
   -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 14px), transparent 100%);
 }
@@ -582,6 +584,12 @@ body {
 /* наведение и фокус: инверсия важнее цвета варианта */
 .choice[data-variant]:hover, .choice[data-variant]:focus-visible { color: var(--screen-bg); }
 
+/* выбранный с клавиатуры пункт */
+.choice.selected {
+  background: rgba(255, 176, 0, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(255, 176, 0, 0.55), 0 0 12px rgba(255, 176, 0, 0.18);
+}
+
 .scene-raw mark { background: none; color: inherit; text-decoration: underline; text-underline-offset: 3px; }
 .parse-report { margin: 0 0 10px; font-size: 11px; color: #c9a24a; }
 .parse-report summary { cursor: pointer; letter-spacing: 1px; }
@@ -613,6 +621,7 @@ body {
   .floppy { width: 64px; }
   .cdrom { width: 92px; }
   .screen-content { padding: 12px 14px 10px; font-size: 13px; }
+  .scene-scroll { padding-bottom: 46px; }
   .screen-heading { font-size: 14px; }
   .title-line { font-size: 11px; }
   .choice, .list-item { font-size: 13px; }
