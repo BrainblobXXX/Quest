@@ -7,6 +7,8 @@ class AudioEngine {
   private humGain: GainNode | null = null;
   private enabled = true;
   private music: HTMLAudioElement | null = null;
+  /** все живые аудиоэлементы: гарантия, что играет ровно один трек */
+  private tracks = new Set<HTMLAudioElement>();
   private musicUrl: string | null = null;
   private musicFade: number | null = null;
   private pendingMusic: string | null = null;
@@ -15,14 +17,39 @@ class AudioEngine {
   private soundVolume = 1;
   private musicEnabled = true;
 
+  constructor() {
+    // диагностика в dev: window.__questAudioDebug() показывает состояние треков
+    if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'production') {
+      (window as unknown as { __questAudio?: AudioEngine }).__questAudio = this;
+      (window as unknown as { __questAudioDebug?: () => unknown }).__questAudioDebug = () => ({
+        url: this.musicUrl,
+        enabled: this.enabled,
+        musicEnabled: this.musicEnabled,
+        soundVolume: Number(this.soundVolume.toFixed(2)),
+        musicVolume: Number(this.musicVolume.toFixed(2)),
+        tracks: [...this.tracks].map((track) => ({
+          src: track.src.split('/').pop(),
+          paused: track.paused,
+          volume: Number(track.volume.toFixed(3)),
+        })),
+      });
+    }
+  }
+
   get isEnabled() {
     return this.enabled;
+  }
+
+  get isMusicEnabled() {
+    return this.musicEnabled;
   }
 
   /** вызывается после первого жеста игрока */
   start(): void {
     if (typeof window === 'undefined' || this.ctx) return;
-    const AC = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    const AC =
+      window.AudioContext ??
+      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!AC) return;
     this.ctx = new AC();
     this.startHum();
@@ -37,10 +64,14 @@ class AudioEngine {
     this.enabled = on;
     if (!on) {
       this.stopHum();
-      if (this.music) this.music.volume = 0;
-    } else if (this.ctx) {
-      this.startHum();
-      if (this.music) this.music.volume = this.currentMusicVolume();
+      for (const track of this.tracks) track.volume = 0;
+      this.music?.pause();
+    } else {
+      if (this.ctx) this.startHum();
+      if (this.music && this.musicEnabled) {
+        this.music.volume = this.currentMusicVolume();
+        void this.music.play().catch(() => {});
+      }
     }
   }
 
@@ -63,6 +94,25 @@ class AudioEngine {
     return this.musicVolume * this.musicMax;
   }
 
+  private clearFade(): void {
+    if (this.musicFade !== null) {
+      window.clearInterval(this.musicFade);
+      this.musicFade = null;
+    }
+  }
+
+  /** глушим и выбрасываем трек: используется и для смены, и для очистки */
+  private dropTrack(track: HTMLAudioElement): void {
+    try {
+      track.pause();
+      track.src = '';
+      track.load();
+    } catch {
+      // элемент мог быть уже выгружен — не мешает
+    }
+    this.tracks.delete(track);
+  }
+
   /**
    * Музыка по настроению сцены.
    * null — продолжать текущий трек (сцена без mood).
@@ -74,24 +124,31 @@ class AudioEngine {
       this.pendingMusic = url;
       return;
     }
-    if (url === this.musicUrl) return;
+    if (url === this.musicUrl && this.music) return;
 
     this.musicUrl = url;
     document.documentElement.dataset.track = url;
 
-    if (this.musicFade !== null) {
-      window.clearInterval(this.musicFade);
-      this.musicFade = null;
+    // сначала убираем всё лишнее: осиротевшие треки после прерванного кроссфейда
+    this.clearFade();
+    const prev = this.music;
+    for (const track of [...this.tracks]) {
+      if (track !== prev) this.dropTrack(track);
     }
 
-    const prev = this.music;
     const next = new Audio(url);
     next.loop = true;
     next.volume = 0;
-    if (this.musicEnabled) void next.play().catch(() => {});
+    next.addEventListener('error', () => this.dropTrack(next));
     this.music = next;
+    this.tracks.add(next);
+    if (this.musicEnabled && this.enabled) {
+      void next.play().catch(() => {
+        // автовоспроизведение могло быть заблокировано — включим после жеста
+        this.pendingMusic = url;
+      });
+    }
 
-    const target = this.currentMusicVolume();
     const startPrev = prev?.volume ?? 0;
     const steps = 30;
     const dt = Math.max(20, (fade * 1000) / steps);
@@ -100,15 +157,13 @@ class AudioEngine {
     this.musicFade = window.setInterval(() => {
       i += 1;
       const k = Math.min(1, i / steps);
-      next.volume = target * k;
-      if (prev && prev !== next) prev.volume = Math.max(0, startPrev * (1 - k));
+      // громкость пересчитываем каждый тик: ползунок мог измениться во время фейда
+      const target = this.currentMusicVolume();
+      next.volume = Math.min(1, Math.max(0, target * k));
+      if (prev && prev !== next) prev.volume = Math.min(1, Math.max(0, startPrev * (1 - k)));
       if (k >= 1) {
-        if (this.musicFade !== null) window.clearInterval(this.musicFade);
-        this.musicFade = null;
-        if (prev && prev !== next) {
-          prev.pause();
-          prev.src = '';
-        }
+        this.clearFade();
+        if (prev && prev !== next) this.dropTrack(prev);
       }
     }, dt);
   }
@@ -116,23 +171,20 @@ class AudioEngine {
   setMusicEnabled(on: boolean): void {
     this.musicEnabled = on;
     if (!on) {
-      this.music?.pause();
-    } else if (this.music) {
-      this.music.volume = this.currentMusicVolume();
-      void this.music.play().catch(() => {});
+      for (const track of this.tracks) track.pause();
+      return;
     }
-  }
-
-  get isMusicEnabled() {
-    return this.musicEnabled;
+    if (this.music) {
+      this.music.volume = this.currentMusicVolume();
+      if (this.enabled) void this.music.play().catch(() => {});
+    }
   }
 
   stopMusic(): void {
     this.musicUrl = null;
     this.pendingMusic = null;
-    if (this.musicFade !== null) window.clearInterval(this.musicFade);
-    this.musicFade = null;
-    this.music?.pause();
+    this.clearFade();
+    for (const track of [...this.tracks]) this.dropTrack(track);
     this.music = null;
     delete document.documentElement.dataset.track;
   }
