@@ -6,30 +6,14 @@ import type { GameIndexEntry } from '@/lib/types';
 export default function Library({
   games,
   saves,
-  sound,
-  music,
-  soundVolume,
-  musicVolume,
   onStart,
-  onToggleSound,
-  onToggleMusic,
-  onSoundVolume,
-  onMusicVolume,
   onReset,
   onReload,
   sourceAt,
 }: {
   games: GameIndexEntry[];
   saves: Record<string, string | undefined>;
-  sound: boolean;
-  music: boolean;
   onStart: (id: string) => void;
-  onToggleSound: () => void;
-  onToggleMusic: () => void;
-  soundVolume: number;
-  musicVolume: number;
-  onSoundVolume: (value: number) => void;
-  onMusicVolume: (value: number) => void;
   onReset: (id: string) => void;
   onReload: () => void;
   sourceAt?: string | null;
@@ -39,15 +23,13 @@ export default function Library({
 
   // порядок пунктов меню: книги, затем переключатели звука и музыки
   const items = useMemo(
-    () => [...games.map((g) => `game:${g.id}`), ...(games.length === 0 ? ['reload'] : []), 'sound', 'music'],
+    () => [...games.map((g) => `game:${g.id}`), ...(games.length === 0 ? ['reload'] : [])],
     [games],
   );
 
   const activate = (key: string) => {
     if (key.startsWith('game:')) onStart(key.slice(5));
     else if (key === 'reload') onReload();
-    else if (key === 'sound') onToggleSound();
-    else if (key === 'music') onToggleMusic();
   };
 
   useEffect(() => {
@@ -84,7 +66,7 @@ export default function Library({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [games, items, focusKey, onStart, onToggleSound, onToggleMusic]);
+  }, [games, items, focusKey, onStart, onReload]);
 
   // подсветка выбранного пункта должна попадать в видимую область
   useEffect(() => {
@@ -194,54 +176,8 @@ export default function Library({
         </div>
       )}
 
-      <div style={{ marginTop: 18 }}>
-        <div className="volume-group">
-          <button
-            className={`list-item${focusKey === 'sound' ? ' menu-focused' : ''}`}
-            data-menu-key="sound"
-            onClick={onToggleSound}
-          >
-            ЗВУК: {sound ? 'ВКЛ' : 'ВЫКЛ'}
-          </button>
-          <div className="volume-row">
-            <input
-              className="volume"
-              type="range"
-              min={0}
-              max={100}
-              value={Math.round(soundVolume * 100)}
-              onChange={(e) => onSoundVolume(Number(e.target.value) / 100)}
-              aria-label="Громкость звука"
-            />
-            <span className="volume-value">{Math.round(soundVolume * 100)}%</span>
-          </div>
-        </div>
-
-        <div className="volume-group">
-          <button
-            className={`list-item${focusKey === 'music' ? ' menu-focused' : ''}`}
-            data-menu-key="music"
-            onClick={onToggleMusic}
-          >
-            МУЗЫКА: {music ? 'ВКЛ' : 'ВЫКЛ'}
-          </button>
-          <div className="volume-row">
-            <input
-              className="volume"
-              type="range"
-              min={0}
-              max={100}
-              value={Math.round(musicVolume * 100)}
-              onChange={(e) => onMusicVolume(Number(e.target.value) / 100)}
-              aria-label="Громкость музыки"
-            />
-            <span className="volume-value">{Math.round(musicVolume * 100)}%</span>
-          </div>
-        </div>
-      </div>
-
       <div className="hint">
-        МЕНЮ — ↑↓ И ENTER · ЦИФРА — ОТКРЫТЬ КНИГУ · ESC — В БИБЛИОТЕКУ · PRESS ANY KEY — ПРОПУСК ЗАГРУЗКИ
+        МЕНЮ — ↑↓ И ENTER · ЦИФРА — ОТКРЫТЬ КНИГУ · НАСТРОЙКИ ЗВУКА — НА КОРПУСЕ · ESC — В БИБЛИОТЕКУ
       </div>
     </div>
   );

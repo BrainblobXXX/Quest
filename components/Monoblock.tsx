@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import { PanelButton } from './PanelButton';
 
-export type ScreenName = 'boot' | 'library' | 'game' | 'error';
+export type ScreenName = 'boot' | 'library' | 'game' | 'settings' | 'error';
 
 export default function Monoblock({
   screen,
@@ -11,6 +11,7 @@ export default function Monoblock({
   children,
   onLibrary,
   onGame,
+  onSettings,
   onPower,
 }: {
   screen: ScreenName;
@@ -18,6 +19,7 @@ export default function Monoblock({
   children: ReactNode;
   onLibrary: () => void;
   onGame: () => void;
+  onSettings: () => void;
   onPower: () => void;
 }) {
   return (
@@ -98,6 +100,7 @@ export default function Monoblock({
               onClick={onGame}
             />
             <PanelButton label="Библиотека" latched={screen === 'library'} onClick={onLibrary} />
+            <PanelButton label="Настройки" latched={screen === 'settings'} onClick={onSettings} />
           </div>
         </div>
         <div className="case-plate" aria-hidden="true">

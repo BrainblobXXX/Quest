@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Monoblock, { type ScreenName } from '@/components/Monoblock';
 import Boot from '@/components/screens/Boot';
 import Library from '@/components/screens/Library';
+import Settings from '@/components/screens/Settings';
 import GameScreen from '@/components/screens/GameScreen';
 import ErrorScreen from '@/components/screens/ErrorScreen';
 import { audio } from '@/lib/audio';
@@ -195,6 +196,11 @@ export default function Page() {
     }
   }, [game, state]);
 
+  const toSettings = useCallback(() => {
+    audio.click();
+    setScreen('settings');
+  }, []);
+
   const toggleSound = useCallback(() => {
     const next = !sound;
     setSound(next);
@@ -236,6 +242,7 @@ export default function Page() {
       gameAvailable={Boolean(game && state)}
       onLibrary={toLibrary}
       onGame={toGame}
+      onSettings={toSettings}
       onPower={handlePower}
     >
       {screen === 'boot' && <Boot sourceAt={sourceAt} gamesCount={games.length} onDone={() => setScreen('library')} />}
@@ -244,18 +251,23 @@ export default function Page() {
         <Library
           games={games}
           saves={saves}
-          sound={sound}
           onStart={startGame}
-          onToggleSound={toggleSound}
-          onToggleMusic={toggleMusic}
-          music={music}
-          soundVolume={soundVolume}
-          musicVolume={musicVolume}
-          onSoundVolume={changeSoundVolume}
-          onMusicVolume={changeMusicVolume}
           onReset={handleReset}
           onReload={refreshLibrary}
           sourceAt={sourceAt}
+        />
+      )}
+
+      {screen === 'settings' && (
+        <Settings
+          sound={sound}
+          music={music}
+          soundVolume={soundVolume}
+          musicVolume={musicVolume}
+          onToggleSound={toggleSound}
+          onToggleMusic={toggleMusic}
+          onSoundVolume={changeSoundVolume}
+          onMusicVolume={changeMusicVolume}
         />
       )}
 

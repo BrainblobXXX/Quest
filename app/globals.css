@@ -525,7 +525,7 @@ body {
 
 .screen-heading { font-size: 16px; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 14px; }
 .hint { font-size: 11px; color: #8a6a2f; margin-top: 10px; }
-.screen-note { font-size: 10px; letter-spacing: 1px; color: #4a3a1a; margin: 0 0 12px; }
+.screen-note { font-size: 10px; letter-spacing: 1px; color: #5f4a1f; margin: 0 0 12px; }
 /* просмотр исходной разметки story.md (кнопка MD) */
 .raw-btn {
   background: none; border: 1px solid #5a4318; color: #c9a24a; cursor: pointer;
@@ -584,6 +584,18 @@ body {
 .choice:active {
   background: rgba(255, 176, 0, 0.22);
   box-shadow: inset 0 0 0 1px rgba(255, 176, 0, 0.7), 0 0 14px rgba(255, 176, 0, 0.25);
+}
+
+/* экран настроек */
+.settings-panel { display: flex; flex-direction: column; gap: 20px; margin-top: 10px; }
+.settings-block { display: flex; flex-direction: column; gap: 6px; }
+.settings-block .list-item { font-size: 16px; }
+.settings-block .volume-row { padding: 0 0 0 18px; }
+.settings-note { font-size: 10px; letter-spacing: 1px; color: #6f5620; padding-left: 18px; }
+.volume.menu-focused {
+  outline: 1px solid rgba(255, 176, 0, 0.8);
+  outline-offset: 3px;
+  box-shadow: 0 0 12px rgba(255, 176, 0, 0.35);
 }
 
 /* пункт меню, выбранный с клавиатуры */
@@ -645,6 +657,9 @@ body {
 
 @media (max-width: 520px) {
   .cdrom { display: none; }
+  .floppy { display: none; }
+  .case-nav { gap: 6px; }
+  .panel-btn { min-width: 0; padding: 6px 7px; font-size: 9px; letter-spacing: 0; }
   .power-btn { width: 34px; height: 34px; font-size: 13px; }
   .case-plate span:last-child { display: none; }
 }
