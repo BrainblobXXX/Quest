@@ -3,17 +3,32 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Monoblock, { type ScreenName } from '@/components/Monoblock';
 import Boot from '@/components/screens/Boot';
+import Loading from '@/components/screens/Loading';
 import Library from '@/components/screens/Library';
 import Settings from '@/components/screens/Settings';
 import GameScreen from '@/components/screens/GameScreen';
 import ErrorScreen from '@/components/screens/ErrorScreen';
 import { audio } from '@/lib/audio';
 import { trackFor } from '@/lib/music';
-import { loadGame, loadIndex } from '@/lib/games';
+import { loadGame, loadIndex, type LoadProgress } from '@/lib/games';
 import { PackageError } from '@/lib/parse';
 import { advance, choose, newState, resolveRoll } from '@/lib/engine';
 import { clearSave, loadSave, saveState, loadSettings, saveSettings } from '@/lib/storage';
 import type { Choice, Game, GameIndexEntry, GameState, ParseProblem } from '@/lib/types';
+
+/** минимум, сколько видна загрузка: иначе на быстром диске она мелькает одним кадром */
+const MIN_LOADING_MS = 1000;
+/** пауза на строке «READY», чтобы лог успел дочитаться */
+const READY_HOLD_MS = 420;
+
+const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+type LoadingBook = {
+  id: string;
+  title: string;
+  progress: LoadProgress;
+  scenes?: number;
+};
 
 export default function Page() {
   const [screen, setScreen] = useState<ScreenName>('boot');
@@ -23,6 +38,7 @@ export default function Page() {
   const [problems, setProblems] = useState<ParseProblem[]>([]);
   const [game, setGame] = useState<Game | null>(null);
   const [state, setState] = useState<GameState | null>(null);
+  const [loading, setLoading] = useState<LoadingBook | null>(null);
   const [sound, setSound] = useState(true);
   const [music, setMusic] = useState(true);
   const [soundVolume, setSoundVolume] = useState(1);
@@ -31,6 +47,9 @@ export default function Page() {
   const [confirmRestart, setConfirmRestart] = useState(false);
   const audioStarted = useRef(false);
   const refreshSavesRef = useRef<() => void>(() => {});
+  const cancelLoadingRef = useRef<() => void>(() => {});
+  /** номер текущей загрузки: устаревший ответ не должен перебить новый экран */
+  const loadToken = useRef(0);
 
   const refreshLibrary = useCallback(async () => {
     try {
@@ -82,7 +101,9 @@ export default function Page() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        cancelLoadingRef.current();
         refreshSavesRef.current();
+        setConfirmRestart(false);
         setScreen('library');
       }
     };
@@ -98,6 +119,14 @@ export default function Page() {
 
   refreshSavesRef.current = refreshSaves;
 
+  /** уводит с экрана загрузки: поздний ответ сервера уже не должен переключать экран */
+  const cancelLoading = useCallback(() => {
+    loadToken.current += 1;
+    setLoading(null);
+  }, []);
+
+  cancelLoadingRef.current = cancelLoading;
+
   // музыка по настроению сцены
   useEffect(() => {
     if (!game || !state) return;
@@ -107,30 +136,74 @@ export default function Page() {
     if (track) audio.playMusic(`/api/games/${game.id}/${track}`);
   }, [game, state]);
 
-  const startGame = useCallback(async (id: string) => {
-    try {
-      const { game: g, problems: parsed } = await loadGame(id);
-      setProblems(parsed);
-      const save = loadSave(id);
-      const valid =
-        save &&
-        save.format === g.format &&
-        save.game === g.id &&
-        (!g.rev || save.rev === g.rev) &&
-        g.scenes[save.scene];
-      const next = valid ? save : newState(g);
-      audio.stopMusic();
+  const startGame = useCallback(
+    async (id: string) => {
+      const entry = games.find((g) => g.id === id);
+      const token = loadToken.current + 1;
+      loadToken.current = token;
+      const startedAt = performance.now();
+
+      setConfirmRestart(false);
+      setLoading({ id, title: entry?.title ?? id, progress: { stage: 'mount' } });
+      setScreen('loading');
       audio.click();
-      setGame(g);
-      setState(next);
-      setScreen('game');
-      saveState(next);
-    } catch (e: unknown) {
-      setProblems(e instanceof PackageError ? e.problems : []);
-      setError(String(e instanceof Error ? e.message : e));
-      setScreen('error');
-    }
-  }, []);
+
+      try {
+        const { game: g, problems: parsed } = await loadGame(id, (progress) => {
+          if (loadToken.current !== token) return;
+          setLoading((current) =>
+            current && current.id === id
+              ? // счётчик байт story.md приходит только на этапе story:
+                // сохраняем его до «READY», иначе в конце показываются 0 KB
+                { ...current, progress: { ...current.progress, ...progress } }
+              : current,
+          );
+        });
+        if (loadToken.current !== token) return;
+
+        const save = loadSave(id);
+        const valid =
+          save &&
+          save.format === g.format &&
+          save.game === g.id &&
+          (!g.rev || save.rev === g.rev) &&
+          g.scenes[save.scene];
+        const next = valid ? save : newState(g);
+
+        // последние проценты и число сцен: экран успевает показать «READY»
+        setLoading((current) =>
+          current && current.id === id
+            ? {
+                ...current,
+                progress: { ...current.progress, stage: 'ready' },
+                scenes: Object.keys(g.scenes).length,
+              }
+            : current,
+        );
+
+        const remaining = MIN_LOADING_MS - (performance.now() - startedAt);
+        if (remaining > 0) await wait(remaining);
+        await wait(READY_HOLD_MS);
+        if (loadToken.current !== token) return;
+
+        setLoading(null);
+        setProblems(parsed);
+        audio.stopMusic();
+        audio.beep();
+        setGame(g);
+        setState(next);
+        setScreen('game');
+        saveState(next);
+      } catch (e: unknown) {
+        if (loadToken.current !== token) return;
+        setLoading(null);
+        setProblems(e instanceof PackageError ? e.problems : []);
+        setError(String(e instanceof Error ? e.message : e));
+        setScreen('error');
+      }
+    },
+    [games],
+  );
 
   const handleChoose = useCallback(
     (choice: Choice) => {
@@ -184,22 +257,28 @@ export default function Page() {
   );
 
   const toLibrary = useCallback(() => {
+    cancelLoading();
+    setConfirmRestart(false);
     audio.click();
     refreshSaves();
     setScreen('library');
-  }, [refreshSaves]);
+  }, [cancelLoading, refreshSaves]);
 
   const toGame = useCallback(() => {
     if (game && state) {
+      cancelLoading();
+      setConfirmRestart(false);
       audio.click();
       setScreen('game');
     }
-  }, [game, state]);
+  }, [cancelLoading, game, state]);
 
   const toSettings = useCallback(() => {
+    cancelLoading();
+    setConfirmRestart(false);
     audio.click();
     setScreen('settings');
-  }, []);
+  }, [cancelLoading]);
 
   const toggleSound = useCallback(() => {
     const next = !sound;
@@ -240,12 +319,22 @@ export default function Page() {
     <Monoblock
       screen={screen}
       gameAvailable={Boolean(game && state)}
+      powerAvailable={screen === 'game' && Boolean(game && state)}
       onLibrary={toLibrary}
       onGame={toGame}
       onSettings={toSettings}
       onPower={handlePower}
     >
       {screen === 'boot' && <Boot sourceAt={sourceAt} gamesCount={games.length} onDone={() => setScreen('library')} />}
+
+      {screen === 'loading' && loading && (
+        <Loading
+          id={loading.id}
+          title={loading.title}
+          progress={loading.progress}
+          scenes={loading.scenes}
+        />
+      )}
 
       {screen === 'library' && (
         <Library

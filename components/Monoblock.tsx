@@ -3,11 +3,12 @@
 import type { ReactNode } from 'react';
 import { PanelButton } from './PanelButton';
 
-export type ScreenName = 'boot' | 'library' | 'game' | 'settings' | 'error';
+export type ScreenName = 'boot' | 'loading' | 'library' | 'game' | 'settings' | 'error';
 
 export default function Monoblock({
   screen,
   gameAvailable,
+  powerAvailable,
   children,
   onLibrary,
   onGame,
@@ -16,6 +17,7 @@ export default function Monoblock({
 }: {
   screen: ScreenName;
   gameAvailable: boolean;
+  powerAvailable: boolean;
   children: ReactNode;
   onLibrary: () => void;
   onGame: () => void;
@@ -45,14 +47,14 @@ export default function Monoblock({
       {/* системный блок */}
       <div className="case">
         <div className="case-front">
-          <div className="case-power">
+          <div className={`case-power${powerAvailable ? '' : ' power-off'}`}>
             <div className="power-stack">
               <button
                 className="power-btn"
                 onClick={onPower}
-                disabled={!gameAvailable}
-                aria-label="Перезапустить игру"
-                title="Перезапустить игру"
+                disabled={!powerAvailable}
+                aria-label={powerAvailable ? 'Перезапустить игру' : 'POWER: доступна только в игре'}
+                title={powerAvailable ? 'Перезапустить игру' : 'Доступна только в игре'}
               >
                 <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
                   <path
@@ -74,7 +76,7 @@ export default function Monoblock({
               <span className="power-label">POWER</span>
             </div>
             <span className="leds" aria-hidden="true">
-              <i className="led pwr" />
+              <i className={`led pwr${powerAvailable ? '' : ' off'}`} />
               <i className="led hdd" />
             </span>
           </div>
