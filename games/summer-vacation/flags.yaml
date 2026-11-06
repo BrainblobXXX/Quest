@@ -1,0 +1,12 @@
+# Достижения книги «Любовная линия», которые выдаются и проверяются в тексте.
+# «Гера» есть в листе персонажа, но в тексте не выдаётся и не проверяется — см. review.md.
+flags:
+  - gera_kiss
+  - kirill_kiss
+  - ilya_truth
+  - ars_walk
+  - vlad_talk
+  - kirill_question
+  - ars_kiss
+  - vlad_kiss
+  - ilya_forest

@@ -121,6 +121,11 @@ export async function loadGame(id: string, onProgress?: LoadListener): Promise<L
     ? optional(`${dir}/${statsFile}`).catch(() => null)
     : Promise.resolve(null);
 
+  const flagsFile = manifest.flags ? String(manifest.flags) : null;
+  const flagsPromise = flagsFile
+    ? optional(`${dir}/${flagsFile}`).catch(() => null)
+    : Promise.resolve(null);
+
   const storyFile = String(manifest.story ?? 'story.md');
   report({ stage: 'story', loaded: 0 });
   const storyText = await text(`${dir}/${storyFile}`, storyFile, (loaded, total) =>
@@ -129,9 +134,10 @@ export async function loadGame(id: string, onProgress?: LoadListener): Promise<L
   report({ stage: 'items' });
   const itemsText = await itemsPromise;
   const statsText = await statsPromise;
+  const flagsText = await flagsPromise;
   report({ stage: 'parse' });
 
-  const parsed = parsePackage(id, manifest, storyText, itemsText, statsText);
+  const parsed = parsePackage(id, manifest, storyText, itemsText, statsText, flagsText);
   report({ stage: 'ready' });
   return parsed;
 }

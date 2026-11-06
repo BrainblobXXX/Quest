@@ -126,6 +126,14 @@ function dropItems(inv: Record<string, number>, value: SceneEffect['drop']) {
   else if (Array.isArray(value)) for (const id of value) delete inv[String(id)];
 }
 
+function addFlags(flags: string[], value: string | string[] | undefined): string[] {
+  if (!value) return flags;
+  const next = new Set(flags);
+  const ids = typeof value === 'string' ? [value] : value;
+  for (const id of ids) if (id) next.add(String(id));
+  return [...next];
+}
+
 /** применяет изменения характеристик с учётом min/max из stats.yaml */
 function applyStatDeltas(
   game: Game,
@@ -147,17 +155,19 @@ function applyStatDeltas(
   return stats;
 }
 
-/** применяет on_enter сцены: take/drop предметов и stat характеристик */
+/** применяет on_enter сцены: take/drop предметов, set флагов и stat характеристик */
 function applyOnEnter(game: Game, state: GameState, scene?: Scene): GameState {
   if (!scene?.onEnter?.length) return state;
   const inventory = { ...state.inventory };
   let stats = state.stats;
+  let flags = state.flags;
   for (const effect of scene.onEnter) {
     addItems(inventory, effect.take);
     dropItems(inventory, effect.drop);
+    flags = addFlags(flags, effect.set);
     if (effect.stat) stats = applyStatDeltas(game, stats, effect.stat);
   }
-  return { ...state, inventory, stats };
+  return { ...state, inventory, stats, flags };
 }
 
 function useItem(inv: Record<string, number>, id: string, def?: ItemDef) {
@@ -172,8 +182,9 @@ function applyMods(game: Game, state: GameState, choice: Choice): GameState {
   if (choice.take) addItems(inventory, choice.take);
   if (choice.use) useItem(inventory, choice.use, game.items?.[choice.use]);
   if (choice.drop) delete inventory[choice.drop];
+  const flags = addFlags(state.flags, choice.set);
   const stats = choice.stat ? applyStatDeltas(game, state.stats, choice.stat) : state.stats;
-  return { ...state, inventory, stats };
+  return { ...state, inventory, stats, flags };
 }
 
 /* ── ходы ────────────────────────────────────────────────── */

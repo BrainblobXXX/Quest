@@ -56,6 +56,21 @@ function parseTakeValue(value: unknown): { value?: Choice['take']; error?: strin
   }
 }
 
+/** set на выборе приходит строкой: id или [id, id]. */
+function parseSetValue(value: unknown): { value?: Choice['set']; error?: string } {
+  if (value === undefined) return {};
+  if (typeof value !== 'string') return { value: value as Choice['set'] };
+  const text = value.trim();
+  if (!text.startsWith('[')) return { value: text };
+  try {
+    const parsed = parseYaml(text);
+    if (Array.isArray(parsed)) return { value: parsed.map((id) => String(id)) };
+    return { error: 'set должен быть id или списком id' };
+  } catch (error) {
+    return { error: (error as Error).message };
+  }
+}
+
 /** делит модификаторы по запятым верхнего уровня, не задевая {money: -200, food: 1} */
 function splitMods(text: string): string[] {
   const parts: string[] = [];
@@ -194,6 +209,7 @@ export function parsePackage(
   storyText: string,
   itemsText?: string | null,
   statsText?: string | null,
+  flagsText?: string | null,
 ): ParsedPackage {
   const problems: ParseProblem[] = [];
 
@@ -316,6 +332,26 @@ export function parsePackage(
     }
   }
 
+  let flags: string[] = [];
+  if (flagsText) {
+    try {
+      const doc = (parseYaml(flagsText) ?? {}) as { flags?: unknown };
+      const raw = doc.flags;
+      if (Array.isArray(raw)) flags = raw.map((id) => String(id));
+      else if (raw && typeof raw === 'object') flags = Object.keys(raw as Record<string, unknown>);
+      else if (raw !== undefined) {
+        problems.push({
+          level: 'error',
+          code: 'E_FLAGS_YAML',
+          message: 'flags.yaml: flags должен быть списком или картой идентификаторов',
+        });
+      }
+    } catch (e) {
+      problems.push({ level: 'error', code: 'E_FLAGS_YAML', message: `flags.yaml не разбирается: ${(e as Error).message}` });
+    }
+  }
+  flags = [...new Set(flags)];
+
   const moods = ((manifest.moods ?? {}) as Record<string, string | string[] | null>) ?? {};
   const defaultMood = (manifest.default_mood ?? null) as string | null;
   if (defaultMood && !(defaultMood in moods)) {
@@ -368,6 +404,16 @@ export function parsePackage(
                 scene: key,
               });
             }
+          }
+        }
+        for (const flagId of effectItemIds(effect.set)) {
+          if (!flags.includes(flagId)) {
+            problems.push({
+              level: 'error',
+              code: 'E_EFFECT_UNKNOWN_ID',
+              message: `on_enter.set ссылается на необъявленный флаг «${flagId}»`,
+              scene: key,
+            });
           }
         }
         if (effect.stat) {
@@ -480,10 +526,30 @@ export function parsePackage(
         }
       }
 
+      if (choice.set !== undefined) {
+        const set = parseSetValue(choice.set);
+        if (set.error) {
+          problems.push({
+            level: 'error',
+            code: 'E_EFFECT_FORMAT',
+            message: `set: ${set.error}`,
+            scene: key,
+          });
+          delete choice.set;
+        } else if (set.value !== undefined) {
+          choice.set = set.value;
+        }
+      }
+
       if (choice.goto) targets.push(choice.goto);
       for (const field of Object.keys(choice)) {
-        if (!['label', 'goto', 'letter', 'if', 'take', 'use', 'drop', 'stat'].includes(field)) {
+        if (!['label', 'goto', 'letter', 'if', 'take', 'use', 'drop', 'set', 'stat'].includes(field)) {
           problems.push({ level: 'error', code: 'E_CHOICE_UNKNOWN_KEY', message: `неизвестный ключ выбора «${field}»`, scene: key });
+        }
+      }
+      for (const flagId of effectItemIds(choice.set)) {
+        if (!flags.includes(flagId)) {
+          problems.push({ level: 'error', code: 'E_EFFECT_UNKNOWN_ID', message: `set ссылается на необъявленный флаг «${flagId}»`, scene: key });
         }
       }
       for (const field of ['take', 'drop'] as const) {
@@ -500,6 +566,12 @@ export function parsePackage(
         const itemId = match.split(/\s+/)[1];
         if (!items[itemId]) {
           problems.push({ level: 'error', code: 'E_COND_UNKNOWN_ID', message: `if ссылается на необъявленный предмет «${itemId}»`, scene: key });
+        }
+      }
+      for (const match of choice.if?.match(/\bflag\s+([a-z0-9_]+)/gi) ?? []) {
+        const flagId = match.split(/\s+/)[1];
+        if (!flags.includes(flagId)) {
+          problems.push({ level: 'error', code: 'E_COND_UNKNOWN_ID', message: `if ссылается на необъявленный флаг «${flagId}»`, scene: key });
         }
       }
     });
@@ -547,6 +619,7 @@ export function parsePackage(
     startItems,
     items,
     stats,
+    flags,
     moods,
     defaultMood,
     rev: hash(storyText),

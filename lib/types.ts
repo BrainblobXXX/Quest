@@ -22,6 +22,8 @@ export type Choice = {
   take?: string | string[] | Record<string, number>;
   use?: string;
   drop?: string;
+  /** установить флаги: строка или список */
+  set?: string | string[];
   /** изменение характеристик при выборе: {money: -200} */
   stat?: Record<string, number>;
 };
@@ -32,11 +34,13 @@ export type MoodTracks = string | string[] | null;
 
 /**
  * Эффект при входе в сцену (game.yaml → on_enter).
- * `take` — выдать предметы, `drop` — убрать, `stat` — изменить характеристики.
+ * `take` — выдать предметы, `drop` — убрать, `set` — установить флаги,
+ * `stat` — изменить характеристики.
  */
 export type SceneEffect = {
   take?: string | string[] | Record<string, number>;
   drop?: string | string[];
+  set?: string | string[];
   stat?: Record<string, number>;
 };
 
@@ -68,6 +72,8 @@ export type Game = {
   startItems?: Record<string, number>;
   items?: Record<string, ItemDef>;
   stats?: Record<string, StatDef>;
+  /** объявленные в flags.yaml флаги; начальное состояние — пустое */
+  flags?: string[];
   moods?: Record<string, MoodTracks>;
   defaultMood?: string | null;
   /** отпечаток версии книги: считается в браузере по тексту story.md */

@@ -1,0 +1,330 @@
+format: quest/1
+id: summer-vacation
+title: Летние каникулы
+type: storybook
+status: complete
+author: Анастасия Резвых
+language: ru
+source: "Asinatra - Летние каникулы.pdf · quest-book.ru · версия текста 1"
+cover: assets/cover.jpg
+start: "1"
+story: story.md
+flags: flags.yaml
+
+moods:
+  calm: null
+  tense: null
+  danger: null
+  mystery: null
+  victory: null
+  grief: null
+
+scenes:
+  "1":
+    title: Глава 1
+    mood: calm
+    variants:
+      А: "5"
+      Б: "27"
+  "2":
+    title: Глава 2
+    mood: mystery
+    on_enter:
+      - set: kirill_question
+    variants:
+      А: "45"
+      Б: "4"
+  "3":
+    title: Глава 3
+    mood: grief
+    next: "14"
+  "4":
+    title: Глава 4
+    mood: mystery
+    on_enter:
+      - set: vlad_talk
+    next: "45"
+  "5":
+    title: Глава 5
+    mood: calm
+    next: "25"
+  "6":
+    title: Глава 6
+    mood: calm
+    next: "14"
+  "7":
+    title: Глава 7
+    mood: calm
+    variants:
+      А: "39"
+      Б: "46"
+  "8":
+    title: Глава 8
+    mood: calm
+    next: "14"
+  "9":
+    title: Глава 9
+    mood: danger
+    variants:
+      А: "14"
+      Б: "20"
+  "10":
+    title: Глава 10
+    mood: calm
+    next: "51"
+  "11":
+    title: Глава 11
+    mood: victory
+    image: assets/illustrations/11.jpg
+    ending: true
+  "12":
+    title: Глава 12
+    mood: calm
+    variants:
+      А: "48"
+      Б: "46"
+  "13":
+    title: Глава 13
+    mood: calm
+    next: "36"
+  "14":
+    title: Глава 14
+    mood: grief
+    image: assets/illustrations/14.jpg
+    ending: true
+  "15":
+    title: Глава 15
+    mood: calm
+    next: "46"
+  "16":
+    title: Глава 16
+    mood: calm
+    next: "45"
+  "17":
+    title: Глава 17
+    mood: tense
+    variants:
+      А: "52"
+      Б: "57"
+  "18":
+    title: Глава 18
+    mood: calm
+    variants:
+      А: "40"
+      Б: "34"
+  "19":
+    title: Глава 19
+    mood: calm
+    next: "46"
+  "20":
+    title: Глава 20
+    mood: victory
+    image: assets/illustrations/20.jpg
+    ending: true
+  "21":
+    title: Глава 21
+    mood: calm
+    variants:
+      А: "56"
+      Б: "30"
+  "22":
+    title: Глава 22
+    mood: calm
+    on_enter:
+      - set: ars_walk
+    next: "45"
+  "23":
+    title: Глава 23
+    mood: mystery
+    next: "45"
+  "24":
+    title: Глава 24
+    mood: calm
+    on_enter:
+      - set: gera_kiss
+    next: "46"
+  "25":
+    title: Глава 25
+    mood: mystery
+    variants:
+      А: "37"
+      Б: "26"
+  "26":
+    title: Глава 26
+    mood: mystery
+    variants:
+      А: "42"
+      Б: "23"
+      В: "2"
+  "27":
+    title: Глава 27
+    mood: calm
+    next: "25"
+  "28":
+    title: Глава 28
+    mood: victory
+    next: "49"
+  "29":
+    title: Глава 29
+    mood: calm
+    next: "46"
+  "30":
+    title: Глава 30
+    mood: calm
+    next: "14"
+  "31":
+    title: Глава 31
+    mood: calm
+    variants:
+      А: "43"
+      Б: "33"
+  "32":
+    title: Глава 32
+    mood: mystery
+    on_enter:
+      - set: ilya_forest
+    next: "46"
+  "33":
+    title: Глава 33
+    mood: calm
+    next: "46"
+  "34":
+    title: Глава 34
+    mood: grief
+    next: "14"
+  "35":
+    title: Глава 35
+    mood: victory
+    image: assets/illustrations/35.jpg
+    ending: true
+  "36":
+    title: Глава 36
+    mood: victory
+    image: assets/illustrations/36.jpg
+    ending: true
+  "37":
+    title: Глава 37
+    mood: calm
+    on_enter:
+      - set: ars_walk
+    variants:
+      А: "16"
+      Б: "22"
+  "38":
+    title: Глава 38
+    mood: danger
+    variants:
+      А: "28"
+      Б: "3"
+  "39":
+    title: Глава 39
+    mood: calm
+    on_enter:
+      - set: ars_kiss
+    next: "46"
+  "40":
+    title: Глава 40
+    mood: calm
+    next: "35"
+  "41":
+    title: Глава 41
+    mood: calm
+    variants:
+      А: "29"
+      Б: "24"
+  "42":
+    title: Глава 42
+    mood: mystery
+    on_enter:
+      - set: ilya_truth
+    next: "45"
+  "43":
+    title: Глава 43
+    mood: calm
+    on_enter:
+      - set: vlad_kiss
+    next: "46"
+  "44":
+    title: Глава 44
+    mood: calm
+    variants:
+      А: "10"
+      Б: "6"
+  "45":
+    title: Глава 45
+    mood: calm
+    variants:
+      А: "41"
+      Б: "53"
+      В: "7"
+      Г: "50"
+      Д: "54"
+  "46":
+    title: Глава 46
+    mood: calm
+    variants:
+      А: "18"
+      Б: "47"
+      В: "44"
+      Г: "21"
+      Д: "55"
+  "47":
+    title: Глава 47
+    mood: tense
+    variants:
+      А: "52"
+      Б: "17"
+  "48":
+    title: Глава 48
+    mood: calm
+    on_enter:
+      - set: kirill_kiss
+    next: "46"
+  "49":
+    title: Глава 49
+    mood: victory
+    image: assets/illustrations/49.jpg
+    ending: true
+  "50":
+    title: Глава 50
+    mood: tense
+    variants:
+      А: "32"
+      Б: "15"
+  "51":
+    title: Глава 51
+    mood: victory
+    image: assets/illustrations/51.jpg
+    ending: true
+  "52":
+    title: Глава 52
+    mood: danger
+    variants:
+      А: "9"
+      Б: "38"
+  "53":
+    title: Глава 53
+    mood: calm
+    variants:
+      А: "31"
+      Б: "19"
+  "54":
+    title: Глава 54
+    mood: calm
+    variants:
+      А: "50"
+      Б: "12"
+  "55":
+    title: Глава 55
+    mood: calm
+    variants:
+      А: "13"
+      Б: "8"
+  "56":
+    title: Глава 56
+    mood: calm
+    next: "11"
+  "57":
+    title: Глава 57
+    mood: grief
+    next: "14"

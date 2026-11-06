@@ -353,8 +353,64 @@ body {
 .inventory-toggle.is-open::after,
 .stats-toggle.is-open::after { content: "▴"; }
 
-/* иконки кнопок видны только в мобильной раскладке */
-.btn-icon { display: none; width: 16px; height: 16px; flex: 0 0 auto; }
+/* шапка книги: компактные кнопки-иконки на десктопе и мобильном */
+.raw-btn,
+.stats-toggle,
+.inventory-toggle {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(51, 255, 0, 0.45);
+  border-radius: 3px;
+  background: rgba(51, 255, 0, 0.06);
+}
+
+.stats-toggle {
+  color: var(--amber);
+  border-color: rgba(255, 176, 0, 0.45);
+  background: rgba(255, 176, 0, 0.06);
+}
+
+.raw-btn {
+  color: #c9a24a;
+  border-color: rgba(201, 162, 74, 0.55);
+  background: rgba(201, 162, 74, 0.06);
+}
+
+.raw-btn:hover,
+.raw-btn:focus-visible { color: #e2c06b; outline: none; }
+
+.inventory-toggle .inv-inline,
+.stats-toggle .stats-inline,
+.raw-btn .btn-text { display: none; }
+
+.inventory-toggle::after,
+.stats-toggle::after { display: none; }
+
+.inventory-toggle .btn-icon,
+.stats-toggle .btn-icon,
+.raw-btn .btn-icon { display: block; }
+
+.inventory-toggle.is-open {
+  background: rgba(51, 255, 0, 0.2);
+  border-color: var(--green);
+}
+
+.stats-toggle.is-open {
+  background: rgba(255, 176, 0, 0.2);
+  border-color: var(--amber);
+  color: #ffd27a;
+}
+
+.raw-btn.on { background: #c9a24a; color: var(--screen-bg); }
+
+.btn-icon { display: block; width: 16px; height: 16px; flex: 0 0 auto; }
 
 .inventory-panel {
   flex: 0 0 auto;
