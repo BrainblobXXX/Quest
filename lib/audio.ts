@@ -61,18 +61,10 @@ class AudioEngine {
   }
 
   setEnabled(on: boolean): void {
+    // только гул, щелчки и писк; музыка живёт по своим настройкам
     this.enabled = on;
-    if (!on) {
-      this.stopHum();
-      for (const track of this.tracks) track.volume = 0;
-      this.music?.pause();
-    } else {
-      if (this.ctx) this.startHum();
-      if (this.music && this.musicEnabled) {
-        this.music.volume = this.currentMusicVolume();
-        void this.music.play().catch(() => {});
-      }
-    }
+    if (!on) this.stopHum();
+    else if (this.ctx) this.startHum();
   }
 
   /** 0..1, влияет на гул, щелчки и писк */
@@ -90,7 +82,7 @@ class AudioEngine {
   }
 
   private currentMusicVolume(): number {
-    if (!this.enabled || !this.musicEnabled) return 0;
+    if (!this.musicEnabled) return 0;
     return this.musicVolume * this.musicMax;
   }
 
@@ -142,7 +134,7 @@ class AudioEngine {
     next.addEventListener('error', () => this.dropTrack(next));
     this.music = next;
     this.tracks.add(next);
-    if (this.musicEnabled && this.enabled) {
+    if (this.musicEnabled) {
       void next.play().catch(() => {
         // автовоспроизведение могло быть заблокировано — включим после жеста
         this.pendingMusic = url;
@@ -176,7 +168,7 @@ class AudioEngine {
     }
     if (this.music) {
       this.music.volume = this.currentMusicVolume();
-      if (this.enabled) void this.music.play().catch(() => {});
+      void this.music.play().catch(() => {});
     }
   }
 
