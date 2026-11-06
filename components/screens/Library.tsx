@@ -88,24 +88,28 @@ export default function Library({
         return;
       }
 
+      // на настоящей кнопке (Старт/Сброс/название) Enter и пробел обрабатывает она сама
+      const active = document.activeElement;
+      if (
+        active instanceof HTMLElement &&
+        /^(BUTTON|INPUT|TEXTAREA|SELECT|A)$/.test(active.tagName)
+      ) {
+        return;
+      }
+
       if (e.key === 'Enter' && focusKey) {
-        // если фокус на настоящей кнопке (Старт/Сброс), Enter должен нажать её,
-        // а не перехватываться глобальным меню
-        const active = document.activeElement;
-        if (
-          active instanceof HTMLElement &&
-          /^(BUTTON|INPUT|TEXTAREA|SELECT|A)$/.test(active.tagName)
-        ) {
-          return;
-        }
+        e.preventDefault();
+        if (focusKey.startsWith('game:')) onStart(focusKey.slice(5));
+        else if (focusKey === 'reload') onReload();
+        return;
+      }
+
+      if ((e.key === ' ' || e.key === 'Spacebar') && focusKey) {
         e.preventDefault();
         if (focusKey.startsWith('game:')) {
-          // Enter раскрывает карточку; запуск — отдельной кнопкой «СТАРТ»
           const id = focusKey.slice(5);
           setOpenId((prev) => (prev === id ? null : id));
           setConfirmReset(null);
-        } else if (focusKey === 'reload') {
-          onReload();
         }
       }
     };
@@ -182,6 +186,19 @@ export default function Library({
                       aria-expanded={open}
                       aria-controls={`lib-details-${g.id}`}
                       onClick={() => toggleOpen(g.id)}
+                      onKeyDown={(e) => {
+                        // Enter — старт, пробел — детали; не даём кнопке
+                        // сработать ещё раз как обычному button
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          onStart(g.id);
+                        } else if (e.key === ' ' || e.key === 'Spacebar') {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          toggleOpen(g.id);
+                        }
+                      }}
                       title={open ? 'Свернуть карточку' : 'Автор и аннотация'}
                     >
                       <span className="lib-num" aria-hidden="true">
@@ -271,7 +288,7 @@ export default function Library({
       </div>
 
       <div className="hint">
-        МЕНЮ — ↑↓ И ENTER (РАСКРЫТЬ) · ЦИФРА — СТАРТ · ESC — В БИБЛИОТЕКУ
+        МЕНЮ — ↑↓ · ENTER — СТАРТ · ПРОБЕЛ — ДЕТАЛИ · ЦИФРА — СТАРТ · ESC — В БИБЛИОТЕКУ
       </div>
     </div>
   );

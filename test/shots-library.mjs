@@ -60,26 +60,37 @@ const scroll = await page.evaluate(() => {
 });
 await page.screenshot({ path: 'shot-library-scroll.png' });
 
-// Enter раскрывает и закрывает карточку, а не запускает книгу
+// Пробел раскрывает/сворачивает карточку, Enter запускает книгу
 await page.setViewportSize({ width: 1280, height: 900 });
 await page.waitForTimeout(200);
 await page.keyboard.press('ArrowDown');
-const afterEnter1 = await page.evaluate(() => ({
+await page.keyboard.press('Space');
+await page.waitForTimeout(200);
+const afterSpace1 = await page.evaluate(() => ({
+  expanded: document.querySelector('.lib-title')?.getAttribute('aria-expanded'),
+  load: Boolean(document.querySelector('.bookload')),
+}));
+await page.keyboard.press('Space');
+await page.waitForTimeout(200);
+const afterSpace2 = await page.evaluate(() => ({
+  expanded: document.querySelector('.lib-title')?.getAttribute('aria-expanded'),
+  load: Boolean(document.querySelector('.bookload')),
+}));
+await page.keyboard.press('Space');
+await page.waitForTimeout(200);
+const afterSpace3 = await page.evaluate(() => ({
   expanded: document.querySelector('.lib-title')?.getAttribute('aria-expanded'),
   load: Boolean(document.querySelector('.bookload')),
 }));
 await page.keyboard.press('Enter');
-await page.waitForTimeout(200);
-const afterEnter2 = await page.evaluate(() => ({
-  expanded: document.querySelector('.lib-title')?.getAttribute('aria-expanded'),
-  load: Boolean(document.querySelector('.bookload')),
+await page.waitForSelector('.bookload', { timeout: 5000 });
+const afterEnter = await page.evaluate(() => ({
+  loading: Boolean(document.querySelector('.bookload')),
+  library: Boolean(document.querySelector('.lib-table')),
 }));
-await page.keyboard.press('Enter');
+await page.keyboard.press('Escape');
+await page.waitForSelector('.lib-table', { timeout: 5000 });
 await page.waitForTimeout(200);
-const afterEnter3 = await page.evaluate(() => ({
-  expanded: document.querySelector('.lib-title')?.getAttribute('aria-expanded'),
-  load: Boolean(document.querySelector('.bookload')),
-}));
 
 // длинная аннотация «Крови зомби» в раскрытой карточке
 await page.locator('.lib-title').last().click();
@@ -143,9 +154,10 @@ console.log(
       collapsed,
       expanded,
       scroll,
-      afterEnter1,
-      afterEnter2,
-      afterEnter3,
+      afterSpace1,
+      afterSpace2,
+      afterSpace3,
+      afterEnter,
       game,
       mobileLayout,
       landscapeLayout,

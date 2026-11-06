@@ -54,7 +54,7 @@ function InventoryPanel({ game, state }: { game: Game; state: GameState }) {
   }));
 
   return (
-    <div className="inventory-panel">
+    <div className="inventory-panel" id="inventory-panel">
       {items.length === 0 && <div className="inventory-empty">ПУСТО</div>}
       {items.map((it) => (
         <div key={it.id} className="inventory-row">
@@ -63,6 +63,59 @@ function InventoryPanel({ game, state }: { game: Game; state: GameState }) {
         </div>
       ))}
     </div>
+  );
+}
+
+type StatView = { id: string; title: string; value: number };
+
+function StatsPanel({ stats }: { stats: StatView[] }) {
+  return (
+    <div className="inventory-panel stats-panel" id="stats-panel">
+      {stats.map((stat) => (
+        <div key={stat.id} className="inventory-row">
+          <span>{stat.title.toUpperCase()}</span>
+          <span className={`stat-value${stat.value <= 0 ? ' is-low' : ''}`}>{stat.value}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function HeaderIcon({ kind }: { kind: 'inventory' | 'stats' | 'raw' }) {
+  return (
+    <svg
+      className="btn-icon"
+      viewBox="0 0 24 24"
+      width="16"
+      height="16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {kind === 'inventory' && (
+        <>
+          <path d="M5.5 8.5h13l-1 11h-11l-1-11Z" />
+          <path d="M9 8.5V6a3 3 0 0 1 6 0v2.5" />
+        </>
+      )}
+      {kind === 'stats' && (
+        <>
+          <path d="M5 20v-8" />
+          <path d="M12 20V5" />
+          <path d="M19 20v-6" />
+        </>
+      )}
+      {kind === 'raw' && (
+        <>
+          <path d="m9 7-5 5 5 5" />
+          <path d="m15 7 5 5-5 5" />
+        </>
+      )}
+    </svg>
   );
 }
 
@@ -83,6 +136,7 @@ export default function GameScreen({
 }) {
   const scene = sceneOf(game, state);
   const [invOpen, setInvOpen] = useState(false);
+  const [statsOpen, setStatsOpen] = useState(false);
   const [rawOpen, setRawOpen] = useState(false);
   const [zoom, setZoom] = useState(false);
   const [imageFit, setImageFit] = useState<{ src: string; wide: boolean } | null>(null);
@@ -96,6 +150,21 @@ export default function GameScreen({
     title: def.title || id,
     value: state.stats[id] ?? def.initial ?? 0,
   }));
+  const statsSummary = stats.map((stat) => `${stat.title.toUpperCase()} ${stat.value}`).join(' · ');
+  // меню показываем только если книга вообще умеет работать с предметами/статами
+  const hasStats = stats.length > 0;
+  const hasItems =
+    Object.keys(game.items ?? {}).length > 0 ||
+    Object.keys(game.startItems ?? {}).length > 0 ||
+    Object.keys(state.inventory).length > 0;
+  const toggleInventory = () => {
+    setInvOpen((value) => !value);
+    setStatsOpen(false);
+  };
+  const toggleStats = () => {
+    setStatsOpen((value) => !value);
+    setInvOpen(false);
+  };
   const chooseByLetter = (letter: string) => choices.find((choice) => choice.letter === letter);
 
   /** отсылки [А] остаются в прозе и работают как кнопки */
@@ -194,6 +263,7 @@ export default function GameScreen({
 
   useEffect(() => {
     setInvOpen(false);
+    setStatsOpen(false);
     setRawOpen(false);
     setZoom(false);
   }, [scene.key]);
@@ -305,36 +375,48 @@ export default function GameScreen({
       <div className="title-line">
         <span>{scene.title.toUpperCase()}</span>
         <button
+          type="button"
           className={`raw-btn${rawOpen ? ' on' : ''}`}
           onClick={() => setRawOpen((v) => !v)}
           aria-pressed={rawOpen}
+          aria-label="Показать исходную разметку story.md"
           title="Показать исходную разметку story.md"
         >
-          MD
+          <span className="btn-text">MD</span>
+          <HeaderIcon kind="raw" />
         </button>
-        <button
-          className="inventory-toggle"
-          onClick={() => setInvOpen((v) => !v)}
-          aria-expanded={invOpen}
-          title="Инвентарь"
-        >
-          <span className="inv-inline">{inventoryLine(game, state) || 'ПУСТО'}</span>
-          <span className="inv-label">инвентарь {invOpen ? '▲' : '▼'}</span>
-        </button>
+        {hasStats && (
+          <button
+            type="button"
+            className={`stats-toggle${statsOpen ? ' is-open' : ''}`}
+            onClick={toggleStats}
+            aria-expanded={statsOpen}
+            aria-controls="stats-panel"
+            aria-label={`Характеристики: ${statsSummary}`}
+            title="Характеристики"
+          >
+            <span className="stats-inline">{statsSummary}</span>
+            <HeaderIcon kind="stats" />
+          </button>
+        )}
+        {hasItems && (
+          <button
+            type="button"
+            className={`inventory-toggle${invOpen ? ' is-open' : ''}`}
+            onClick={toggleInventory}
+            aria-expanded={invOpen}
+            aria-controls="inventory-panel"
+            aria-label={`Инвентарь: ${inventoryLine(game, state) || 'пусто'}`}
+            title="Инвентарь"
+          >
+            <span className="inv-inline">{inventoryLine(game, state) || 'ПУСТО'}</span>
+            <HeaderIcon kind="inventory" />
+          </button>
+        )}
       </div>
 
-      {stats.length > 0 && (
-        <div className="stats-line">
-          {stats.map((stat) => (
-            <span className="stat" key={stat.id}>
-              <span className="stat-title">{stat.title.toUpperCase()}</span>
-              <span className={`stat-value${stat.value <= 0 ? ' is-low' : ''}`}>{stat.value}</span>
-            </span>
-          ))}
-        </div>
-      )}
-
-      {invOpen && <InventoryPanel game={game} state={state} />}
+      {hasStats && statsOpen && <StatsPanel stats={stats} />}
+      {hasItems && invOpen && <InventoryPanel game={game} state={state} />}
 
       {problems.length > 0 && (
         <details className="parse-report">
