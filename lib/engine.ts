@@ -1,7 +1,7 @@
-import type { Choice, Game, GameState, ItemDef, Scene } from './types';
+import type { Choice, Game, GameState, ItemDef, Scene, SceneEffect } from './types';
 
 export function newState(game: Game): GameState {
-  return {
+  const state: GameState = {
     game: game.id,
     format: game.format,
     rev: game.rev,
@@ -12,6 +12,8 @@ export function newState(game: Game): GameState {
     visited: [game.start],
     updated: new Date().toISOString(),
   };
+  // стартовая сцена тоже может что-то выдавать (game.yaml → on_enter)
+  return applyOnEnter(state, game.scenes[game.start]);
 }
 
 export function sceneOf(game: Game, state: GameState): Scene {
@@ -101,6 +103,35 @@ function addItem(inv: Record<string, number>, id: string, n = 1) {
   inv[id] = (inv[id] ?? 0) + n;
 }
 
+function addItems(inv: Record<string, number>, value: SceneEffect['take']) {
+  if (!value) return;
+  if (typeof value === 'string') addItem(inv, value, 1);
+  else if (Array.isArray(value)) for (const id of value) addItem(inv, String(id), 1);
+  else {
+    for (const [id, n] of Object.entries(value)) {
+      const count = Number(n);
+      if (Number.isFinite(count) && count > 0) addItem(inv, id, count);
+    }
+  }
+}
+
+function dropItems(inv: Record<string, number>, value: SceneEffect['drop']) {
+  if (!value) return;
+  if (typeof value === 'string') delete inv[value];
+  else if (Array.isArray(value)) for (const id of value) delete inv[String(id)];
+}
+
+/** применяет on_enter сцены: MVP понимает take/drop, stat пока не ведёт */
+function applyOnEnter(state: GameState, scene?: Scene): GameState {
+  if (!scene?.onEnter?.length) return state;
+  const inventory = { ...state.inventory };
+  for (const effect of scene.onEnter) {
+    addItems(inventory, effect.take);
+    dropItems(inventory, effect.drop);
+  }
+  return { ...state, inventory };
+}
+
 function useItem(inv: Record<string, number>, id: string, def?: ItemDef) {
   if (!def?.consumable) return;
   const left = (inv[id] ?? 0) - 1;
@@ -133,16 +164,17 @@ export function blockedChoices(game: Game, state: GameState): Choice[] {
 
 export function choose(game: Game, state: GameState, choice: Choice): GameState {
   const moved = applyMods(game, state, choice);
-  return goTo(moved, choice.goto);
+  return goTo(game, moved, choice.goto);
 }
 
-function goTo(state: GameState, key: string): GameState {
-  return {
+function goTo(game: Game, state: GameState, key: string): GameState {
+  const moved: GameState = {
     ...state,
     scene: key,
     visited: [...state.visited, key],
     updated: new Date().toISOString(),
   };
+  return applyOnEnter(moved, game.scenes[key]);
 }
 
 export function roll(dice: string): number {
@@ -161,13 +193,13 @@ export function resolveRoll(game: Game, state: GameState, value: number): GameSt
   const outcome =
     scene.next.outcomes.find((o) => o.min !== undefined && value >= o.min) ??
     scene.next.outcomes[scene.next.outcomes.length - 1];
-  return goTo(state, outcome.goto);
+  return goTo(game, state, outcome.goto);
 }
 
 export function advance(game: Game, state: GameState): GameState {
   const scene = sceneOf(game, state);
   if (!scene.next) throw new Error('E_NO_NEXT');
-  if (typeof scene.next === 'string') return goTo(state, scene.next);
+  if (typeof scene.next === 'string') return goTo(game, state, scene.next);
   return resolveRoll(game, state, roll(scene.next.roll));
 }
 

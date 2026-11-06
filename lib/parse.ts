@@ -1,5 +1,5 @@
 import { parse as parseYaml } from 'yaml';
-import type { Choice, Game, ItemDef, ParseProblem, Scene } from './types';
+import type { Choice, Game, ItemDef, ParseProblem, Scene, SceneEffect } from './types';
 
 /**
  * Разбор пакета игры прямо в браузере: story.md + game.yaml → объект Game.
@@ -28,6 +28,14 @@ function hash(text: string): string {
   let h = 5381;
   for (let i = 0; i < text.length; i += 1) h = ((h << 5) + h + text.charCodeAt(i)) | 0;
   return (h >>> 0).toString(16);
+}
+
+/** id предметов из эффекта: строка, список или карта {id: количество}. */
+function effectItemIds(value: unknown): string[] {
+  if (typeof value === 'string') return [value];
+  if (Array.isArray(value)) return value.map((id) => String(id));
+  if (value && typeof value === 'object') return Object.keys(value as Record<string, unknown>);
+  return [];
 }
 
 type RawScene = {
@@ -283,6 +291,28 @@ export function parsePackage(
     }
     if (m.ending) out.ending = true;
     if (m.next) out.next = m.next as Scene['next'];
+
+    // эффекты входа: выдача и изъятие предметов (ZombieBlood, Steel Rat и др.)
+    const onEnter = Array.isArray(m.on_enter)
+      ? (m.on_enter.filter((effect) => effect && typeof effect === 'object') as SceneEffect[])
+      : [];
+    if (onEnter.length) {
+      out.onEnter = onEnter;
+      for (const effect of onEnter) {
+        for (const field of ['take', 'drop'] as const) {
+          for (const itemId of effectItemIds(effect[field])) {
+            if (!items[itemId]) {
+              problems.push({
+                level: 'error',
+                code: 'E_EFFECT_UNKNOWN_ID',
+                message: `on_enter.${field} ссылается на необъявленный предмет «${itemId}»`,
+                scene: key,
+              });
+            }
+          }
+        }
+      }
+    }
 
     const targets: string[] = [];
     if (typeof out.next === 'string') targets.push(out.next);

@@ -54,6 +54,43 @@ const diceState = { ...s, scene: '6' };
 ok('бросок 6 уводит в 4', resolveRoll(game, diceState, 6).scene === '4');
 ok('бросок 1 уводит в 5', resolveRoll(game, diceState, 1).scene === '5');
 
+// эффекты входа в сцену: выдача и изъятие предметов
+const enterGame: Game = {
+  ...game,
+  scenes: {
+    ...game.scenes,
+    '2': {
+      ...game.scenes['2'],
+      onEnter: [{ take: ['rusty_key'] }, { take: { sword: 2 } }],
+    },
+  },
+};
+const enterStart = newState(enterGame);
+const entered = choose(
+  enterGame,
+  enterStart,
+  availableChoices(enterGame, enterStart).find((c) => c.goto === '2')!,
+);
+ok('on_enter выдаёт предметы', entered.inventory.rusty_key === 1 && entered.inventory.sword === 3);
+
+const dropGame: Game = {
+  ...game,
+  scenes: { ...game.scenes, '2': { ...game.scenes['2'], onEnter: [{ drop: ['sword'] }] } },
+};
+const dropStart = newState(dropGame);
+const dropped = choose(
+  dropGame,
+  dropStart,
+  availableChoices(dropGame, dropStart).find((c) => c.goto === '2')!,
+);
+ok('on_enter забирает предмет', dropped.inventory.sword === undefined);
+
+const enterStartGame: Game = {
+  ...game,
+  scenes: { ...game.scenes, '1': { ...game.scenes['1'], onEnter: [{ take: ['rusty_key'] }] } },
+};
+ok('on_enter стартовой сцены', newState(enterStartGame).inventory.rusty_key === 1);
+
 // музыка по настроению
 const scene1 = game.scenes['1'];
 ok('трек по настроению сцены', trackFor(game, scene1) === 'assets/audio/calm.wav');

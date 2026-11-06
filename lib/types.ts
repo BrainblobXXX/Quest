@@ -21,6 +21,17 @@ export type RollOutcome = { min?: number; goto: string };
 
 export type MoodTracks = string | string[] | null;
 
+/**
+ * Эффект при входе в сцену (game.yaml → on_enter).
+ * `take` — выдать предметы, `drop` — убрать. `stat` сохраняется в пакете,
+ * но MVP характеристики пока не ведёт.
+ */
+export type SceneEffect = {
+  take?: string | string[] | Record<string, number>;
+  drop?: string | string[];
+  stat?: Record<string, number>;
+};
+
 export type Scene = {
   key: string;
   title: string;
@@ -31,6 +42,8 @@ export type Scene = {
   choices?: Choice[];
   next?: string | { roll: string; outcomes: RollOutcome[] };
   ending?: boolean;
+  /** что происходит при входе в сцену: выдача и изъятие предметов */
+  onEnter?: SceneEffect[];
   /** исходный текст сцены из story.md: теги, отсылки, строки «Вариант А» */
   raw?: string;
   /** текст, разбитый по тегам вариантов: из него рисуется подсветка */

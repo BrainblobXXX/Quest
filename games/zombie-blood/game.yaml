@@ -1,0 +1,2363 @@
+# Кровь зомби — пакет формата quest/1
+# Разбор книги-игры Яна Ливингстона (400 параграфов + пролог и правила).
+# Сцены: story.md. Сомнительные случаи: review.md.
+
+format: quest/1
+id: zombie-blood
+title: Кровь зомби
+type: fighting-fantasy
+status: complete
+author: Ян Ливингстон
+illustrator: Кевин Кроссли
+translator: Андр
+genre: ужасы · книга-игра
+annotation: Безумный мегаломаньяк Гингрич Юрр готовится выпустить на волю армию чудовищных зомби и обрушить ее на весь мир. Он должен быть остановлен и его орда нежити побеждена. В этом приключении на грани жизни или смерти принятые решения определят судьбу всего мира.
+language: ru
+source: Книга-игра Кровь зомби.pdf
+cover: assets/cover.jpg
+start: rules
+story: story.md
+stats: stats.yaml
+items: items.yaml
+mechanics: mechanics.yaml
+moods:
+  calm: null
+  tense: null
+  danger: null
+  victory: null
+  mystery: null
+  grief: null
+scenes:
+  rules:
+    title: Введение и правила боя
+    mood: calm
+    next: prolog
+  prolog:
+    title: Пролог
+    mood: tense
+    next: "1"
+  "1":
+    title: Параграф 1
+    mood: mystery
+    image: assets/images/1-1.jpg
+    variants:
+      А: "59"
+      Б: "194"
+  "2":
+    title: Параграф 2
+    mood: calm
+    on_enter:
+      - stat: {stamina: -3}
+    variants:
+      А: "336"
+      Б: "367"
+  "3":
+    title: Параграф 3
+    mood: mystery
+    next: "193"
+  "4":
+    title: Параграф 4
+    mood: danger
+    next:
+      roll: 1d6
+      outcomes:
+        - min: 4
+          goto: "58"
+        - goto: "389"
+  "5":
+    title: Параграф 5
+    mood: danger
+    image: assets/images/5-1.jpg
+    next:
+      roll: 1d6
+      outcomes:
+        - min: 4
+          goto: "98"
+        - goto: "130"
+  "6":
+    title: Параграф 6
+    mood: calm
+    variants:
+      А: "397"
+      Б: "155"
+  "7":
+    title: Параграф 7
+    mood: calm
+    variants:
+      А: "146"
+      Б: "367"
+  "8":
+    title: Параграф 8
+    mood: danger
+    next: "382"
+  "9":
+    title: Параграф 9
+    mood: tense
+    variants:
+      А: "170"
+      Б: "321"
+  "10":
+    title: Параграф 10
+    mood: grief
+    ending: true
+  "11":
+    title: Параграф 11
+    mood: grief
+    ending: true
+  "12":
+    title: Параграф 12
+    mood: calm
+    variants:
+      А: "54"
+      Б: "220"
+  "13":
+    title: Параграф 13
+    mood: danger
+    image: assets/images/13-1.jpg
+    next: "235"
+  "14":
+    title: Параграф 14
+    mood: calm
+    variants:
+      А: "107"
+      Б: "350"
+  "15":
+    title: Параграф 15
+    mood: calm
+    variants:
+      А: "314"
+      Б: "91"
+  "16":
+    title: Параграф 16
+    mood: calm
+    on_enter:
+      - take: [grenade]
+    next: "369"
+  "17":
+    title: Параграф 17
+    mood: danger
+    next: "215"
+  "18":
+    title: Параграф 18
+    mood: calm
+    variants:
+      А: "63"
+      Б: "278"
+  "19":
+    title: Параграф 19
+    mood: danger
+    variants:
+      А: "356"
+      Б: "207"
+  "20":
+    title: Параграф 20
+    mood: calm
+    on_enter:
+      - stat: {money: +7}
+    next: "183"
+  "21":
+    title: Параграф 21
+    mood: calm
+    next: "73"
+  "22":
+    title: Параграф 22
+    mood: danger
+    next: "168"
+  "23":
+    title: Параграф 23
+    mood: calm
+    on_enter:
+      - stat: {stamina: -1}
+      - take: [plate_armor]
+      - take: [sword]
+    next: "248"
+  "24":
+    title: Параграф 24
+    mood: tense
+    variants:
+      А: "45"
+      Б: "31"
+  "25":
+    title: Параграф 25
+    mood: calm
+    image: assets/images/25-1.jpg
+    variants:
+      А: "301"
+      Б: "160"
+  "26":
+    title: Параграф 26
+    mood: calm
+    variants:
+      А: "143"
+      Б: "276"
+  "27":
+    title: Параграф 27
+    mood: calm
+    next: "251"
+  "28":
+    title: Параграф 28
+    mood: calm
+    on_enter:
+      - stat: {stamina: +3}
+    next: "157"
+  "29":
+    title: Параграф 29
+    mood: danger
+    variants:
+      А: "123"
+      Б: "384"
+  "30":
+    title: Параграф 30
+    mood: calm
+    next: "322"
+  "31":
+    title: Параграф 31
+    mood: danger
+    next:
+      roll: 1d6
+      outcomes:
+        - min: 4
+          goto: "3"
+        - goto: "188"
+  "32":
+    title: Параграф 32
+    mood: calm
+    next: "385"
+  "33":
+    title: Параграф 33
+    mood: calm
+    variants:
+      А: "177"
+      Б: "147"
+  "34":
+    title: Параграф 34
+    mood: tense
+    variants:
+      А: "293"
+      Б: "281"
+      В: "81"
+  "35":
+    title: Параграф 35
+    mood: danger
+    image: assets/images/35-1.jpg
+    next:
+      roll: 1d6
+      outcomes:
+        - min: 4
+          goto: "114"
+        - goto: "205"
+  "36":
+    title: Параграф 36
+    mood: calm
+    on_enter:
+      - take: [number9_key]
+    next: "391"
+  "37":
+    title: Параграф 37
+    mood: tense
+    variants:
+      А: "10"
+      Б: "180"
+      В: "163"
+  "38":
+    title: Параграф 38
+    mood: danger
+    variants:
+      А: "312"
+      Б: "197"
+      В: "203"
+  "39":
+    title: Параграф 39
+    mood: grief
+    ending: true
+  "40":
+    title: Параграф 40
+    mood: calm
+    variants:
+      А: "199"
+      Б: "387"
+  "41":
+    title: Параграф 41
+    mood: calm
+    variants:
+      А: "189"
+      Б: "160"
+  "42":
+    title: Параграф 42
+    mood: calm
+    next: "221"
+  "43":
+    title: Параграф 43
+    mood: calm
+    variants:
+      А: "128"
+      Б: "287"
+  "44":
+    title: Параграф 44
+    mood: danger
+    image: assets/images/44-1.jpg
+    on_enter:
+      - take: [pistol]
+    variants:
+      А: "217"
+      Б: "96"
+  "45":
+    title: Параграф 45
+    mood: danger
+    next: "149"
+  "46":
+    title: Параграф 46
+    mood: danger
+    variants:
+      А: "361"
+      Б: "186"
+  "47":
+    title: Параграф 47
+    mood: calm
+    variants:
+      А: "347"
+      Б: "129"
+  "48":
+    title: Параграф 48
+    mood: calm
+    on_enter:
+      - take: [medkit]
+    next: "369"
+  "49":
+    title: Параграф 49
+    mood: danger
+    next:
+      roll: 1d6
+      outcomes:
+        - min: 5
+          goto: "115"
+        - min: 3
+          goto: "319"
+        - goto: "383"
+  "50":
+    title: Параграф 50
+    mood: danger
+    on_enter:
+      - stat: {stamina: -4}
+    next: "234"
+  "51":
+    title: Параграф 51
+    mood: calm
+    variants:
+      А: "131"
+      Б: "157"
+      В: "284"
+  "52":
+    title: Параграф 52
+    mood: calm
+    next: "230"
+  "53":
+    title: Параграф 53
+    mood: danger
+    next: "268"
+  "54":
+    title: Параграф 54
+    mood: calm
+    variants:
+      А: "263"
+      Б: "220"
+  "55":
+    title: Параграф 55
+    mood: danger
+    next: "207"
+  "56":
+    title: Параграф 56
+    mood: calm
+    on_enter:
+      - stat: {money: +7}
+    variants:
+      А: "86"
+      Б: "160"
+  "57":
+    title: Параграф 57
+    mood: calm
+    image: assets/images/57-1.jpg
+    variants:
+      А: "214"
+      Б: "380"
+  "58":
+    title: Параграф 58
+    mood: danger
+    next:
+      roll: 1d6
+      outcomes:
+        - min: 4
+          goto: "153"
+        - goto: "211"
+  "59":
+    title: Параграф 59
+    mood: tense
+    on_enter:
+      - stat: {stamina: -3}
+    next: "194"
+  "60":
+    title: Параграф 60
+    mood: tense
+    next: "158"
+  "61":
+    title: Параграф 61
+    mood: danger
+    next: "155"
+  "62":
+    title: Параграф 62
+    mood: calm
+    variants:
+      А: "45"
+      Б: "31"
+  "63":
+    title: Параграф 63
+    mood: calm
+    on_enter:
+      - take: [note_paper]
+    next: "278"
+  "64":
+    title: Параграф 64
+    mood: calm
+    variants:
+      А: "10"
+      Б: "163"
+  "65":
+    title: Параграф 65
+    mood: grief
+    ending: true
+  "66":
+    title: Параграф 66
+    mood: calm
+    variants:
+      А: "259"
+      Б: "192"
+      В: "388"
+  "67":
+    title: Параграф 67
+    mood: grief
+    ending: true
+  "68":
+    title: Параграф 68
+    mood: victory
+    on_enter:
+      - drop: [gold_locket]
+    next: "230"
+  "69":
+    title: Параграф 69
+    mood: danger
+    image: assets/images/69-1.jpg
+    on_enter:
+      - stat: {stamina: +2}
+    next: "273"
+  "70":
+    title: Параграф 70
+    mood: danger
+    on_enter:
+      - stat: {stamina: -1}
+      - take: [chainsaw]
+    next: "341"
+  "71":
+    title: Параграф 71
+    mood: calm
+    on_enter:
+      - take: [sword]
+    next: "248"
+  "72":
+    title: Параграф 72
+    mood: mystery
+    variants:
+      А: "193"
+      Б: "94"
+  "73":
+    title: Параграф 73
+    mood: calm
+    variants:
+      А: "255"
+      Б: "93"
+  "74":
+    title: Параграф 74
+    mood: danger
+    next: "40"
+  "75":
+    title: Параграф 75
+    mood: danger
+    on_enter:
+      - stat: {stamina: -2}
+    next: "399"
+  "76":
+    title: Параграф 76
+    mood: calm
+    variants:
+      А: "53"
+      Б: "344"
+  "77":
+    title: Параграф 77
+    mood: calm
+    variants:
+      А: "323"
+      Б: "158"
+  "78":
+    title: Параграф 78
+    mood: tense
+    on_enter:
+      - take: {grenade: 2}
+    variants:
+      А: "210"
+      Б: "337"
+  "79":
+    title: Параграф 79
+    mood: danger
+    variants:
+      А: "275"
+      Б: "228"
+  "80":
+    title: Параграф 80
+    mood: calm
+    variants:
+      А: "185"
+      Б: "300"
+  "81":
+    title: Параграф 81
+    mood: calm
+    next: "176"
+  "82":
+    title: Параграф 82
+    mood: calm
+    image: assets/images/82-1.jpg
+    variants:
+      А: "310"
+      Б: "179"
+  "83":
+    title: Параграф 83
+    mood: calm
+    on_enter:
+      - stat: {money: +1}
+    next: "30"
+  "84":
+    title: Параграф 84
+    mood: calm
+    on_enter:
+      - stat: {money: +2}
+      - take: [ammo]
+    next: "202"
+  "85":
+    title: Параграф 85
+    mood: calm
+    variants:
+      А: "100"
+      Б: "227"
+  "86":
+    title: Параграф 86
+    mood: calm
+    next: "160"
+  "87":
+    title: Параграф 87
+    mood: grief
+    ending: true
+  "88":
+    title: Параграф 88
+    mood: danger
+    next:
+      roll: 1d6
+      outcomes:
+        - min: 5
+          goto: "398"
+        - goto: "174"
+  "89":
+    title: Параграф 89
+    mood: danger
+    on_enter:
+      - stat: {stamina: -1}
+    next: "349"
+  "90":
+    title: Параграф 90
+    mood: calm
+    on_enter:
+      - take: {grenade: 2}
+      - take: [ammo]
+      - take: [medkit]
+    next: "320"
+  "91":
+    title: Параграф 91
+    mood: calm
+    variants:
+      А: "242"
+      Б: "368"
+  "92":
+    title: Параграф 92
+    mood: calm
+    on_enter:
+      - take: [pistol]
+    variants:
+      А: "279"
+      Б: "222"
+  "93":
+    title: Параграф 93
+    mood: calm
+    variants:
+      А: "36"
+      Б: "391"
+  "94":
+    title: Параграф 94
+    mood: danger
+    next:
+      roll: 1d6
+      outcomes:
+        - min: 4
+          goto: "3"
+        - goto: "308"
+  "95":
+    title: Параграф 95
+    mood: calm
+    next: "226"
+  "96":
+    title: Параграф 96
+    mood: tense
+    next: "400"
+  "97":
+    title: Параграф 97
+    mood: calm
+    image: assets/images/97-1.jpg
+    variants:
+      А: "23"
+      Б: "71"
+      В: "248"
+  "98":
+    title: Параграф 98
+    mood: danger
+    on_enter:
+      - stat: {stamina: -3}
+    next: "70"
+  "99":
+    title: Параграф 99
+    mood: calm
+    next: "359"
+  "100":
+    title: Параграф 100
+    mood: victory
+    on_enter:
+      - drop: [gold_locket]
+    next: "400"
+  "101":
+    title: Параграф 101
+    mood: grief
+    ending: true
+  "102":
+    title: Параграф 102
+    mood: tense
+    variants:
+      А: "374"
+      Б: "190"
+  "103":
+    title: Параграф 103
+    mood: calm
+    variants:
+      А: "378"
+      Б: "265"
+  "104":
+    title: Параграф 104
+    mood: grief
+    ending: true
+  "105":
+    title: Параграф 105
+    mood: calm
+    on_enter:
+      - take: [submachine]
+    variants:
+      А: "272"
+      Б: "252"
+  "106":
+    title: Параграф 106
+    mood: calm
+    variants:
+      А: "267"
+      Б: "25"
+  "107":
+    title: Параграф 107
+    mood: danger
+    variants:
+      А: "266"
+      Б: "394"
+  "108":
+    title: Параграф 108
+    mood: calm
+    next:
+      roll: 1d6
+      outcomes:
+        - min: 4
+          goto: "253"
+        - goto: "184"
+  "109":
+    title: Параграф 109
+    mood: danger
+    next: "136"
+  "110":
+    title: Параграф 110
+    mood: danger
+    image: assets/images/110-1.jpg
+    variants:
+      А: "292"
+      Б: "224"
+  "111":
+    title: Параграф 111
+    mood: calm
+    on_enter:
+      - stat: {money: +45}
+      - take: [car_keys]
+    next: "129"
+  "112":
+    title: Параграф 112
+    mood: calm
+    variants:
+      А: "46"
+      Б: "367"
+  "113":
+    title: Параграф 113
+    mood: calm
+    variants:
+      А: "295"
+      Б: "198"
+  "114":
+    title: Параграф 114
+    mood: calm
+    variants:
+      А: "390"
+      Б: "43"
+  "115":
+    title: Параграф 115
+    mood: calm
+    on_enter:
+      - stat: {stamina: -3}
+    variants:
+      А: "26"
+      Б: "276"
+  "116":
+    title: Параграф 116
+    mood: calm
+    variants:
+      А: "177"
+      Б: "33"
+      В: "147"
+  "117":
+    title: Параграф 117
+    mood: danger
+    next: "44"
+  "118":
+    title: Параграф 118
+    mood: danger
+    variants:
+      А: "294"
+      Б: "341"
+  "119":
+    title: Параграф 119
+    mood: calm
+    variants:
+      А: "290"
+      Б: "30"
+  "120":
+    title: Параграф 120
+    mood: calm
+    next: "172"
+  "121":
+    title: Параграф 121
+    mood: tense
+    next: "158"
+  "122":
+    title: Параграф 122
+    mood: danger
+    image: assets/images/122-1.jpg
+    next: "187"
+  "123":
+    title: Параграф 123
+    mood: tense
+    variants:
+      А: "257"
+      Б: "24"
+  "124":
+    title: Параграф 124
+    mood: danger
+    next:
+      roll: 1d6
+      outcomes:
+        - min: 4
+          goto: "171"
+        - goto: "42"
+  "125":
+    title: Параграф 125
+    mood: danger
+    variants:
+      А: "305"
+      Б: "151"
+  "126":
+    title: Параграф 126
+    mood: calm
+    variants:
+      А: "386"
+      Б: "223"
+      В: "113"
+  "127":
+    title: Параграф 127
+    mood: danger
+    next: "375"
+  "128":
+    title: Параграф 128
+    mood: grief
+    ending: true
+  "129":
+    title: Параграф 129
+    mood: calm
+    variants:
+      А: "66"
+      Б: "388"
+  "130":
+    title: Параграф 130
+    mood: danger
+    on_enter:
+      - stat: {stamina: -6}
+    next: "70"
+  "131":
+    title: Параграф 131
+    mood: calm
+    variants:
+      А: "229"
+      Б: "157"
+      В: "284"
+  "132":
+    title: Параграф 132
+    mood: calm
+    next: "369"
+  "133":
+    title: Параграф 133
+    mood: calm
+    variants:
+      А: "162"
+      Б: "196"
+      В: "30"
+      Г: "119"
+  "134":
+    title: Параграф 134
+    mood: grief
+    ending: true
+  "135":
+    title: Параграф 135
+    mood: calm
+    image: assets/images/135-1.jpg
+    variants:
+      А: "340"
+      Б: "49"
+  "136":
+    title: Параграф 136
+    mood: danger
+    variants:
+      А: "152"
+      Б: "210"
+      В: "337"
+  "137":
+    title: Параграф 137
+    mood: calm
+    on_enter:
+      - take: [medkit]
+      - take: {grenade: 2}
+    variants:
+      А: "239"
+      Б: "76"
+      В: "183"
+  "138":
+    title: Параграф 138
+    mood: calm
+    next: "251"
+  "139":
+    title: Параграф 139
+    mood: mystery
+    variants:
+      А: "288"
+      Б: "160"
+  "140":
+    title: Параграф 140
+    mood: danger
+    variants:
+      А: "289"
+      Б: "156"
+  "141":
+    title: Параграф 141
+    mood: calm
+    variants:
+      А: "244"
+      Б: "385"
+  "142":
+    title: Параграф 142
+    mood: danger
+    variants:
+      А: "123"
+      Б: "384"
+  "143":
+    title: Параграф 143
+    mood: danger
+    next: "351"
+  "144":
+    title: Параграф 144
+    mood: danger
+    next: "117"
+  "145":
+    title: Параграф 145
+    mood: calm
+    variants:
+      А: "213"
+      Б: "388"
+  "146":
+    title: Параграф 146
+    mood: calm
+    variants:
+      А: "112"
+      Б: "367"
+  "147":
+    title: Параграф 147
+    mood: calm
+    variants:
+      А: "177"
+      Б: "33"
+  "148":
+    title: Параграф 148
+    mood: danger
+    image: assets/images/148-1.jpg
+    next: "373"
+  "149":
+    title: Параграф 149
+    mood: calm
+    variants:
+      А: "294"
+      Б: "118"
+      В: "341"
+  "150":
+    title: Параграф 150
+    mood: calm
+    on_enter:
+      - stat: {stamina: -1}
+    next: "359"
+  "151":
+    title: Параграф 151
+    mood: danger
+    next: "40"
+  "152":
+    title: Параграф 152
+    mood: calm
+    variants:
+      А: "78"
+      Б: "210"
+      В: "337"
+  "153":
+    title: Параграф 153
+    mood: danger
+    next: "124"
+  "154":
+    title: Параграф 154
+    mood: grief
+    ending: true
+  "155":
+    title: Параграф 155
+    mood: calm
+    variants:
+      А: "135"
+      Б: "97"
+  "156":
+    title: Параграф 156
+    mood: danger
+    next:
+      roll: 1d6
+      outcomes:
+        - min: 5
+          goto: "55"
+        - goto: "289"
+  "157":
+    title: Параграф 157
+    mood: calm
+    variants:
+      А: "103"
+      Б: "265"
+  "158":
+    title: Параграф 158
+    mood: danger
+    image: assets/images/158-1.jpg
+    next: "19"
+  "159":
+    title: Параграф 159
+    mood: calm
+    variants:
+      А: "177"
+      Б: "33"
+      В: "147"
+  "160":
+    title: Параграф 160
+    mood: calm
+    variants:
+      А: "204"
+      Б: "252"
+  "161":
+    title: Параграф 161
+    mood: calm
+    variants:
+      А: "372"
+      Б: "285"
+  "162":
+    title: Параграф 162
+    mood: calm
+    on_enter:
+      - take: {medkit: 2}
+      - take: {ammo: 6}
+    variants:
+      А: "30"
+      Б: "119"
+  "163":
+    title: Параграф 163
+    mood: grief
+    ending: true
+  "164":
+    title: Параграф 164
+    mood: calm
+    next: "172"
+  "165":
+    title: Параграф 165
+    mood: grief
+    ending: true
+  "166":
+    title: Параграф 166
+    mood: calm
+    next: "158"
+  "167":
+    title: Параграф 167
+    mood: tense
+    variants:
+      А: "41"
+      Б: "160"
+  "168":
+    title: Параграф 168
+    mood: danger
+    image: assets/images/168-1.jpg
+    on_enter:
+      - stat: {stamina: -4}
+    next: "360"
+  "169":
+    title: Параграф 169
+    mood: mystery
+    variants:
+      А: "123"
+      Б: "384"
+  "170":
+    title: Параграф 170
+    mood: calm
+    on_enter:
+      - take: [climbing_rope]
+    next: "321"
+  "171":
+    title: Параграф 171
+    mood: danger
+    on_enter:
+      - stat: {stamina: -2}
+    next: "221"
+  "172":
+    title: Параграф 172
+    mood: tense
+    variants:
+      А: "377"
+      Б: "8"
+  "173":
+    title: Параграф 173
+    mood: calm
+    next: "250"
+  "174":
+    title: Параграф 174
+    mood: grief
+    ending: true
+  "175":
+    title: Параграф 175
+    mood: calm
+    on_enter:
+      - stat: {stamina: -4}
+    next: "375"
+  "176":
+    title: Параграф 176
+    mood: danger
+    image: assets/images/176-1.jpg
+    next: "6"
+  "177":
+    title: Параграф 177
+    mood: calm
+    variants:
+      А: "92"
+      Б: "222"
+  "178":
+    title: Параграф 178
+    mood: calm
+    on_enter:
+      - stat: {money: +15}
+      - take: [penknife]
+    next: "93"
+  "179":
+    title: Параграф 179
+    mood: danger
+    on_enter:
+      - stat: {stamina: -3}
+    next:
+      roll: 1d6
+      outcomes:
+        - min: 4
+          goto: "195"
+        - goto: "104"
+  "180":
+    title: Параграф 180
+    mood: calm
+    variants:
+      А: "327"
+      Б: "233"
+  "181":
+    title: Параграф 181
+    mood: danger
+    on_enter:
+      - stat: {money: +44}
+      - take: {ammo: 2}
+      - take: [grenade]
+    next: "160"
+  "182":
+    title: Параграф 182
+    mood: tense
+    variants:
+      А: "168"
+      Б: "22"
+  "183":
+    title: Параграф 183
+    mood: calm
+    variants:
+      А: "302"
+      Б: "271"
+  "184":
+    title: Параграф 184
+    mood: danger
+    next:
+      roll: 1d6
+      outcomes:
+        - min: 4
+          goto: "79"
+        - goto: "352"
+  "185":
+    title: Параграф 185
+    mood: calm
+    variants:
+      А: "45"
+      Б: "31"
+  "186":
+    title: Параграф 186
+    mood: grief
+    ending: true
+  "187":
+    title: Параграф 187
+    mood: calm
+    on_enter:
+      - take: [gold_locket]
+    variants:
+      А: "18"
+      Б: "173"
+  "188":
+    title: Параграф 188
+    mood: calm
+    on_enter:
+      - stat: {stamina: -3}
+    next: "45"
+  "189":
+    title: Параграф 189
+    mood: danger
+    image: assets/images/189-1.jpg
+    next: "232"
+  "190":
+    title: Параграф 190
+    mood: calm
+    variants:
+      А: "62"
+      Б: "374"
+  "191":
+    title: Параграф 191
+    mood: danger
+    next:
+      roll: 1d6
+      outcomes:
+        - min: 4
+          goto: "371"
+        - goto: "67"
+  "192":
+    title: Параграф 192
+    mood: calm
+    on_enter:
+      - stat: {stamina: -1}
+    variants:
+      А: "357"
+      Б: "270"
+  "193":
+    title: Параграф 193
+    mood: tense
+    variants:
+      А: "296"
+      Б: "238"
+  "194":
+    title: Параграф 194
+    mood: calm
+    variants:
+      А: "299"
+      Б: "345"
+  "195":
+    title: Параграф 195
+    mood: danger
+    next: "298"
+  "196":
+    title: Параграф 196
+    mood: grief
+    ending: true
+  "197":
+    title: Параграф 197
+    mood: danger
+    variants:
+      А: "312"
+      Б: "38"
+      В: "203"
+  "198":
+    title: Параграф 198
+    mood: calm
+    next: "148"
+  "199":
+    title: Параграф 199
+    mood: danger
+    next: "280"
+  "200":
+    title: Параграф 200
+    mood: danger
+    variants:
+      А: "108"
+      Б: "17"
+  "201":
+    title: Параграф 201
+    mood: mystery
+    variants:
+      А: "358"
+      Б: "158"
+  "202":
+    title: Параграф 202
+    mood: calm
+    variants:
+      А: "141"
+      Б: "385"
+  "203":
+    title: Параграф 203
+    mood: danger
+    next:
+      roll: 1d6
+      outcomes:
+        - min: 4
+          goto: "366"
+        - goto: "154"
+  "204":
+    title: Параграф 204
+    mood: danger
+    image: assets/images/204-1.jpg
+    next:
+      roll: 1d6
+      outcomes:
+        - min: 4
+          goto: "237"
+        - goto: "75"
+  "205":
+    title: Параграф 205
+    mood: grief
+    ending: true
+  "206":
+    title: Параграф 206
+    mood: danger
+    variants:
+      А: "324"
+      Б: "160"
+  "207":
+    title: Параграф 207
+    mood: calm
+    variants:
+      А: "283"
+      Б: "14"
+  "208":
+    title: Параграф 208
+    mood: calm
+    on_enter:
+      - take: [medkit]
+    variants:
+      А: "246"
+      Б: "81"
+  "209":
+    title: Параграф 209
+    mood: danger
+    next: "298"
+  "210":
+    title: Параграф 210
+    mood: calm
+    variants:
+      А: "379"
+      Б: "337"
+  "211":
+    title: Параграф 211
+    mood: grief
+    ending: true
+  "212":
+    title: Параграф 212
+    mood: calm
+    variants:
+      А: "312"
+      Б: "38"
+      В: "197"
+  "213":
+    title: Параграф 213
+    mood: calm
+    on_enter:
+      - stat: {money: +15}
+      - take: {ammo: 3}
+    next: "388"
+  "214":
+    title: Параграф 214
+    mood: calm
+    next:
+      roll: 1d6
+      outcomes:
+        - min: 4
+          goto: "27"
+        - goto: "353"
+  "215":
+    title: Параграф 215
+    mood: calm
+    next: "7"
+  "216":
+    title: Параграф 216
+    mood: grief
+    ending: true
+  "217":
+    title: Параграф 217
+    mood: tense
+    image: assets/images/217-1.jpg
+    next: "400"
+  "218":
+    title: Параграф 218
+    mood: calm
+    variants:
+      А: "26"
+      Б: "276"
+  "219":
+    title: Параграф 219
+    mood: grief
+    ending: true
+  "220":
+    title: Параграф 220
+    mood: calm
+    next: "176"
+  "221":
+    title: Параграф 221
+    mood: danger
+    variants:
+      А: "137"
+      Б: "76"
+      В: "183"
+  "222":
+    title: Параграф 222
+    mood: calm
+    variants:
+      А: "303"
+      Б: "258"
+  "223":
+    title: Параграф 223
+    mood: calm
+    variants:
+      А: "89"
+      Б: "311"
+  "224":
+    title: Параграф 224
+    mood: tense
+    variants:
+      А: "132"
+      Б: "48"
+      В: "236"
+      Г: "16"
+  "225":
+    title: Параграф 225
+    mood: victory
+    ending: true
+  "226":
+    title: Параграф 226
+    mood: calm
+    variants:
+      А: "30"
+      Б: "119"
+      В: "133"
+  "227":
+    title: Параграф 227
+    mood: victory
+    next: "400"
+  "228":
+    title: Параграф 228
+    mood: grief
+    ending: true
+  "229":
+    title: Параграф 229
+    mood: mystery
+    variants:
+      А: "329"
+      Б: "157"
+  "230":
+    title: Параграф 230
+    mood: calm
+    image: assets/images/230-1.jpg
+    next: "57"
+  "231":
+    title: Параграф 231
+    mood: calm
+    on_enter:
+      - stat: {stamina: -1}
+    variants:
+      А: "336"
+      Б: "367"
+  "232":
+    title: Параграф 232
+    mood: calm
+    variants:
+      А: "376"
+      Б: "56"
+  "233":
+    title: Параграф 233
+    mood: grief
+    variants:
+      А: "87"
+      Б: "327"
+  "234":
+    title: Параграф 234
+    mood: tense
+    variants:
+      А: "80"
+      Б: "343"
+  "235":
+    title: Параграф 235
+    mood: calm
+    next: "265"
+  "236":
+    title: Параграф 236
+    mood: calm
+    on_enter:
+      - take: [sawed_off]
+      - take: [ammo]
+    next: "369"
+  "237":
+    title: Параграф 237
+    mood: calm
+    next: "399"
+  "238":
+    title: Параграф 238
+    mood: mystery
+    variants:
+      А: "323"
+      Б: "201"
+  "239":
+    title: Параграф 239
+    mood: mystery
+    on_enter:
+      - stat: {money: +3}
+      - take: [lab_coat]
+    variants:
+      А: "76"
+      Б: "183"
+  "240":
+    title: Параграф 240
+    mood: calm
+    variants:
+      А: "342"
+      Б: "12"
+  "241":
+    title: Параграф 241
+    mood: grief
+    ending: true
+  "242":
+    title: Параграф 242
+    mood: calm
+    on_enter:
+      - stat: {stamina: -2}
+    variants:
+      А: "150"
+      Б: "99"
+  "243":
+    title: Параграф 243
+    mood: grief
+    ending: true
+  "244":
+    title: Параграф 244
+    mood: danger
+    image: assets/images/244-1.jpg
+    next: "395"
+  "245":
+    title: Параграф 245
+    mood: calm
+    variants:
+      А: "212"
+      Б: "348"
+  "246":
+    title: Параграф 246
+    mood: calm
+    variants:
+      А: "34"
+      Б: "281"
+      В: "81"
+  "247":
+    title: Параграф 247
+    mood: danger
+    variants:
+      А: "11"
+      Б: "144"
+  "248":
+    title: Параграф 248
+    mood: calm
+    variants:
+      А: "39"
+      Б: "326"
+  "249":
+    title: Параграф 249
+    mood: danger
+    next: "212"
+  "250":
+    title: Параграф 250
+    mood: tense
+    variants:
+      А: "354"
+      Б: "223"
+      В: "113"
+  "251":
+    title: Параграф 251
+    mood: mystery
+    variants:
+      А: "90"
+      Б: "320"
+  "252":
+    title: Параграф 252
+    mood: calm
+    next: "176"
+  "253":
+    title: Параграф 253
+    mood: danger
+    next: "17"
+  "254":
+    title: Параграф 254
+    mood: grief
+    ending: true
+  "255":
+    title: Параграф 255
+    mood: calm
+    variants:
+      А: "317"
+      Б: "93"
+  "256":
+    title: Параграф 256
+    mood: danger
+    next: "182"
+  "257":
+    title: Параграф 257
+    mood: calm
+    variants:
+      А: "50"
+      Б: "241"
+  "258":
+    title: Параграф 258
+    mood: tense
+    variants:
+      А: "142"
+      Б: "318"
+  "259":
+    title: Параграф 259
+    mood: calm
+    image: assets/images/259-1.jpg
+    variants:
+      А: "357"
+      Б: "270"
+  "260":
+    title: Параграф 260
+    mood: danger
+    next: "193"
+  "261":
+    title: Параграф 261
+    mood: danger
+    on_enter:
+      - stat: {stamina: -10}
+    next: "106"
+  "262":
+    title: Параграф 262
+    mood: danger
+    next: "298"
+  "263":
+    title: Параграф 263
+    mood: calm
+    on_enter:
+      - stat: {money: +4}
+    next: "220"
+  "264":
+    title: Параграф 264
+    mood: tense
+    variants:
+      А: "77"
+      Б: "323"
+  "265":
+    title: Параграф 265
+    mood: calm
+    variants:
+      А: "84"
+      Б: "202"
+  "266":
+    title: Параграф 266
+    mood: grief
+    ending: true
+  "267":
+    title: Параграф 267
+    mood: calm
+    next: "25"
+  "268":
+    title: Параграф 268
+    mood: calm
+    on_enter:
+      - stat: {money: +7}
+    next: "183"
+  "269":
+    title: Параграф 269
+    mood: calm
+    variants:
+      А: "331"
+      Б: "151"
+  "270":
+    title: Параграф 270
+    mood: danger
+    next: "145"
+  "271":
+    title: Параграф 271
+    mood: calm
+    image: assets/images/271-1.jpg
+    variants:
+      А: "37"
+      Б: "339"
+  "272":
+    title: Параграф 272
+    mood: calm
+    on_enter:
+      - take: [body_armor]
+      - take: [medkit]
+    variants:
+      А: "105"
+      Б: "252"
+  "273":
+    title: Параграф 273
+    mood: calm
+    on_enter:
+      - take: [crowbar]
+    next: "309"
+  "274":
+    title: Параграф 274
+    mood: mystery
+    next: "164"
+  "275":
+    title: Параграф 275
+    mood: danger
+    next: "17"
+  "276":
+    title: Параграф 276
+    mood: calm
+    next: "226"
+  "277":
+    title: Параграф 277
+    mood: calm
+    variants:
+      А: "134"
+      Б: "249"
+  "278":
+    title: Параграф 278
+    mood: calm
+    next: "173"
+  "279":
+    title: Параграф 279
+    mood: calm
+    variants:
+      А: "303"
+      Б: "258"
+  "280":
+    title: Параграф 280
+    mood: calm
+    image: assets/images/280-1.jpg
+    variants:
+      А: "182"
+      Б: "256"
+  "281":
+    title: Параграф 281
+    mood: calm
+    variants:
+      А: "208"
+      Б: "246"
+      В: "81"
+  "282":
+    title: Параграф 282
+    mood: danger
+    variants:
+      А: "307"
+      Б: "64"
+  "283":
+    title: Параграф 283
+    mood: calm
+    on_enter:
+      - take: [brass_key]
+    next: "14"
+  "284":
+    title: Параграф 284
+    mood: calm
+    variants:
+      А: "370"
+      Б: "157"
+  "285":
+    title: Параграф 285
+    mood: calm
+    next: "230"
+  "286":
+    title: Параграф 286
+    mood: grief
+    ending: true
+  "287":
+    title: Параграф 287
+    mood: danger
+    variants:
+      А: "85"
+      Б: "338"
+  "288":
+    title: Параграф 288
+    mood: calm
+    variants:
+      А: "206"
+      Б: "324"
+      В: "160"
+  "289":
+    title: Параграф 289
+    mood: grief
+    ending: true
+  "290":
+    title: Параграф 290
+    mood: calm
+    image: assets/images/290-1.jpg
+    next:
+      roll: 1d6
+      outcomes:
+        - min: 4
+          goto: "363"
+        - goto: "191"
+  "291":
+    title: Параграф 291
+    mood: calm
+    next: "13"
+  "292":
+    title: Параграф 292
+    mood: grief
+    ending: true
+  "293":
+    title: Параграф 293
+    mood: danger
+    variants:
+      А: "281"
+      Б: "81"
+  "294":
+    title: Параграф 294
+    mood: calm
+    variants:
+      А: "5"
+      Б: "341"
+  "295":
+    title: Параграф 295
+    mood: calm
+    next: "198"
+  "296":
+    title: Параграф 296
+    mood: calm
+    next: "238"
+  "297":
+    title: Параграф 297
+    mood: calm
+    variants:
+      А: "362"
+      Б: "129"
+  "298":
+    title: Параграф 298
+    mood: calm
+    next: "172"
+  "299":
+    title: Параграф 299
+    mood: grief
+    ending: true
+  "300":
+    title: Параграф 300
+    mood: calm
+    variants:
+      А: "355"
+      Б: "102"
+  "301":
+    title: Параграф 301
+    mood: danger
+    image: assets/images/301-1.jpg
+    next: "365"
+  "302":
+    title: Параграф 302
+    mood: calm
+    next: "271"
+  "303":
+    title: Параграф 303
+    mood: danger
+    next: "169"
+  "304":
+    title: Параграф 304
+    mood: calm
+    on_enter:
+      - take: [shotgun]
+      - take: {ammo: 6}
+    variants:
+      А: "223"
+      Б: "113"
+  "305":
+    title: Параграф 305
+    mood: calm
+    variants:
+      А: "74"
+      Б: "40"
+  "306":
+    title: Параграф 306
+    mood: calm
+    next: "12"
+  "307":
+    title: Параграф 307
+    mood: grief
+    ending: true
+  "308":
+    title: Параграф 308
+    mood: calm
+    on_enter:
+      - stat: {stamina: -4}
+    next: "260"
+  "309":
+    title: Параграф 309
+    mood: calm
+    next: "109"
+  "310":
+    title: Параграф 310
+    mood: tense
+    variants:
+      А: "209"
+      Б: "262"
+  "311":
+    title: Параграф 311
+    mood: calm
+    next: "148"
+  "312":
+    title: Параграф 312
+    mood: calm
+    image: assets/images/312-1.jpg
+    variants:
+      А: "72"
+      Б: "193"
+  "313":
+    title: Параграф 313
+    mood: calm
+    next:
+      roll: 1d6
+      outcomes:
+        - min: 4
+          goto: "127"
+        - goto: "175"
+  "314":
+    title: Параграф 314
+    mood: danger
+    on_enter:
+      - stat: {stamina: -1}
+    next: "359"
+  "315":
+    title: Параграф 315
+    mood: grief
+    ending: true
+  "316":
+    title: Параграф 316
+    mood: calm
+    variants:
+      А: "159"
+      Б: "116"
+      В: "330"
+  "317":
+    title: Параграф 317
+    mood: calm
+    on_enter:
+      - stat: {stamina: +2}
+    variants:
+      А: "178"
+      Б: "93"
+  "318":
+    title: Параграф 318
+    mood: danger
+    next: "29"
+  "319":
+    title: Параграф 319
+    mood: calm
+    on_enter:
+      - stat: {stamina: -6}
+    next: "218"
+  "320":
+    title: Параграф 320
+    mood: calm
+    variants:
+      А: "396"
+      Б: "164"
+  "321":
+    title: Параграф 321
+    mood: calm
+    variants:
+      А: "69"
+      Б: "309"
+  "322":
+    title: Параграф 322
+    mood: calm
+    image: assets/images/322-1.jpg
+    variants:
+      А: "242"
+      Б: "286"
+      В: "15"
+  "323":
+    title: Параграф 323
+    mood: calm
+    next: "201"
+  "324":
+    title: Параграф 324
+    mood: tense
+    next:
+      roll: 1d6
+      outcomes:
+        - min: 4
+          goto: "381"
+        - goto: "167"
+  "325":
+    title: Параграф 325
+    mood: danger
+    next: "110"
+  "326":
+    title: Параграф 326
+    mood: danger
+    next: "95"
+  "327":
+    title: Параграф 327
+    mood: danger
+    variants:
+      А: "87"
+      Б: "282"
+  "328":
+    title: Параграф 328
+    mood: calm
+    variants:
+      А: "166"
+      Б: "264"
+  "329":
+    title: Параграф 329
+    mood: grief
+    variants:
+      А: "28"
+      Б: "157"
+  "330":
+    title: Параграф 330
+    mood: calm
+    variants:
+      А: "177"
+      Б: "33"
+      В: "147"
+  "331":
+    title: Параграф 331
+    mood: danger
+    image: assets/images/331-1.jpg
+    next: "40"
+  "332":
+    title: Параграф 332
+    mood: calm
+    variants:
+      А: "246"
+      Б: "281"
+      В: "81"
+  "333":
+    title: Параграф 333
+    mood: danger
+    next: "225"
+  "334":
+    title: Параграф 334
+    mood: calm
+    on_enter:
+      - stat: {money: +5}
+    variants:
+      А: "105"
+      Б: "272"
+      В: "252"
+  "335":
+    title: Параграф 335
+    mood: calm
+    next: "45"
+  "336":
+    title: Параграф 336
+    mood: calm
+    next: "367"
+  "337":
+    title: Параграф 337
+    mood: calm
+    next: "250"
+  "338":
+    title: Параграф 338
+    mood: calm
+    variants:
+      А: "68"
+      Б: "52"
+  "339":
+    title: Параграф 339
+    mood: calm
+    variants:
+      А: "200"
+      Б: "17"
+  "340":
+    title: Параграф 340
+    mood: danger
+    on_enter:
+      - stat: {stamina: -3}
+    variants:
+      А: "26"
+      Б: "276"
+  "341":
+    title: Параграф 341
+    mood: danger
+    image: assets/images/341-1.jpg
+    next: "245"
+  "342":
+    title: Параграф 342
+    mood: calm
+    variants:
+      А: "306"
+      Б: "12"
+  "343":
+    title: Параграф 343
+    mood: calm
+    on_enter:
+      - stat: {stamina: -1}
+    variants:
+      А: "185"
+      Б: "300"
+  "344":
+    title: Параграф 344
+    mood: danger
+    variants:
+      А: "313"
+      Б: "53"
+  "345":
+    title: Параграф 345
+    mood: tense
+    variants:
+      А: "21"
+      Б: "73"
+  "346":
+    title: Параграф 346
+    mood: calm
+    variants:
+      А: "364"
+      Б: "120"
+  "347":
+    title: Параграф 347
+    mood: calm
+    variants:
+      А: "297"
+      Б: "129"
+  "348":
+    title: Параграф 348
+    mood: calm
+    variants:
+      А: "88"
+      Б: "392"
+  "349":
+    title: Параграф 349
+    mood: calm
+    on_enter:
+      - take: [number111_key]
+    next: "311"
+  "350":
+    title: Параграф 350
+    mood: calm
+    variants:
+      А: "35"
+      Б: "243"
+  "351":
+    title: Параграф 351
+    mood: calm
+    on_enter:
+      - take: [keyring]
+      - take: {medkit: 2}
+    next: "276"
+  "352":
+    title: Параграф 352
+    mood: danger
+    next: "17"
+  "353":
+    title: Параграф 353
+    mood: grief
+    ending: true
+  "354":
+    title: Параграф 354
+    mood: danger
+    image: assets/images/354-1.jpg
+    variants:
+      А: "126"
+      Б: "223"
+      В: "113"
+  "355":
+    title: Параграф 355
+    mood: calm
+    variants:
+      А: "45"
+      Б: "31"
+  "356":
+    title: Параграф 356
+    mood: calm
+    next:
+      roll: 1d6
+      outcomes:
+        - min: 4
+          goto: "219"
+        - goto: "140"
+  "357":
+    title: Параграф 357
+    mood: danger
+    next: "145"
+  "358":
+    title: Параграф 358
+    mood: calm
+    variants:
+      А: "60"
+      Б: "328"
+  "359":
+    title: Параграф 359
+    mood: calm
+    variants:
+      А: "393"
+      Б: "4"
+  "360":
+    title: Параграф 360
+    mood: calm
+    variants:
+      А: "110"
+      Б: "325"
+  "361":
+    title: Параграф 361
+    mood: danger
+    next:
+      roll: 1d6
+      outcomes:
+        - min: 4
+          goto: "2"
+        - goto: "231"
+  "362":
+    title: Параграф 362
+    mood: calm
+    next: "129"
+  "363":
+    title: Параграф 363
+    mood: danger
+    next: "83"
+  "364":
+    title: Параграф 364
+    mood: calm
+    next:
+      roll: 1d6
+      outcomes:
+        - min: 4
+          goto: "27"
+        - goto: "353"
+  "365":
+    title: Параграф 365
+    mood: mystery
+    variants:
+      А: "139"
+      Б: "160"
+  "366":
+    title: Параграф 366
+    mood: calm
+    on_enter:
+      - stat: {stamina: -3}
+    next: "254"
+  "367":
+    title: Параграф 367
+    mood: danger
+    image: assets/images/367-1.jpg
+    on_enter:
+      - stat: {stamina: -2}
+    next: "316"
+  "368":
+    title: Параграф 368
+    mood: danger
+    next: "359"
+  "369":
+    title: Параграф 369
+    mood: danger
+    next: "247"
+  "370":
+    title: Параграф 370
+    mood: calm
+    next: "216"
+  "371":
+    title: Параграф 371
+    mood: danger
+    next: "83"
+  "372":
+    title: Параграф 372
+    mood: victory
+    next: "230"
+  "373":
+    title: Параграф 373
+    mood: calm
+    variants:
+      А: "47"
+      Б: "240"
+      В: "332"
+  "374":
+    title: Параграф 374
+    mood: grief
+    ending: true
+  "375":
+    title: Параграф 375
+    mood: danger
+    next: "20"
+  "376":
+    title: Параграф 376
+    mood: grief
+    ending: true
+  "377":
+    title: Параграф 377
+    mood: calm
+    variants:
+      А: "125"
+      Б: "269"
+  "378":
+    title: Параграф 378
+    mood: calm
+    variants:
+      А: "291"
+      Б: "13"
+  "379":
+    title: Параграф 379
+    mood: danger
+    image: assets/images/379-1.jpg
+    next: "122"
+  "380":
+    title: Параграф 380
+    mood: mystery
+    variants:
+      А: "138"
+      Б: "346"
+  "381":
+    title: Параграф 381
+    mood: tense
+    on_enter:
+      - stat: {stamina: -5}
+    variants:
+      А: "41"
+      Б: "160"
+  "382":
+    title: Параграф 382
+    mood: tense
+    next: "40"
+  "383":
+    title: Параграф 383
+    mood: grief
+    ending: true
+  "384":
+    title: Параграф 384
+    mood: calm
+    next: "123"
+  "385":
+    title: Параграф 385
+    mood: calm
+    next: "109"
+  "386":
+    title: Параграф 386
+    mood: calm
+    variants:
+      А: "304"
+      Б: "223"
+      В: "113"
+  "387":
+    title: Параграф 387
+    mood: danger
+    variants:
+      А: "315"
+      Б: "65"
+  "388":
+    title: Параграф 388
+    mood: calm
+    variants:
+      А: "261"
+      Б: "25"
+  "389":
+    title: Параграф 389
+    mood: grief
+    ending: true
+  "390":
+    title: Параграф 390
+    mood: grief
+    ending: true
+  "391":
+    title: Параграф 391
+    mood: calm
+    image: assets/images/391-1.jpg
+    variants:
+      А: "157"
+      Б: "51"
+  "392":
+    title: Параграф 392
+    mood: grief
+    ending: true
+  "393":
+    title: Параграф 393
+    mood: calm
+    variants:
+      А: "124"
+      Б: "4"
+  "394":
+    title: Параграф 394
+    mood: calm
+    variants:
+      А: "35"
+      Б: "243"
+  "395":
+    title: Параграф 395
+    mood: calm
+    variants:
+      А: "32"
+      Б: "385"
+  "396":
+    title: Параграф 396
+    mood: calm
+    variants:
+      А: "82"
+      Б: "274"
+  "397":
+    title: Параграф 397
+    mood: tense
+    variants:
+      А: "61"
+      Б: "101"
+      В: "155"
+  "398":
+    title: Параграф 398
+    mood: calm
+    on_enter:
+      - stat: {stamina: -4}
+    next: "277"
+  "399":
+    title: Параграф 399
+    mood: calm
+    variants:
+      А: "334"
+      Б: "252"
+  "400":
+    title: Параграф 400
+    mood: tense
+    next: "165"
