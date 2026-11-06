@@ -241,6 +241,16 @@ export default function GameScreen({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      // PageUp/PageDown листают текст сцены, как колесо мыши
+      if (e.key === 'PageDown' || e.key === 'PageUp') {
+        const el = scrollRef.current;
+        if (!el) return;
+        e.preventDefault();
+        const page = el.clientHeight * 0.9;
+        el.scrollBy({ top: e.key === 'PageDown' ? page : -page, behavior: 'smooth' });
+        return;
+      }
+
       if (e.key === 'Escape' || rollView) return;
 
       // сколько пунктов можно выбрать: варианты, «далее» или бросок
