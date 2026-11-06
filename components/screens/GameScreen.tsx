@@ -90,7 +90,8 @@ export default function GameScreen({
   const [rawOpen, setRawOpen] = useState(false);
   const [zoom, setZoom] = useState(false);
   const [imageFit, setImageFit] = useState<{ src: string; wide: boolean } | null>(null);
-  const [selected, setSelected] = useState(0);
+  const [selected, setSelected] = useState(-1);
+  const [pressed, setPressed] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrollKey = `${game.id}:${state.scene}`;
   const choices = availableChoices(game, state);
@@ -222,7 +223,8 @@ export default function GameScreen({
 
   useEffect(() => {
     setRollView(null);
-    setSelected(0);
+    setSelected(-1);
+    setPressed(null);
     for (const id of rollTimers.current) window.clearTimeout(id);
     rollTimers.current = [];
   }, [scene.key]);
@@ -248,7 +250,10 @@ export default function GameScreen({
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         e.preventDefault();
         const step = e.key === 'ArrowDown' ? 1 : -1;
-        setSelected((prev) => (prev + step + items) % items);
+        setSelected((prev) => {
+          if (prev < 0) return step === 1 ? 0 : items - 1;
+          return (prev + step + items) % items;
+        });
         return;
       }
 
@@ -268,13 +273,21 @@ export default function GameScreen({
         if (ending) return;
         e.preventDefault();
         if (dice) startRoll();
-        else if (choices.length > 0) onChoose(choices[Math.min(selected, choices.length - 1)]);
+        else if (choices.length > 0 && selected >= 0) onChoose(choices[Math.min(selected, choices.length - 1)]);
         else if (hasNext) onAdvance();
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [choices, ending, hasNext, onChoose, onAdvance, dice, rollView, selected, startRoll]);
+
+  /** подсветка на время нажатия: подтверждение — только по отпусканию */
+  const pressHandlers = (key: string) => ({
+    onPointerDown: () => setPressed(key),
+    onPointerUp: () => setPressed(null),
+    onPointerLeave: () => setPressed(null),
+    onPointerCancel: () => setPressed(null),
+  });
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -363,7 +376,7 @@ export default function GameScreen({
       {ending && (
         <div className="choices">
           <div className="green">КОНЕЦ</div>
-          <button className="choice" onClick={onRestart}>
+          <button className="choice" onClick={onRestart} {...pressHandlers('restart')}>
             1. НАЧАТЬ ЗАНОВО
           </button>
         </div>
@@ -374,9 +387,10 @@ export default function GameScreen({
           {choices.map((c, i) => (
             <button
               key={`${c.goto}-${i}`}
-              className={`choice${i === selected ? ' selected' : ''}`}
+              className={`choice${i === selected ? ' selected' : ''}${pressed === `c${i}` ? ' pressed' : ''}`}
               data-variant={c.letter}
               onClick={() => onChoose(c)}
+              {...pressHandlers(`c${i}`)}
             >
               {i + 1}. {c.label.toUpperCase()}
             </button>
@@ -386,7 +400,7 @@ export default function GameScreen({
 
       {!ending && choices.length === 0 && hasNext && !dice && (
         <div className="choices">
-          <button className="choice" onClick={() => onAdvance()}>
+          <button className="choice" onClick={() => onAdvance()} {...pressHandlers('next')}>
             1. ДАЛЕЕ
           </button>
         </div>
@@ -394,7 +408,7 @@ export default function GameScreen({
 
       {!ending && dice && !rollView && (
         <div className="choices">
-          <button className="choice" onClick={startRoll}>
+          <button className="choice" onClick={startRoll} {...pressHandlers('roll')}>
             1. {isCoin ? 'БРОСИТЬ МОНЕТКУ' : 'БРОСИТЬ КУБИК'}
           </button>
         </div>

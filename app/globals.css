@@ -526,17 +526,6 @@ body {
 .screen-heading { font-size: 16px; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 14px; }
 .hint { font-size: 11px; color: #8a6a2f; margin-top: 10px; }
 .screen-note { font-size: 10px; letter-spacing: 1px; color: #4a3a1a; margin: 0 0 12px; }
-/* описание книги в библиотеке */
-.game-meta {
-  margin: 2px 0 12px 18px;
-  font-size: 11px;
-  line-height: 1.45;
-  color: #9a7a3a;
-}
-.game-meta .meta-key { color: #6f5620; letter-spacing: 1px; margin-right: 4px; }
-@media (max-width: 720px) {
-  .game-meta { font-size: 10px; margin-left: 14px; }
-}
 /* просмотр исходной разметки story.md (кнопка MD) */
 .raw-btn {
   background: none; border: 1px solid #5a4318; color: #c9a24a; cursor: pointer;
@@ -583,6 +572,31 @@ body {
 .scene-text mark[data-variant='Р'] { color: #fda4af; }
 /* наведение и фокус: инверсия важнее цвета варианта */
 .choice[data-variant]:hover, .choice[data-variant]:focus-visible { color: var(--screen-bg); }
+
+/* нажатие пальцем или мышью: подсветка до отпускания */
+.choice {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+}
+.choice.pressed,
+.choice:active {
+  background: rgba(255, 176, 0, 0.22);
+  box-shadow: inset 0 0 0 1px rgba(255, 176, 0, 0.7), 0 0 14px rgba(255, 176, 0, 0.25);
+}
+
+/* пункт меню, выбранный с клавиатуры */
+.menu-focused {
+  background: rgba(255, 176, 0, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(255, 176, 0, 0.6), 0 0 14px rgba(255, 176, 0, 0.22);
+}
+.lib-title.menu-focused { color: #ffe0a0; background: none; box-shadow: none; }
+.lib-row.menu-focused-row {
+  background: rgba(255, 176, 0, 0.1);
+  box-shadow: inset 2px 0 0 var(--amber);
+}
+.lib-row.menu-focused-row .lib-play { opacity: 1; }
 
 /* выбранный с клавиатуры пункт */
 .choice.selected {
@@ -844,3 +858,130 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .roll-coin, .roll-die { animation-duration: 0.25s; }
 }
+
+/* ── библиотека: таблица книг ─────────────────────────── */
+.lib-table { margin: 6px 0 4px; }
+
+.lib-row {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) 150px 170px 92px;
+  grid-template-areas: "num main author genre progress";
+  column-gap: 14px;
+  align-items: start;
+  padding: 8px 6px 10px;
+  border-bottom: 1px dashed rgba(255, 176, 0, 0.18);
+}
+.lib-row:hover { background: rgba(255, 176, 0, 0.06); }
+
+.lib-head {
+  padding: 0 6px 6px;
+  border-bottom: 1px solid rgba(255, 176, 0, 0.35);
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #6f5620;
+  text-transform: uppercase;
+}
+
+.lib-num {
+  grid-area: num;
+  padding-top: 4px;
+  font-size: 12px;
+  color: #6f5620;
+}
+
+.lib-main { grid-area: main; min-width: 0; }
+
+.lib-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: clamp(17px, 2.1vw, 22px);
+  line-height: 1.2;
+  letter-spacing: 1px;
+  color: #ffc24d;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(255, 176, 0, 0.35);
+}
+.lib-title:hover,
+.lib-title:focus-visible {
+  color: #ffe0a0;
+  text-shadow: 0 0 16px rgba(255, 176, 0, 0.75);
+  outline: none;
+}
+.lib-title-text { overflow-wrap: anywhere; }
+
+.lib-play {
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--green);
+  opacity: 0.45;
+  transition: opacity 0.15s ease;
+  text-shadow: 0 0 8px rgba(110, 231, 135, 0.5);
+}
+.lib-title:hover .lib-play,
+.lib-title:focus-visible .lib-play { opacity: 1; }
+@media (hover: none) { .lib-play { opacity: 0.75; } }
+
+.lib-annotation {
+  margin-top: 4px;
+  max-width: 70ch;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #9a7a3a;
+}
+/* у аннотации подпись видна всегда: прочерк не должен читаться как мусор */
+.lib-annotation .lib-k {
+  display: inline;
+  margin-right: 6px;
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: #8a6a2f;
+  text-transform: uppercase;
+}
+
+.lib-cell {
+  padding-top: 4px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #9a7a3a;
+  overflow-wrap: anywhere;
+}
+.lib-author { grid-area: author; }
+.lib-genre { grid-area: genre; }
+.lib-progress { grid-area: progress; color: var(--green); }
+
+/* подписи колонок нужны только в мобильной раскладке */
+.lib-k { display: none; }
+
+@media (max-width: 760px) {
+  .lib-head { display: none; }
+  .lib-row {
+    grid-template-columns: 24px minmax(0, 1fr);
+    grid-template-areas:
+      "num main"
+      ". author"
+      ". genre"
+      ". progress";
+    row-gap: 2px;
+    padding: 10px 4px 12px;
+  }
+  .lib-k {
+    display: inline;
+    margin-right: 6px;
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: #8a6a2f;
+    text-transform: uppercase;
+  }
+  .lib-title { font-size: 17px; }
+}
+
