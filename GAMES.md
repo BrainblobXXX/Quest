@@ -354,8 +354,9 @@ moods:
 ```
 
 Готовые пакеты лежат в `games/steel-rat/`, `games/zombie-blood/`,
-`games/unicorn-cage/`, `games/how-to-survive-on-2500/` и
-`games/summer-vacation/` — все разбираются движком и играются.
+`games/unicorn-cage/`, `games/how-to-survive-on-2500/`,
+`games/summer-vacation/` и `games/kupalo-night/` — все разбираются движком
+и играются.
 
 Когда ассеты готовы, они кладутся в `assets/`, а в `game.yaml` появляются `mood: key`
 и `image: assets/...`. Сами брифы при этом не удаляются: они объясняют, зачем нужен
