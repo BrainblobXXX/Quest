@@ -556,6 +556,24 @@ body {
   overflow: hidden;
 }
 
+.stats-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 18px;
+  margin: -6px 0 10px;
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 1px;
+  color: var(--green);
+  text-shadow: 0 0 6px rgba(51, 255, 0, 0.4);
+}
+
+.stat { display: inline-flex; align-items: baseline; gap: 6px; }
+.stat-title { color: #8a6a2f; text-transform: uppercase; }
+.stat-value { color: var(--green); font-size: 13px; }
+.stat-value.is-low { color: var(--magenta); text-shadow: 0 0 8px rgba(255, 0, 255, 0.5); }
+
 .title-line .inv {
   flex: 0 1 auto;
   max-width: 52%;

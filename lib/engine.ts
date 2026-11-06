@@ -1,6 +1,11 @@
 import type { Choice, Game, GameState, ItemDef, Scene, SceneEffect } from './types';
 
 export function newState(game: Game): GameState {
+  const stats: Record<string, number> = {};
+  for (const [id, def] of Object.entries(game.stats ?? {})) {
+    const initial = Number(def.initial ?? 0);
+    stats[id] = Number.isFinite(initial) ? initial : 0;
+  }
   const state: GameState = {
     game: game.id,
     format: game.format,
@@ -8,12 +13,12 @@ export function newState(game: Game): GameState {
     scene: game.start,
     inventory: { ...(game.startItems ?? {}) },
     flags: [],
-    stats: {},
+    stats,
     visited: [game.start],
     updated: new Date().toISOString(),
   };
   // стартовая сцена тоже может что-то выдавать (game.yaml → on_enter)
-  return applyOnEnter(state, game.scenes[game.start]);
+  return applyOnEnter(game, state, game.scenes[game.start]);
 }
 
 export function sceneOf(game: Game, state: GameState): Scene {
@@ -121,15 +126,38 @@ function dropItems(inv: Record<string, number>, value: SceneEffect['drop']) {
   else if (Array.isArray(value)) for (const id of value) delete inv[String(id)];
 }
 
-/** применяет on_enter сцены: MVP понимает take/drop, stat пока не ведёт */
-function applyOnEnter(state: GameState, scene?: Scene): GameState {
+/** применяет изменения характеристик с учётом min/max из stats.yaml */
+function applyStatDeltas(
+  game: Game,
+  current: Record<string, number>,
+  deltas: Record<string, number>,
+): Record<string, number> {
+  const stats = { ...current };
+  for (const [id, raw] of Object.entries(deltas)) {
+    const delta = Number(raw);
+    if (!Number.isFinite(delta)) continue;
+    const def = game.stats?.[id];
+    let value = (stats[id] ?? Number(def?.initial ?? 0)) + delta;
+    const min = Number(def?.min);
+    const max = Number(def?.max);
+    if (def?.min !== undefined && Number.isFinite(min)) value = Math.max(min, value);
+    if (def?.max !== undefined && Number.isFinite(max)) value = Math.min(max, value);
+    stats[id] = value;
+  }
+  return stats;
+}
+
+/** применяет on_enter сцены: take/drop предметов и stat характеристик */
+function applyOnEnter(game: Game, state: GameState, scene?: Scene): GameState {
   if (!scene?.onEnter?.length) return state;
   const inventory = { ...state.inventory };
+  let stats = state.stats;
   for (const effect of scene.onEnter) {
     addItems(inventory, effect.take);
     dropItems(inventory, effect.drop);
+    if (effect.stat) stats = applyStatDeltas(game, stats, effect.stat);
   }
-  return { ...state, inventory };
+  return { ...state, inventory, stats };
 }
 
 function useItem(inv: Record<string, number>, id: string, def?: ItemDef) {
@@ -147,7 +175,8 @@ function applyMods(game: Game, state: GameState, choice: Choice): GameState {
   }
   if (choice.use) useItem(inventory, choice.use, game.items?.[choice.use]);
   if (choice.drop) delete inventory[choice.drop];
-  return { ...state, inventory };
+  const stats = choice.stat ? applyStatDeltas(game, state.stats, choice.stat) : state.stats;
+  return { ...state, inventory, stats };
 }
 
 /* ── ходы ────────────────────────────────────────────────── */
@@ -174,7 +203,7 @@ function goTo(game: Game, state: GameState, key: string): GameState {
     visited: [...state.visited, key],
     updated: new Date().toISOString(),
   };
-  return applyOnEnter(moved, game.scenes[key]);
+  return applyOnEnter(game, moved, game.scenes[key]);
 }
 
 export function roll(dice: string): number {

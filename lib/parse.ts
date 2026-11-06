@@ -1,5 +1,5 @@
 import { parse as parseYaml } from 'yaml';
-import type { Choice, Game, ItemDef, ParseProblem, Scene, SceneEffect } from './types';
+import type { Choice, Game, ItemDef, ParseProblem, Scene, SceneEffect, StatDef } from './types';
 
 /**
  * Разбор пакета игры прямо в браузере: story.md + game.yaml → объект Game.
@@ -36,6 +36,24 @@ function effectItemIds(value: unknown): string[] {
   if (Array.isArray(value)) return value.map((id) => String(id));
   if (value && typeof value === 'object') return Object.keys(value as Record<string, unknown>);
   return [];
+}
+
+/** делит модификаторы по запятым верхнего уровня, не задевая {money: -200, food: 1} */
+function splitMods(text: string): string[] {
+  const parts: string[] = [];
+  let depth = 0;
+  let start = 0;
+  for (let i = 0; i < text.length; i += 1) {
+    const ch = text[i];
+    if (ch === '{' || ch === '[') depth += 1;
+    else if (ch === '}' || ch === ']') depth = Math.max(0, depth - 1);
+    else if (ch === ',' && depth === 0) {
+      parts.push(text.slice(start, i));
+      start = i + 1;
+    }
+  }
+  parts.push(text.slice(start));
+  return parts.map((part) => part.trim()).filter(Boolean);
 }
 
 type RawScene = {
@@ -94,22 +112,35 @@ function parseStory(md: string, problems: ParseProblem[]): Record<string, RawSce
       continue;
     }
     rawLines.push(line);
-    const marker = new RegExp(`^Вариант\\s+([${LETTERS}])\\s*(?:\\{([^}]*)\\})?\\s*$`).exec(line.trim());
+    const marker = new RegExp(
+      `^Вариант\\s+([${LETTERS}])(?:\\s*\\{([\\s\\S]*)\\})?\\s*$`,
+    ).exec(line.trim());
     if (marker) {
       const mods: Record<string, string> = {};
       if (marker[2]) {
-        for (const part of marker[2].split(',')) {
-          const kv = /^\s*(\w+)\s*:\s*(.+?)\s*$/.exec(part);
-          if (!kv) {
+        for (const part of splitMods(marker[2])) {
+          const colon = part.indexOf(':');
+          if (colon < 0) {
             problems.push({
               level: 'error',
               code: 'E_LIST_MARKER_UNPARSED',
-              message: `не разобран модификатор «${part.trim()}»`,
+              message: `не разобран модификатор «${part}»`,
               scene: key,
             });
             continue;
           }
-          mods[kv[1]] = kv[2];
+          const name = part.slice(0, colon).trim();
+          const value = part.slice(colon + 1).trim();
+          if (!name || !value) {
+            problems.push({
+              level: 'error',
+              code: 'E_LIST_MARKER_UNPARSED',
+              message: `не разобран модификатор «${part}»`,
+              scene: key,
+            });
+            continue;
+          }
+          mods[name] = value;
         }
       }
       markers.push({ letter: marker[1], mods });
@@ -120,9 +151,9 @@ function parseStory(md: string, problems: ParseProblem[]): Record<string, RawSce
       choices ??= [];
       const mods: Record<string, string> = {};
       if (legacy.groups?.mods) {
-        for (const part of legacy.groups.mods.split(',')) {
-          const kv = /^\s*(\w+)\s*:\s*(.+?)\s*$/.exec(part);
-          if (kv) mods[kv[1]] = kv[2];
+        for (const part of splitMods(legacy.groups.mods)) {
+          const colon = part.indexOf(':');
+          if (colon > 0) mods[part.slice(0, colon).trim()] = part.slice(colon + 1).trim();
         }
       }
       choices.push({ label: legacy.groups?.label ?? '', goto: legacy.groups?.target ?? '', ...mods } as Choice);
@@ -144,6 +175,7 @@ export function parsePackage(
   manifest: Record<string, unknown>,
   storyText: string,
   itemsText?: string | null,
+  statsText?: string | null,
 ): ParsedPackage {
   const problems: ParseProblem[] = [];
 
@@ -257,6 +289,15 @@ export function parsePackage(
     }
   }
 
+  let stats: Record<string, StatDef> = {};
+  if (statsText) {
+    try {
+      stats = ((parseYaml(statsText) ?? {}) as { stats?: Record<string, StatDef> }).stats ?? {};
+    } catch (e) {
+      problems.push({ level: 'error', code: 'E_STATS_YAML', message: `stats.yaml не разбирается: ${(e as Error).message}` });
+    }
+  }
+
   const moods = ((manifest.moods ?? {}) as Record<string, string | string[] | null>) ?? {};
   const defaultMood = (manifest.default_mood ?? null) as string | null;
   if (defaultMood && !(defaultMood in moods)) {
@@ -311,6 +352,26 @@ export function parsePackage(
             }
           }
         }
+        if (effect.stat) {
+          for (const [statId, value] of Object.entries(effect.stat)) {
+            if (!stats[statId]) {
+              problems.push({
+                level: 'error',
+                code: 'E_STAT_UNKNOWN',
+                message: `on_enter.stat ссылается на неизвестную характеристику «${statId}»`,
+                scene: key,
+              });
+            }
+            if (!Number.isFinite(Number(value))) {
+              problems.push({
+                level: 'error',
+                code: 'E_STAT_VALUE',
+                message: `on_enter.stat «${statId}»: не число «${String(value)}»`,
+                scene: key,
+              });
+            }
+          }
+        }
       }
     }
 
@@ -330,9 +391,65 @@ export function parsePackage(
     }
 
     out.choices?.forEach((choice) => {
+      // stat приходит из разметки строкой "{money: -200}" — разбираем в карту
+      const rawStat = (choice as { stat?: unknown }).stat;
+      if (rawStat !== undefined) {
+        let parsed: unknown = rawStat;
+        if (typeof rawStat === 'string') {
+          try {
+            parsed = parseYaml(rawStat);
+          } catch (e) {
+            problems.push({
+              level: 'error',
+              code: 'E_STAT_YAML',
+              message: `stat не разбирается: ${(e as Error).message}`,
+              scene: key,
+            });
+            parsed = null;
+          }
+        }
+        if (parsed === null) {
+          delete choice.stat;
+        } else if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+          problems.push({
+            level: 'error',
+            code: 'E_STAT_FORMAT',
+            message: 'stat должен быть картой {id: изменение}',
+            scene: key,
+          });
+          delete choice.stat;
+        } else {
+          const deltas: Record<string, number> = {};
+          for (const [statId, raw] of Object.entries(parsed as Record<string, unknown>)) {
+            const delta = Number(raw);
+            if (!Number.isFinite(delta)) {
+              problems.push({
+                level: 'error',
+                code: 'E_STAT_VALUE',
+                message: `stat «${statId}»: не число «${String(raw)}»`,
+                scene: key,
+              });
+              continue;
+            }
+            if (!stats[statId]) {
+              problems.push({
+                level: 'error',
+                code: 'E_STAT_UNKNOWN',
+                message: `stat ссылается на неизвестную характеристику «${statId}»`,
+                scene: key,
+              });
+              continue;
+            }
+            deltas[statId] = delta;
+          }
+          if (Object.keys(deltas).length) choice.stat = deltas;
+          else delete choice.stat;
+        }
+      }
+
       if (choice.goto) targets.push(choice.goto);
       for (const field of Object.keys(choice)) {
-        if (!['label', 'goto', 'letter', 'if', 'take', 'use', 'drop'].includes(field)) {
+        if (!['label', 'goto', 'letter', 'if', 'take', 'use', 'drop', 'stat'].includes(field)) {
           problems.push({ level: 'error', code: 'E_CHOICE_UNKNOWN_KEY', message: `неизвестный ключ выбора «${field}»`, scene: key });
         }
       }
@@ -392,6 +509,7 @@ export function parsePackage(
     start,
     startItems,
     items,
+    stats,
     moods,
     defaultMood,
     rev: hash(storyText),

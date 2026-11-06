@@ -108,12 +108,17 @@ export async function loadGame(id: string, onProgress?: LoadListener): Promise<L
     ]);
   }
 
-  // items.yaml необязателен и объявляется в манифесте (`items: items.yaml`).
-  // Без объявления не запрашиваем его вовсе: у книг без предметов не будет
-  // лишнего 404, а у книг с предметами запрос идёт параллельно с story.md.
+  // items.yaml и stats.yaml необязательны и объявляются в манифесте.
+  // Без объявления не запрашиваем их вовсе: у книг без предметов/статов
+  // не будет лишнего 404, а объявленные файлы идут параллельно с story.md.
   const itemsFile = manifest.items ? String(manifest.items) : null;
   const itemsPromise = itemsFile
     ? optional(`${dir}/${itemsFile}`).catch(() => null)
+    : Promise.resolve(null);
+
+  const statsFile = manifest.stats ? String(manifest.stats) : null;
+  const statsPromise = statsFile
+    ? optional(`${dir}/${statsFile}`).catch(() => null)
     : Promise.resolve(null);
 
   const storyFile = String(manifest.story ?? 'story.md');
@@ -123,9 +128,10 @@ export async function loadGame(id: string, onProgress?: LoadListener): Promise<L
   );
   report({ stage: 'items' });
   const itemsText = await itemsPromise;
+  const statsText = await statsPromise;
   report({ stage: 'parse' });
 
-  const parsed = parsePackage(id, manifest, storyText, itemsText);
+  const parsed = parsePackage(id, manifest, storyText, itemsText, statsText);
   report({ stage: 'ready' });
   return parsed;
 }

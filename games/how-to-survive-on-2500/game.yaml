@@ -1,0 +1,273 @@
+format: quest/1
+id: how-to-survive-on-2500
+title: Как прожить месяц на 2500 рублей...
+type: hybrid
+status: complete
+author: Арина Гуляева
+genre: симулятор выживания
+language: ru
+source: "Арина Гуляева - Как прожить месяц  на 2500 рублей....pdf, https://quest-book.ru"
+cover: assets/cover.png
+start: "1"
+story: story.md
+stats: stats.yaml
+moods:
+  calm: null
+  tense: null
+  danger: null
+  victory: null
+  grief: null
+default_mood: calm
+scenes:
+  "1":
+    title: Глава 1
+    mood: victory
+    image: assets/illustrations/1.png
+    next: "9"
+  "2":
+    title: Глава 2
+    mood: tense
+    on_enter:
+      - stat: {money: -500}
+    variants:
+      А: "23"
+      Б: "33"
+  "3":
+    title: Глава 3
+    mood: victory
+    image: assets/illustrations/3.png
+    ending: true
+  "4":
+    title: Глава 4
+    mood: calm
+    image: assets/illustrations/4.png
+    variants:
+      А: "35"
+      Б: "21"
+  "5":
+    title: Глава 5
+    mood: calm
+    image: assets/illustrations/4.png
+    variants:
+      А: "36"
+      Б: "27"
+  "6":
+    title: Глава 6
+    mood: tense
+    variants:
+      А: "16"
+      Б: "18"
+  "7":
+    title: Глава 7
+    mood: grief
+    on_enter:
+      - stat: {money: -200}
+    next: "28"
+  "8":
+    title: Глава 8
+    mood: danger
+    image: assets/illustrations/8.png
+    ending: true
+  "9":
+    title: Глава 9
+    mood: calm
+    image: assets/illustrations/9.png
+    variants:
+      А: "19"
+      Б: "38"
+  "10":
+    title: Глава 10
+    mood: calm
+    variants:
+      А: "30"
+      Б: "32"
+  "11":
+    title: Глава 11
+    mood: calm
+    image: assets/illustrations/4.png
+    variants:
+      А: "26"
+      Б: "36"
+  "12":
+    title: Глава 12
+    mood: victory
+    image: assets/illustrations/3.png
+    ending: true
+  "13":
+    title: Глава 13
+    mood: calm
+    on_enter:
+      - stat: {money: -200}
+    next: "24"
+  "14":
+    title: Глава 14
+    mood: danger
+    image: assets/illustrations/8.png
+    ending: true
+  "15":
+    title: Глава 15
+    mood: danger
+    on_enter:
+      - stat: {money: -2200}
+    ending: true
+  "16":
+    title: Глава 16
+    mood: calm
+    variants:
+      А: "25"
+      Б: "39"
+  "17":
+    title: Глава 17
+    mood: danger
+    on_enter:
+      - stat: {money: -200}
+    ending: true
+  "18":
+    title: Глава 18
+    mood: calm
+    variants:
+      А: "39"
+      Б: "40"
+  "19":
+    title: Глава 19
+    mood: calm
+    image: assets/illustrations/19.png
+    variants:
+      А: "15"
+      Б: "2"
+  "20":
+    title: Глава 20
+    mood: victory
+    image: assets/illustrations/3.png
+    ending: true
+  "21":
+    title: Глава 21
+    mood: calm
+    on_enter:
+      - stat: {money: -200}
+    next: "20"
+  "22":
+    title: Глава 22
+    mood: calm
+    on_enter:
+      - stat: {money: -200}
+    next: "8"
+  "23":
+    title: Глава 23
+    mood: calm
+    variants:
+      А: "37"
+      Б: "7"
+  "24":
+    title: Глава 24
+    mood: victory
+    image: assets/illustrations/3.png
+    ending: true
+  "25":
+    title: Глава 25
+    mood: grief
+    on_enter:
+      - stat: {money: -200}
+    next: "4"
+  "26":
+    title: Глава 26
+    mood: calm
+    on_enter:
+      - stat: {money: -200}
+    next: "14"
+  "27":
+    title: Глава 27
+    mood: calm
+    on_enter:
+      - stat: {money: -200}
+    next: "12"
+  "28":
+    title: Глава 28
+    mood: calm
+    image: assets/illustrations/4.png
+    variants:
+      А: "22"
+      Б: "26"
+  "29":
+    title: Глава 29
+    mood: calm
+    variants:
+      А: "33"
+      Б: "10"
+  "30":
+    title: Глава 30
+    mood: grief
+    on_enter:
+      - stat: {money: -200}
+    next: "11"
+  "31":
+    title: Глава 31
+    mood: calm
+    image: assets/illustrations/4.png
+    variants:
+      А: "21"
+      Б: "13"
+  "32":
+    title: Глава 32
+    mood: grief
+    on_enter:
+      - stat: {money: -200}
+    next: "5"
+  "33":
+    title: Глава 33
+    mood: calm
+    image: assets/illustrations/33.png
+    variants:
+      А: "7"
+      Б: "30"
+  "34":
+    title: Глава 34
+    mood: calm
+    image: assets/illustrations/4.png
+    variants:
+      А: "17"
+      Б: "22"
+  "35":
+    title: Глава 35
+    mood: calm
+    on_enter:
+      - stat: {money: -300}
+    next: "8"
+  "36":
+    title: Глава 36
+    mood: calm
+    on_enter:
+      - stat: {money: -200}
+    next: "3"
+  "37":
+    title: Глава 37
+    mood: grief
+    on_enter:
+      - stat: {money: -200}
+    next: "34"
+  "38":
+    title: Глава 38
+    mood: tense
+    image: assets/illustrations/38.png
+    variants:
+      А: "29"
+      Б: "6"
+  "39":
+    title: Глава 39
+    mood: grief
+    on_enter:
+      - stat: {money: -200}
+    next: "31"
+  "40":
+    title: Глава 40
+    mood: grief
+    on_enter:
+      - stat: {money: -200}
+    next: "41"
+  "41":
+    title: Глава 41
+    mood: calm
+    image: assets/illustrations/4.png
+    variants:
+      А: "13"
+      Б: "27"

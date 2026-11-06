@@ -6,6 +6,13 @@ export type ItemDef = {
   consumable?: boolean;
 };
 
+export type StatDef = {
+  title: string;
+  initial?: number;
+  min?: number;
+  max?: number;
+};
+
 export type Choice = {
   label: string;
   goto: string;
@@ -15,6 +22,8 @@ export type Choice = {
   take?: string | Record<string, number>;
   use?: string;
   drop?: string;
+  /** изменение характеристик при выборе: {money: -200} */
+  stat?: Record<string, number>;
 };
 
 export type RollOutcome = { min?: number; goto: string };
@@ -23,8 +32,7 @@ export type MoodTracks = string | string[] | null;
 
 /**
  * Эффект при входе в сцену (game.yaml → on_enter).
- * `take` — выдать предметы, `drop` — убрать. `stat` сохраняется в пакете,
- * но MVP характеристики пока не ведёт.
+ * `take` — выдать предметы, `drop` — убрать, `stat` — изменить характеристики.
  */
 export type SceneEffect = {
   take?: string | string[] | Record<string, number>;
@@ -59,6 +67,7 @@ export type Game = {
   start: string;
   startItems?: Record<string, number>;
   items?: Record<string, ItemDef>;
+  stats?: Record<string, StatDef>;
   moods?: Record<string, MoodTracks>;
   defaultMood?: string | null;
   /** отпечаток версии книги: считается в браузере по тексту story.md */

@@ -11,6 +11,7 @@ const TYPE_LABELS: Record<string, string> = {
   'fantasy-battle': 'фентези-батл',
   fantasy: 'фентези',
   rpg: 'рпг',
+  hybrid: 'гибрид',
   demo: 'демо',
 };
 

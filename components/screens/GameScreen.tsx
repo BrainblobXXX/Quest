@@ -91,6 +91,11 @@ export default function GameScreen({
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrollKey = `${game.id}:${state.scene}`;
   const choices = availableChoices(game, state);
+  const stats = Object.entries(game.stats ?? {}).map(([id, def]) => ({
+    id,
+    title: def.title || id,
+    value: state.stats[id] ?? def.initial ?? 0,
+  }));
   const chooseByLetter = (letter: string) => choices.find((choice) => choice.letter === letter);
 
   /** отсылки [А] остаются в прозе и работают как кнопки */
@@ -317,6 +322,17 @@ export default function GameScreen({
           <span className="inv-label">инвентарь {invOpen ? '▲' : '▼'}</span>
         </button>
       </div>
+
+      {stats.length > 0 && (
+        <div className="stats-line">
+          {stats.map((stat) => (
+            <span className="stat" key={stat.id}>
+              <span className="stat-title">{stat.title.toUpperCase()}</span>
+              <span className={`stat-value${stat.value <= 0 ? ' is-low' : ''}`}>{stat.value}</span>
+            </span>
+          ))}
+        </div>
+      )}
 
       {invOpen && <InventoryPanel game={game} state={state} />}
 

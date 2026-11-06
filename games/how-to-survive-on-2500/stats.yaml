@@ -1,0 +1,5 @@
+stats:
+  money:
+    title: Деньги
+    initial: 2500
+    min: 0
