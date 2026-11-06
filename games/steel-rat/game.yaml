@@ -41,6 +41,7 @@ scenes:
   "1":
     title: Глава 1
     mood: tense
+    image: illustrations/monster_crossroad.webp
     variants:
       А: "229"
       Б: "347"
@@ -520,6 +521,7 @@ scenes:
   "96":
     title: Глава 96
     mood: mystery
+    image: illustrations/cave_enter.webp
     variants:
       А: "105"
       Б: "47"
@@ -540,6 +542,7 @@ scenes:
   "99":
     title: Глава 99
     mood: danger
+    image: illustrations/girl_caprure.webp
     next:
       roll: 1d2
       outcomes:
@@ -557,6 +560,7 @@ scenes:
   "102":
     title: Глава 102
     mood: mystery
+    image: illustrations/Vase.webp
     next: "109"
   "103":
     title: Глава 103
@@ -704,6 +708,7 @@ scenes:
   "128":
     title: Глава 128
     mood: danger
+    image: illustrations/sword_and_bow.webp
     variants:
       А: "301"
       Б: "336"
@@ -721,6 +726,7 @@ scenes:
   "131":
     title: Глава 131
     mood: tense
+    image: illustrations/archer_contest.webp
     next:
       roll: 1d6
       outcomes:
@@ -1772,6 +1778,7 @@ scenes:
   "323":
     title: Глава 323
     mood: tense
+    image: illustrations/swamp_pig.webp
     variants:
       А: "68"
       Б: "52"
@@ -1792,6 +1799,7 @@ scenes:
   "327":
     title: Глава 327
     mood: danger
+    image: illustrations/eagle_on_the_roof.webp
     next: "321"
   "328":
     title: Глава 328
@@ -1849,6 +1857,7 @@ scenes:
   "338":
     title: Глава 338
     mood: victory
+    image: illustrations/victory.webp
     ending: true
     ending_kind: victory
   "339":
