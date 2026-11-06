@@ -19,7 +19,7 @@ export type Choice = {
   /** буква варианта: А, Б, В… — ею помечена фраза в тексте и отсылка [А] */
   letter?: string;
   if?: string;
-  take?: string | Record<string, number>;
+  take?: string | string[] | Record<string, number>;
   use?: string;
   drop?: string;
   /** изменение характеристик при выборе: {money: -200} */

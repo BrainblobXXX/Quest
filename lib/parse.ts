@@ -38,6 +38,24 @@ function effectItemIds(value: unknown): string[] {
   return [];
 }
 
+/** take на выборе приходит строкой из маркера: id, [id, id] или {id: количество}. */
+function parseTakeValue(value: unknown): { value?: Choice['take']; error?: string } {
+  if (value === undefined) return {};
+  if (typeof value !== 'string') return { value: value as Choice['take'] };
+  const text = value.trim();
+  if (!text.startsWith('[') && !text.startsWith('{')) return { value: text };
+  try {
+    const parsed = parseYaml(text);
+    if (Array.isArray(parsed)) return { value: parsed.map((id) => String(id)) };
+    if (parsed && typeof parsed === 'object') {
+      return { value: parsed as Record<string, number> };
+    }
+    return { error: 'take должен быть id, списком id или картой {id: количество}' };
+  } catch (error) {
+    return { error: (error as Error).message };
+  }
+}
+
 /** делит модификаторы по запятым верхнего уровня, не задевая {money: -200, food: 1} */
 function splitMods(text: string): string[] {
   const parts: string[] = [];
@@ -447,17 +465,36 @@ export function parsePackage(
         }
       }
 
+      if (choice.take !== undefined) {
+        const take = parseTakeValue(choice.take);
+        if (take.error) {
+          problems.push({
+            level: 'error',
+            code: 'E_EFFECT_FORMAT',
+            message: `take: ${take.error}`,
+            scene: key,
+          });
+          delete choice.take;
+        } else if (take.value !== undefined) {
+          choice.take = take.value;
+        }
+      }
+
       if (choice.goto) targets.push(choice.goto);
       for (const field of Object.keys(choice)) {
         if (!['label', 'goto', 'letter', 'if', 'take', 'use', 'drop', 'stat'].includes(field)) {
           problems.push({ level: 'error', code: 'E_CHOICE_UNKNOWN_KEY', message: `неизвестный ключ выбора «${field}»`, scene: key });
         }
       }
-      for (const field of ['take', 'use', 'drop'] as const) {
-        const value = choice[field];
-        if (value && typeof value === 'string' && !items[value]) {
-          problems.push({ level: 'error', code: 'E_EFFECT_UNKNOWN_ID', message: `${field} ссылается на необъявленный предмет «${value}»`, scene: key });
+      for (const field of ['take', 'drop'] as const) {
+        for (const itemId of effectItemIds(choice[field])) {
+          if (!items[itemId]) {
+            problems.push({ level: 'error', code: 'E_EFFECT_UNKNOWN_ID', message: `${field} ссылается на необъявленный предмет «${itemId}»`, scene: key });
+          }
         }
+      }
+      if (choice.use && typeof choice.use === 'string' && !items[choice.use]) {
+        problems.push({ level: 'error', code: 'E_EFFECT_UNKNOWN_ID', message: `use ссылается на необъявленный предмет «${choice.use}»`, scene: key });
       }
       for (const match of choice.if?.match(/has_item\s+([a-z0-9_]+)/gi) ?? []) {
         const itemId = match.split(/\s+/)[1];

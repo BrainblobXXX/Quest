@@ -1,13 +1,16 @@
 format: quest/1
 id: steel-rat
 title: Стань стальной крысой!
+type: hybrid
+status: complete
 author: Гарри Гаррисон
 genre: фантастика
-type: story-book
-annotation: Роман-игра из серии о Крысе из Нержавеющей стали. Агент Специального Корпуса отправляется на планету-тюрьму искать профессора Гейстескранка — путь выбирает читатель, а где решает случай — бросается монета.
+annotation: Роман-игра о новобранце Специального Корпуса, которому поручено найти безумного профессора Гейстескранка на планете-тюрьме Скралдеспенд. Только от игрока зависит, спасет ли он Вселенную.
 language: ru
+source: SteelRat.txt
 start: prologue
 story: story.md
+items: items.yaml
 stats: stats.yaml
 moods:
   calm: music/calm.mp3
@@ -17,31 +20,43 @@ moods:
   mystery: null
   grief: null
 default_mood: calm
+start_items:
+  sword: 1
+  chainmail: 1
+  helmet: 1
+  dosp_coin: 1
+  smoke_grenade: 2
+  sleep_grenade: 2
+  medkit: 1
+  knife: 1
+  nose_filter: 1
+  gold_coin: 1
+  silver_coin: 1
 scenes:
   prologue:
-    title: Добро пожаловать!
-    image: illustrations/prologue.webp
+    title: Пролог
     mood: calm
+    image: illustrations/prologue.webp
     next: "30"
   "1":
     title: Глава 1
-    mood: calm
+    mood: tense
     variants:
       А: "229"
       Б: "347"
   "2":
     title: Глава 2
-    mood: calm
+    mood: danger
     variants:
       А: "4"
       Б: "138"
   "3":
     title: Глава 3
-    mood: calm
+    mood: tense
     next: "218"
   "4":
     title: Глава 4
-    mood: tense
+    mood: danger
     next: "134"
   "5":
     title: Глава 5
@@ -49,9 +64,9 @@ scenes:
     next:
       roll: 1d6
       outcomes:
-        - min: 4
-          goto: "343"
-        - goto: "342"
+      - min: 4
+        goto: "342"
+      - goto: "343"
   "6":
     title: Глава 6
     mood: danger
@@ -65,7 +80,6 @@ scenes:
   "8":
     title: Глава 8
     mood: mystery
-    image: illustrations/desert.jpg
     next: "253"
   "9":
     title: Глава 9
@@ -73,7 +87,7 @@ scenes:
     next: "311"
   "10":
     title: Глава 10
-    mood: calm
+    mood: danger
     next: "82"
   "11":
     title: Глава 11
@@ -81,7 +95,7 @@ scenes:
     next: "140"
   "12":
     title: Глава 12
-    mood: victory
+    mood: tense
     next: "65"
   "13":
     title: Глава 13
@@ -101,16 +115,18 @@ scenes:
     next: "139"
   "17":
     title: Глава 17
-    image: illustrations/underground.webp
     mood: calm
     next: "115"
   "18":
     title: Глава 18
     mood: calm
+    on_enter:
+    - stat:
+        belt_charges: -1
     next: "87"
   "19":
     title: Глава 19
-    mood: danger
+    mood: mystery
     variants:
       А: "124"
       Б: "49"
@@ -120,7 +136,7 @@ scenes:
     next: "339"
   "21":
     title: Глава 21
-    mood: mystery
+    mood: calm
     next: "80"
   "22":
     title: Глава 22
@@ -128,12 +144,12 @@ scenes:
     next: "34"
   "23":
     title: Глава 23
-    mood: tense
+    mood: victory
     next: "340"
   "24":
     title: Глава 24
-    image: illustrations/arena_lion.webp
     mood: danger
+    image: illustrations/arena_lion.webp
     variants:
       А: "332"
       Б: "302"
@@ -145,7 +161,8 @@ scenes:
       Б: "90"
   "26":
     title: Глава 26
-    mood: calm
+    mood: danger
+    image: illustrations/river.jpg
     next: "205"
   "27":
     title: Глава 27
@@ -153,47 +170,50 @@ scenes:
     next:
       roll: 1d6
       outcomes:
-        - min: 4
-          goto: "163"
-        - goto: "289"
+      - min: 4
+        goto: "289"
+      - goto: "163"
   "28":
     title: Глава 28
-    mood: danger
+    mood: calm
     next: "121"
   "29":
     title: Глава 29
-    mood: danger
+    mood: calm
+    on_enter:
+    - use: smoke_grenade
     next: "64"
   "30":
     title: Глава 30
-    image: illustrations/prologue.webp
-    mood: tense
+    mood: danger
+    on_enter:
+    - take: matter_transmitter
     next: "42"
   "31":
     title: Глава 31
-    mood: tense
+    mood: mystery
     variants:
       А: "346"
       Б: "292"
       В: "344"
   "32":
     title: Глава 32
-    mood: tense
+    mood: danger
     next: "118"
   "33":
     title: Глава 33
-    mood: tense
+    mood: calm
     next: "12"
   "34":
     title: Глава 34
-    image: illustrations/castle_slaves.webp
     mood: tense
+    image: illustrations/castle.jpg
     next:
       roll: 1d2
       outcomes:
-        - min: 2
-          goto: "118"
-        - goto: "32"
+      - min: 2
+        goto: "118"
+      - goto: "32"
   "35":
     title: Глава 35
     mood: calm
@@ -204,11 +224,11 @@ scenes:
     next: "120"
   "37":
     title: Глава 37
-    mood: calm
+    mood: tense
     next: "18"
   "38":
     title: Глава 38
-    mood: victory
+    mood: danger
     next: "216"
   "39":
     title: Глава 39
@@ -220,20 +240,20 @@ scenes:
     next:
       roll: 1d6
       outcomes:
-        - min: 4
-          goto: "254"
-        - goto: "284"
+      - min: 4
+        goto: "284"
+      - goto: "254"
   "41":
     title: Глава 41
-    mood: danger
+    mood: calm
     variants:
       А: "315"
       Б: "54"
       В: "50"
   "42":
     title: Глава 42
+    mood: tense
     image: illustrations/arrival.webp
-    mood: calm
     next: "62"
   "43":
     title: Глава 43
@@ -245,7 +265,7 @@ scenes:
     next: "23"
   "45":
     title: Глава 45
-    mood: danger
+    mood: mystery
     next: "215"
   "46":
     title: Глава 46
@@ -255,27 +275,28 @@ scenes:
       Б: "339"
   "47":
     title: Глава 47
-    mood: tense
+    mood: danger
+    image: illustrations/cave.jpg
     next: "98"
   "48":
     title: Глава 48
-    mood: mystery
+    mood: calm
     variants:
       А: "61"
       Б: "67"
   "49":
     title: Глава 49
-    mood: victory
+    mood: mystery
     variants:
       А: "304"
       Б: "337"
   "50":
     title: Глава 50
-    mood: danger
+    mood: calm
     next: "164"
   "51":
     title: Глава 51
-    mood: victory
+    mood: danger
     variants:
       А: "215"
       Б: "45"
@@ -285,14 +306,14 @@ scenes:
     next: "307"
   "53":
     title: Глава 53
+    mood: danger
     image: illustrations/street_tavern.webp
-    mood: calm
     variants:
       А: "139"
       Б: "16"
   "54":
     title: Глава 54
-    mood: mystery
+    mood: calm
     next: "71"
   "55":
     title: Глава 55
@@ -304,7 +325,7 @@ scenes:
     next: "11"
   "57":
     title: Глава 57
-    mood: tense
+    mood: danger
     next: "255"
   "58":
     title: Глава 58
@@ -315,11 +336,14 @@ scenes:
       Б: "160"
   "59":
     title: Глава 59
-    mood: danger
+    mood: tense
     next: "80"
   "60":
     title: Глава 60
-    mood: tense
+    mood: danger
+    on_enter:
+    - stat:
+        arena_wins: 1
     next: "91"
   "61":
     title: Глава 61
@@ -327,17 +351,17 @@ scenes:
     next: "67"
   "62":
     title: Глава 62
-    mood: calm
+    mood: danger
     variants:
       А: "14"
       Б: "99"
   "63":
     title: Глава 63
-    mood: calm
+    mood: danger
     next: "130"
   "64":
     title: Глава 64
-    mood: danger
+    mood: calm
     variants:
       А: "114"
       Б: "345"
@@ -352,7 +376,8 @@ scenes:
   "67":
     title: Глава 67
     mood: tense
-    image: illustrations/forest.jpeg
+    on_enter:
+    - take: staff
     variants:
       А: "97"
       Б: "146"
@@ -366,7 +391,7 @@ scenes:
     next: "70"
   "70":
     title: Глава 70
-    mood: calm
+    mood: danger
     next: "278"
   "71":
     title: Глава 71
@@ -374,9 +399,7 @@ scenes:
     next: "161"
   "72":
     title: Глава 72
-    mood: victory
-    on_enter:
-      - stat: {arena_wins: 1}
+    mood: tense
     next: "348"
   "73":
     title: Глава 73
@@ -388,7 +411,7 @@ scenes:
     next: "320"
   "75":
     title: Глава 75
-    mood: danger
+    mood: victory
     next: "70"
   "76":
     title: Глава 76
@@ -398,11 +421,11 @@ scenes:
       Б: "237"
   "77":
     title: Глава 77
-    mood: danger
+    mood: mystery
     next: "78"
   "78":
     title: Глава 78
-    mood: victory
+    mood: danger
     next: "128"
   "79":
     title: Глава 79
@@ -428,24 +451,24 @@ scenes:
     next: "148"
   "83":
     title: Глава 83
-    mood: danger
+    mood: calm
     next: "170"
   "84":
     title: Глава 84
-    mood: tense
+    mood: calm
     next:
       roll: 1d6
       outcomes:
-        - min: 4
-          goto: "166"
-        - goto: "9"
+      - min: 4
+        goto: "9"
+      - goto: "166"
   "85":
     title: Глава 85
     mood: danger
     next: "31"
   "86":
     title: Глава 86
-    mood: calm
+    mood: tense
     variants:
       А: "137"
       Б: "25"
@@ -455,23 +478,21 @@ scenes:
     next: "306"
   "88":
     title: Глава 88
-    mood: tense
+    mood: danger
     variants:
       А: "249"
       Б: "131"
   "89":
     title: Глава 89
-    mood: calm
+    mood: mystery
     next: "1"
   "90":
     title: Глава 90
-    mood: calm
+    mood: tense
     next: "175"
   "91":
     title: Глава 91
-    mood: victory
-    on_enter:
-      - stat: {arena_wins: 1}
+    mood: tense
     next: "348"
   "92":
     title: Глава 92
@@ -494,7 +515,7 @@ scenes:
       Б: "7"
   "95":
     title: Глава 95
-    mood: calm
+    mood: tense
     next: "255"
   "96":
     title: Глава 96
@@ -506,7 +527,7 @@ scenes:
       Г: "66"
   "97":
     title: Глава 97
-    mood: calm
+    mood: danger
     variants:
       А: "193"
       Б: "174"
@@ -522,12 +543,12 @@ scenes:
     next:
       roll: 1d2
       outcomes:
-        - min: 2
-          goto: "106"
-        - goto: "189"
+      - min: 2
+        goto: "106"
+      - goto: "189"
   "100":
     title: Глава 100
-    mood: calm
+    mood: danger
     next: "58"
   "101":
     title: Глава 101
@@ -539,11 +560,11 @@ scenes:
     next: "109"
   "103":
     title: Глава 103
-    mood: danger
+    mood: calm
     next: "221"
   "104":
     title: Глава 104
-    mood: calm
+    mood: danger
     variants:
       А: "15"
       Б: "314"
@@ -554,7 +575,9 @@ scenes:
     next: "181"
   "106":
     title: Глава 106
-    mood: danger
+    mood: calm
+    on_enter:
+    - use: smoke_grenade
     variants:
       А: "94"
       Б: "65"
@@ -571,11 +594,15 @@ scenes:
     next: "110"
   "109":
     title: Глава 109
-    mood: victory
+    mood: danger
+    on_enter:
+    - take:
+      - bow
+      - arrow
     next: "125"
   "110":
     title: Глава 110
-    mood: calm
+    mood: tense
     next: "207"
   "111":
     title: Глава 111
@@ -583,45 +610,50 @@ scenes:
     next: "108"
   "112":
     title: Глава 112
-    mood: victory
+    mood: danger
     next: "305"
   "113":
     title: Глава 113
-    mood: mystery
+    mood: tense
     next: "199"
   "114":
     title: Глава 114
     mood: tense
+    on_enter:
+    - use: sleep_grenade
     variants:
       А: "137"
       Б: "25"
   "115":
     title: Глава 115
-    mood: victory
+    mood: danger
     next: "96"
   "116":
     title: Глава 116
-    mood: calm
+    mood: tense
     next: "185"
   "117":
     title: Глава 117
-    mood: tense
+    mood: danger
     next: "142"
   "118":
     title: Глава 118
     mood: danger
+    image: illustrations/palace.jpg
+    images:
+    - illustrations/lab.jpg
     variants:
       А: "36"
       Б: "120"
   "119":
     title: Глава 119
-    mood: calm
+    mood: victory
     variants:
       А: "248"
       Б: "165"
   "120":
     title: Глава 120
-    mood: danger
+    mood: calm
     variants:
       А: "57"
       Б: "276"
@@ -632,12 +664,12 @@ scenes:
     next:
       roll: 1d2
       outcomes:
-        - min: 2
-          goto: "18"
-        - goto: "37"
+      - min: 2
+        goto: "18"
+      - goto: "37"
   "122":
     title: Глава 122
-    mood: calm
+    mood: danger
     next: "333"
   "123":
     title: Глава 123
@@ -645,9 +677,9 @@ scenes:
     next:
       roll: 1d2
       outcomes:
-        - min: 2
-          goto: "17"
-        - goto: "191"
+      - min: 2
+        goto: "17"
+      - goto: "191"
   "124":
     title: Глава 124
     mood: mystery
@@ -656,7 +688,7 @@ scenes:
       Б: "337"
   "125":
     title: Глава 125
-    mood: tense
+    mood: danger
     variants:
       А: "107"
       Б: "206"
@@ -682,7 +714,7 @@ scenes:
     next: "180"
   "130":
     title: Глава 130
-    mood: tense
+    mood: danger
     variants:
       А: "256"
       Б: "192"
@@ -692,12 +724,12 @@ scenes:
     next:
       roll: 1d6
       outcomes:
-        - min: 4
-          goto: "257"
-        - goto: "40"
+      - min: 4
+        goto: "40"
+      - goto: "257"
   "132":
     title: Глава 132
-    mood: tense
+    mood: mystery
     next: "190"
   "133":
     title: Глава 133
@@ -705,12 +737,12 @@ scenes:
     next:
       roll: 1d6
       outcomes:
-        - min: 4
-          goto: "343"
-        - goto: "342"
+      - min: 4
+        goto: "342"
+      - goto: "343"
   "134":
     title: Глава 134
-    mood: victory
+    mood: calm
     variants:
       А: "169"
       Б: "38"
@@ -728,7 +760,7 @@ scenes:
       Б: "63"
   "137":
     title: Глава 137
-    mood: danger
+    mood: calm
     variants:
       А: "167"
       Б: "90"
@@ -738,7 +770,8 @@ scenes:
     next: "4"
   "139":
     title: Глава 139
-    mood: danger
+    mood: tense
+    image: illustrations/tavern.jpg
     variants:
       А: "83"
       Б: "170"
@@ -774,7 +807,9 @@ scenes:
     next: "108"
   "146":
     title: Глава 146
-    mood: victory
+    mood: danger
+    on_enter:
+    - take: staff
     variants:
       А: "193"
       Б: "174"
@@ -782,13 +817,15 @@ scenes:
       Г: "129"
   "147":
     title: Глава 147
-    mood: calm
+    mood: tense
+    on_enter:
+    - take: gold_coin
     variants:
       А: "41"
       Б: "319"
   "148":
     title: Глава 148
-    mood: calm
+    mood: tense
     next: "143"
   "149":
     title: Глава 149
@@ -796,11 +833,11 @@ scenes:
     next: "80"
   "150":
     title: Глава 150
-    mood: calm
+    mood: danger
     next: "119"
   "151":
     title: Глава 151
-    mood: tense
+    mood: calm
     next: "270"
   "152":
     title: Глава 152
@@ -822,7 +859,7 @@ scenes:
     next: "113"
   "156":
     title: Глава 156
-    mood: victory
+    mood: danger
     variants:
       А: "330"
       Б: "149"
@@ -831,46 +868,59 @@ scenes:
       Д: "21"
   "157":
     title: Глава 157
-    mood: victory
+    mood: danger
     variants:
       А: "275"
       Б: "69"
   "158":
     title: Глава 158
-    mood: danger
+    mood: calm
     next: "299"
   "159":
     title: Глава 159
-    mood: mystery
+    mood: calm
     next: "80"
   "160":
     title: Глава 160
-    mood: tense
+    mood: danger
+    on_enter:
+    - stat:
+        arena_wins: 1
     next: "72"
   "161":
     title: Глава 161
-    mood: tense
+    mood: calm
+    on_enter:
+    - drop:
+      - morning_star
+      - sword
+      - gold_coin
     next: "328"
   "162":
     title: Глава 162
     mood: grief
-    next: "161"
+    ending: true
+    ending_kind: failure
   "163":
     title: Глава 163
     mood: tense
     next:
       roll: 1d6
       outcomes:
-        - min: 4
-          goto: "5"
-        - goto: "342"
+      - min: 4
+        goto: "342"
+      - goto: "5"
   "164":
     title: Глава 164
     mood: danger
+    on_enter:
+    - use: smoke_grenade
     next: "329"
   "165":
     title: Глава 165
-    mood: tense
+    mood: victory
+    on_enter:
+    - take: ruby
     variants:
       А: "325"
       Б: "308"
@@ -880,12 +930,13 @@ scenes:
     next:
       roll: 1d6
       outcomes:
-        - min: 4
-          goto: "133"
-        - goto: "343"
+      - min: 4
+        goto: "343"
+      - goto: "133"
   "167":
     title: Глава 167
-    mood: calm
+    mood: mystery
+    image: illustrations/city.jpg
     variants:
       А: "92"
       Б: "53"
@@ -895,11 +946,14 @@ scenes:
     next: "323"
   "169":
     title: Глава 169
-    mood: calm
+    mood: tense
     next: "38"
   "170":
     title: Глава 170
     mood: danger
+    on_enter:
+    - use: sleep_grenade
+    - take: invisible_belt
     next: "214"
   "171":
     title: Глава 171
@@ -911,21 +965,23 @@ scenes:
     next: "88"
   "173":
     title: Глава 173
-    mood: calm
+    mood: danger
     next: "144"
   "174":
     title: Глава 174
-    mood: calm
+    mood: danger
     variants:
       А: "101"
       Б: "20"
   "175":
     title: Глава 175
-    mood: danger
+    mood: calm
+    image: illustrations/prison.jpg
     next: "29"
   "176":
     title: Глава 176
     mood: calm
+    image: illustrations/road.jpeg
     next: "190"
   "177":
     title: Глава 177
@@ -937,7 +993,7 @@ scenes:
     next: "205"
   "179":
     title: Глава 179
-    mood: calm
+    mood: danger
     next: "156"
   "180":
     title: Глава 180
@@ -953,7 +1009,7 @@ scenes:
       Б: "122"
   "182":
     title: Глава 182
-    mood: danger
+    mood: tense
     next: "194"
   "183":
     title: Глава 183
@@ -965,35 +1021,44 @@ scenes:
     next:
       roll: 1d6
       outcomes:
-        - min: 4
-          goto: "5"
-        - goto: "342"
+      - min: 4
+        goto: "342"
+      - goto: "5"
   "185":
     title: Глава 185
     mood: tense
+    on_enter:
+    - drop:
+      - bow
+      - arrow
+      - sword
+      - gold_coin
     next: "328"
   "186":
     title: Глава 186
-    mood: tense
+    mood: calm
     variants:
       А: "12"
       Б: "33"
   "187":
     title: Глава 187
-    mood: victory
+    mood: danger
     next: "104"
   "188":
     title: Глава 188
-    mood: tense
+    mood: victory
     next:
       roll: 1d2
       outcomes:
-        - min: 2
-          goto: "150"
-        - goto: "267"
+      - min: 2
+        goto: "150"
+      - goto: "267"
   "189":
     title: Глава 189
-    mood: danger
+    mood: calm
+    on_enter:
+    - use: sleep_grenade
+    - use: smoke_grenade
     variants:
       А: "94"
       Б: "65"
@@ -1005,11 +1070,11 @@ scenes:
       Б: "194"
   "191":
     title: Глава 191
-    mood: tense
+    mood: danger
     next: "98"
   "192":
     title: Глава 192
-    mood: danger
+    mood: tense
     next: "225"
   "193":
     title: Глава 193
@@ -1027,7 +1092,7 @@ scenes:
     next: "88"
   "196":
     title: Глава 196
-    mood: danger
+    mood: calm
     next: "153"
   "197":
     title: Глава 197
@@ -1035,22 +1100,19 @@ scenes:
     next: "242"
   "198":
     title: Глава 198
-    mood: victory
-    next:
-      roll: 1d2
-      outcomes:
-        - min: 2
-          goto: "196"
-        - goto: "28"
+    mood: calm
+    variants:
+      А: "28"
+      Б: "196"
   "199":
     title: Глава 199
-    mood: victory
+    mood: mystery
     next:
       roll: 1d2
       outcomes:
-        - min: 2
-          goto: "327"
-        - goto: "117"
+      - min: 2
+        goto: "327"
+      - goto: "117"
   "200":
     title: Глава 200
     mood: calm
@@ -1061,7 +1123,7 @@ scenes:
     next: "85"
   "202":
     title: Глава 202
-    mood: calm
+    mood: tense
     variants:
       А: "226"
       Б: "210"
@@ -1073,21 +1135,21 @@ scenes:
       Б: "264"
   "204":
     title: Глава 204
-    mood: calm
+    mood: danger
     next: "333"
   "205":
     title: Глава 205
-    mood: tense
+    mood: calm
     variants:
       А: "198"
       Б: "3"
   "206":
     title: Глава 206
-    mood: calm
+    mood: tense
     next: "107"
   "207":
     title: Глава 207
-    mood: danger
+    mood: mystery
     variants:
       А: "224"
       Б: "266"
@@ -1101,11 +1163,11 @@ scenes:
     next: "348"
   "210":
     title: Глава 210
-    mood: calm
+    mood: danger
     next: "202"
   "211":
     title: Глава 211
-    mood: victory
+    mood: mystery
     variants:
       А: "297"
       Б: "241"
@@ -1118,7 +1180,7 @@ scenes:
       Б: "296"
   "213":
     title: Глава 213
-    mood: victory
+    mood: calm
     next: "188"
   "214":
     title: Глава 214
@@ -1129,11 +1191,14 @@ scenes:
       Б: "178"
   "215":
     title: Глава 215
-    mood: victory
+    mood: danger
     next: "128"
   "216":
     title: Глава 216
     mood: danger
+    on_enter:
+    - use: sleep_grenade
+    - use: nose_filter
     next: "22"
   "217":
     title: Глава 217
@@ -1156,7 +1221,7 @@ scenes:
       В: "234"
   "221":
     title: Глава 221
-    mood: danger
+    mood: calm
     next: "299"
   "222":
     title: Глава 222
@@ -1175,6 +1240,7 @@ scenes:
   "225":
     title: Глава 225
     mood: mystery
+    image: illustrations/desert.jpg
     variants:
       А: "96"
       Б: "223"
@@ -1187,7 +1253,7 @@ scenes:
       В: "296"
   "227":
     title: Глава 227
-    mood: danger
+    mood: tense
     variants:
       А: "253"
       Б: "341"
@@ -1198,7 +1264,7 @@ scenes:
     next: "222"
   "229":
     title: Глава 229
-    mood: calm
+    mood: mystery
     variants:
       А: "35"
       Б: "197"
@@ -1226,17 +1292,18 @@ scenes:
       Б: "241"
   "235":
     title: Глава 235
-    mood: victory
+    mood: calm
     variants:
       А: "222"
       Б: "220"
   "236":
     title: Глава 236
     mood: grief
-    next: "235"
+    ending: true
+    ending_kind: failure
   "237":
     title: Глава 237
-    mood: victory
+    mood: danger
     next: "79"
   "238":
     title: Глава 238
@@ -1245,6 +1312,8 @@ scenes:
   "239":
     title: Глава 239
     mood: tense
+    on_enter:
+    - take: feather
     variants:
       А: "24"
       Б: "318"
@@ -1263,7 +1332,7 @@ scenes:
       В: "238"
   "242":
     title: Глава 242
-    mood: calm
+    mood: mystery
     next: "8"
   "243":
     title: Глава 243
@@ -1277,7 +1346,7 @@ scenes:
       Б: "295"
   "245":
     title: Глава 245
-    mood: tense
+    mood: danger
     variants:
       А: "127"
       Б: "6"
@@ -1293,7 +1362,7 @@ scenes:
     next: "296"
   "248":
     title: Глава 248
-    mood: calm
+    mood: victory
     next: "165"
   "249":
     title: Глава 249
@@ -1301,11 +1370,11 @@ scenes:
     next: "131"
   "250":
     title: Глава 250
-    mood: victory
+    mood: danger
     next: "316"
   "251":
     title: Глава 251
-    mood: tense
+    mood: mystery
     next: "239"
   "252":
     title: Глава 252
@@ -1315,7 +1384,7 @@ scenes:
       Б: "246"
   "253":
     title: Глава 253
-    mood: victory
+    mood: danger
     variants:
       А: "269"
       Б: "227"
@@ -1325,31 +1394,31 @@ scenes:
     next:
       roll: 1d6
       outcomes:
-        - min: 4
-          goto: "163"
-        - goto: "289"
+      - min: 4
+        goto: "289"
+      - goto: "163"
   "255":
     title: Глава 255
-    mood: victory
+    mood: tense
     variants:
       А: "231"
       Б: "10"
   "256":
     title: Глава 256
-    mood: danger
+    mood: tense
     next: "225"
   "257":
     title: Глава 257
-    mood: tense
+    mood: danger
     next:
       roll: 1d6
       outcomes:
-        - min: 4
-          goto: "84"
-        - goto: "27"
+      - min: 4
+        goto: "27"
+      - goto: "84"
   "258":
     title: Глава 258
-    mood: victory
+    mood: danger
     next: "250"
   "259":
     title: Глава 259
@@ -1357,7 +1426,7 @@ scenes:
     next: "244"
   "260":
     title: Глава 260
-    mood: danger
+    mood: calm
     variants:
       А: "312"
       Б: "287"
@@ -1365,16 +1434,16 @@ scenes:
       Г: "187"
   "261":
     title: Глава 261
-    mood: calm
+    mood: tense
     next:
       roll: 1d2
       outcomes:
-        - min: 2
-          goto: "277"
-        - goto: "190"
+      - min: 2
+        goto: "277"
+      - goto: "190"
   "262":
     title: Глава 262
-    mood: victory
+    mood: danger
     next: "250"
   "263":
     title: Глава 263
@@ -1390,25 +1459,25 @@ scenes:
       Б: "203"
   "265":
     title: Глава 265
-    mood: tense
+    mood: calm
     variants:
       А: "135"
       Б: "263"
   "266":
     title: Глава 266
-    mood: mystery
+    mood: tense
     next: "73"
   "267":
     title: Глава 267
-    mood: calm
+    mood: danger
     next: "119"
   "268":
     title: Глава 268
-    mood: danger
+    mood: calm
     next: "157"
   "269":
     title: Глава 269
-    mood: calm
+    mood: danger
     variants:
       А: "253"
       Б: "293"
@@ -1420,14 +1489,18 @@ scenes:
   "271":
     title: Глава 271
     mood: calm
+    on_enter:
+    - drop:
+      - chainmail
+      - helmet
     next: "265"
   "272":
     title: Глава 272
-    mood: tense
+    mood: danger
     next: "280"
   "273":
     title: Глава 273
-    mood: tense
+    mood: danger
     variants:
       А: "285"
       Б: "239"
@@ -1442,7 +1515,7 @@ scenes:
     next: "70"
   "276":
     title: Глава 276
-    mood: danger
+    mood: calm
     next: "95"
   "277":
     title: Глава 277
@@ -1450,7 +1523,9 @@ scenes:
     next: "190"
   "278":
     title: Глава 278
-    mood: victory
+    mood: danger
+    on_enter:
+    - drop: ruby
     next: "147"
   "279":
     title: Глава 279
@@ -1458,7 +1533,7 @@ scenes:
     next: "326"
   "280":
     title: Глава 280
-    mood: mystery
+    mood: danger
     variants:
       А: "100"
       Б: "173"
@@ -1470,31 +1545,31 @@ scenes:
       Б: "211"
   "282":
     title: Глава 282
-    mood: victory
+    mood: danger
     next:
       roll: 1d2
       outcomes:
-        - min: 2
-          goto: "233"
-        - goto: "209"
+      - min: 2
+        goto: "233"
+      - goto: "209"
   "283":
     title: Глава 283
-    mood: victory
+    mood: danger
     next:
       roll: 1d2
       outcomes:
-        - min: 2
-          goto: "243"
-        - goto: "274"
+      - min: 2
+        goto: "243"
+      - goto: "274"
   "284":
     title: Глава 284
     mood: tense
     next:
       roll: 1d6
       outcomes:
-        - min: 4
-          goto: "184"
-        - goto: "286"
+      - min: 4
+        goto: "286"
+      - goto: "184"
   "285":
     title: Глава 285
     mood: danger
@@ -1503,28 +1578,31 @@ scenes:
       Б: "173"
   "286":
     title: Глава 286
-    mood: danger
+    mood: tense
     next: "44"
   "287":
     title: Глава 287
-    mood: victory
+    mood: calm
     next: "260"
   "288":
     title: Глава 288
     mood: grief
-    next: "287"
+    ending: true
+    ending_kind: failure
   "289":
     title: Глава 289
     mood: tense
     next:
       roll: 1d6
       outcomes:
-        - min: 4
-          goto: "133"
-        - goto: "343"
+      - min: 4
+        goto: "343"
+      - goto: "133"
   "290":
     title: Глава 290
     mood: danger
+    on_enter:
+    - take: staff
     variants:
       А: "132"
       Б: "154"
@@ -1538,7 +1616,7 @@ scenes:
     next: "229"
   "293":
     title: Глава 293
-    mood: calm
+    mood: mystery
     variants:
       А: "295"
       Б: "269"
@@ -1556,14 +1634,14 @@ scenes:
       Б: "293"
   "296":
     title: Глава 296
-    mood: victory
+    mood: danger
     variants:
       А: "247"
       Б: "226"
       В: "212"
   "297":
     title: Глава 297
-    mood: tense
+    mood: calm
     variants:
       А: "227"
       Б: "211"
@@ -1573,11 +1651,11 @@ scenes:
     next: "229"
   "299":
     title: Глава 299
-    mood: danger
+    mood: mystery
     next: "350"
   "300":
     title: Глава 300
-    mood: mystery
+    mood: calm
     variants:
       А: "217"
       Б: "281"
@@ -1589,13 +1667,14 @@ scenes:
       Б: "271"
   "302":
     title: Глава 302
-    mood: calm
+    mood: danger
     next: "331"
   "303":
     title: Глава 303
-    mood: victory
+    mood: tense
     on_enter:
-      - stat: {arena_wins: 1}
+    - stat:
+        arena_wins: 1
     next: "335"
   "304":
     title: Глава 304
@@ -1603,20 +1682,21 @@ scenes:
     next: "93"
   "305":
     title: Глава 305
-    mood: victory
+    mood: tense
     on_enter:
-      - stat: {arena_wins: 1}
+    - stat:
+        arena_wins: 1
     next: "335"
   "306":
     title: Глава 306
-    mood: mystery
+    mood: danger
     variants:
       А: "3"
       Б: "198"
       В: "2"
   "307":
     title: Глава 307
-    mood: calm
+    mood: tense
     next: "309"
   "308":
     title: Глава 308
@@ -1624,19 +1704,22 @@ scenes:
     next: "324"
   "309":
     title: Глава 309
-    mood: calm
+    mood: danger
     next: "338"
   "310":
     title: Глава 310
-    mood: victory
+    mood: danger
     next: "79"
   "311":
     title: Глава 311
-    mood: victory
+    mood: calm
     next: "23"
   "312":
     title: Глава 312
-    mood: calm
+    mood: danger
+    on_enter:
+    - stat:
+        belt_charges: -1
     next: "260"
   "313":
     title: Глава 313
@@ -1648,11 +1731,11 @@ scenes:
     next: "113"
   "315":
     title: Глава 315
-    mood: mystery
+    mood: calm
     next: "116"
   "316":
     title: Глава 316
-    mood: victory
+    mood: danger
     variants:
       А: "78"
       Б: "77"
@@ -1670,7 +1753,7 @@ scenes:
       Б: "183"
   "319":
     title: Глава 319
-    mood: calm
+    mood: tense
     next: "41"
   "320":
     title: Глава 320
@@ -1684,11 +1767,11 @@ scenes:
       Б: "326"
   "322":
     title: Глава 322
-    mood: victory
+    mood: calm
     next: "188"
   "323":
     title: Глава 323
-    mood: danger
+    mood: tense
     variants:
       А: "68"
       Б: "52"
@@ -1708,7 +1791,7 @@ scenes:
     next: "322"
   "327":
     title: Глава 327
-    mood: tense
+    mood: danger
     next: "321"
   "328":
     title: Глава 328
@@ -1718,15 +1801,20 @@ scenes:
       Б: "56"
   "329":
     title: Глава 329
-    mood: danger
+    mood: tense
+    on_enter:
+    - drop:
+      - smoke_grenade
+      - sword
+      - gold_coin
     next: "328"
   "330":
     title: Глава 330
-    mood: victory
+    mood: danger
     next: "80"
   "331":
     title: Глава 331
-    mood: victory
+    mood: danger
     next: "303"
   "332":
     title: Глава 332
@@ -1734,15 +1822,17 @@ scenes:
     next: "331"
   "333":
     title: Глава 333
-    mood: tense
+    mood: mystery
+    image: illustrations/underground.webp
     next: "19"
   "334":
     title: Глава 334
     mood: danger
+    image: illustrations/castle_slaves.webp
     next: "273"
   "335":
     title: Глава 335
-    mood: victory
+    mood: tense
     variants:
       А: "285"
       Б: "280"
@@ -1760,6 +1850,7 @@ scenes:
     title: Глава 338
     mood: victory
     ending: true
+    ending_kind: victory
   "339":
     title: Глава 339
     mood: calm
@@ -1771,14 +1862,15 @@ scenes:
   "340":
     title: Глава 340
     mood: danger
+    image: illustrations/forest.jpeg
     next: "260"
   "341":
     title: Глава 341
-    mood: victory
+    mood: tense
     next: "269"
   "342":
     title: Глава 342
-    mood: grief
+    mood: tense
     next: "44"
   "343":
     title: Глава 343
@@ -1786,23 +1878,25 @@ scenes:
     next: "311"
   "344":
     title: Глава 344
-    mood: calm
+    mood: tense
     next: "89"
   "345":
     title: Глава 345
     mood: calm
+    on_enter:
+    - use: smoke_grenade
     next: "339"
   "346":
     title: Глава 346
-    mood: calm
+    mood: tense
     next: "89"
   "347":
     title: Глава 347
-    mood: calm
+    mood: danger
     next: "298"
   "348":
     title: Глава 348
-    mood: victory
+    mood: tense
     variants:
       А: "239"
       Б: "251"
@@ -1810,10 +1904,11 @@ scenes:
   "349":
     title: Глава 349
     mood: grief
-    next: "348"
+    ending: true
+    ending_kind: failure
   "350":
     title: Глава 350
-    mood: tense
+    mood: danger
     variants:
       А: "201"
       Б: "291"

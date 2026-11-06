@@ -169,10 +169,7 @@ function useItem(inv: Record<string, number>, id: string, def?: ItemDef) {
 
 function applyMods(game: Game, state: GameState, choice: Choice): GameState {
   const inventory = { ...state.inventory };
-  if (choice.take) {
-    if (typeof choice.take === 'string') addItem(inventory, choice.take, 1);
-    else for (const [id, n] of Object.entries(choice.take)) addItem(inventory, id, n);
-  }
+  if (choice.take) addItems(inventory, choice.take);
   if (choice.use) useItem(inventory, choice.use, game.items?.[choice.use]);
   if (choice.drop) delete inventory[choice.drop];
   const stats = choice.stat ? applyStatDeltas(game, state.stats, choice.stat) : state.stats;
