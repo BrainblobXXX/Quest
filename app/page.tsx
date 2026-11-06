@@ -20,6 +20,9 @@ import type { Choice, Game, GameIndexEntry, GameState, ParseProblem } from '@/li
 const MIN_LOADING_MS = 1000;
 /** пауза на строке «READY», чтобы лог успел дочитаться */
 const READY_HOLD_MS = 420;
+/** перезапуск книги: этапы BOOK LOADER без повторного чтения пакета */
+const RESTART_STAGES = ['mount', 'manifest', 'story', 'items', 'parse'] as const;
+const RESTART_STAGE_MS = 150;
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
@@ -227,13 +230,48 @@ export default function Page() {
     [game, state],
   );
 
-  const handleRestart = useCallback(() => {
+  const handleRestart = useCallback(async () => {
     if (!game) return;
+
+    const token = loadToken.current + 1;
+    loadToken.current = token;
+    const startedAt = performance.now();
+
+    setConfirmRestart(false);
+    setLoading({
+      id: game.id,
+      title: game.title,
+      progress: { stage: 'mount' },
+      scenes: Object.keys(game.scenes).length,
+    });
+    setScreen('loading');
+    audio.click();
+
+    // пакет уже разобран — проигрываем этапы BOOK LOADER без сети
+    for (const stage of RESTART_STAGES) {
+      if (loadToken.current !== token) return;
+      setLoading((current) =>
+        current ? { ...current, progress: { ...current.progress, stage } } : current,
+      );
+      await wait(RESTART_STAGE_MS);
+    }
+    if (loadToken.current !== token) return;
+
+    setLoading((current) =>
+      current ? { ...current, progress: { ...current.progress, stage: 'ready' } } : current,
+    );
+    const remaining = MIN_LOADING_MS - (performance.now() - startedAt);
+    if (remaining > 0) await wait(remaining);
+    await wait(READY_HOLD_MS);
+    if (loadToken.current !== token) return;
+
     const next = newState(game);
+    audio.stopMusic();
+    audio.beep();
     setState(next);
     saveState(next);
-    setConfirmRestart(false);
-    audio.click();
+    setLoading(null);
+    setScreen('game');
   }, [game]);
 
   const handlePower = useCallback(() => {

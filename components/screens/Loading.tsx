@@ -127,8 +127,11 @@ export default function Loading({
   const packageValue = packageDone ? 'OK' : waiting;
   const storyWaiting =
     !storyDone && (progress.stage !== 'story' || (!progress.loaded && !progress.total));
+  const hasSize = progress.loaded !== undefined || progress.total !== undefined;
   const storyValue = storyDone
-    ? `${totalKb || loadedKb} KB`
+    ? hasSize
+      ? `${totalKb || loadedKb} KB`
+      : 'OK'
     : storyWaiting
       ? waiting
       : totalKb
@@ -138,7 +141,11 @@ export default function Loading({
 
   const filled = Math.round((p / 100) * BAR_CELLS);
   const meter = `${'█'.repeat(filled)}${'░'.repeat(BAR_CELLS - filled)}`;
-  const sizeText = totalKb ? `${loadedKb} / ${totalKb} KB` : `${loadedKb} KB`;
+  const sizeText = hasSize
+    ? totalKb
+      ? `${loadedKb} / ${totalKb} KB`
+      : `${loadedKb} KB`
+    : '';
   const seed = tick * 7 + Math.floor((progress.loaded ?? 0) / 2048) + rank * 13 + 1;
 
   const line = (
@@ -191,7 +198,7 @@ export default function Loading({
         [{meter}]
       </span>
       <span className="bookload-percent">{p}%</span>
-      <span className="bookload-bytes">{sizeText}</span>
+      {sizeText && <span className="bookload-bytes">{sizeText}</span>}
     </div>,
     <div className={`bookload-hex${done ? ' bookload-hex-ready' : ''}`} key="hex" aria-hidden="true">
       {done ? 'READY.' : hexBytes(seed, 14)}
