@@ -108,10 +108,13 @@ export async function loadGame(id: string, onProgress?: LoadListener): Promise<L
     ]);
   }
 
-  // items.yaml необязателен: качаем его параллельно с большим story.md,
-  // чтобы на медленном сервере лишний запрос не добавлял время к открытию книги
-  const itemsFile = manifest.items ? String(manifest.items) : 'items.yaml';
-  const itemsPromise = optional(`${dir}/${itemsFile}`).catch(() => null);
+  // items.yaml необязателен и объявляется в манифесте (`items: items.yaml`).
+  // Без объявления не запрашиваем его вовсе: у книг без предметов не будет
+  // лишнего 404, а у книг с предметами запрос идёт параллельно с story.md.
+  const itemsFile = manifest.items ? String(manifest.items) : null;
+  const itemsPromise = itemsFile
+    ? optional(`${dir}/${itemsFile}`).catch(() => null)
+    : Promise.resolve(null);
 
   const storyFile = String(manifest.story ?? 'story.md');
   report({ stage: 'story', loaded: 0 });
