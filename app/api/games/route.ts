@@ -39,6 +39,7 @@ export async function GET() {
         title?: string;
         author?: string;
         genre?: string;
+        type?: string;
         annotation?: string;
       } | null;
       const story = await stat(join(gameDir, 'story.md'));
@@ -48,6 +49,7 @@ export async function GET() {
         title: String(manifest?.title ?? id),
         author: text(manifest?.author),
         genre: text(manifest?.genre),
+        type: text(manifest?.type),
         annotation: text(manifest?.annotation),
         updatedAt: story.mtime.toISOString(),
       });

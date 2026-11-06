@@ -367,8 +367,6 @@ export default function Page() {
           onChoose={handleChoose}
           onAdvance={handleAdvance}
           onRestart={handleRestart}
-          music={music}
-          onToggleMusic={toggleMusic}
           problems={problems}
         />
       )}

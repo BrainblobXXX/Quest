@@ -1,16 +1,103 @@
-import { readFileSync } from 'node:fs';
 import { parse as parseYaml } from 'yaml';
 import { availableChoices, advance, choose, inventoryLine, isEnding, newState, resolveRoll, sceneOf } from '../lib/engine';
 import { trackFor } from '../lib/music';
 import { parsePackage } from '../lib/parse';
 import type { Game } from '../lib/types';
 
-// игра разбирается тем же кодом, что и в браузере
+/**
+ * Мини-пакет для проверок движка. Это данные теста, а не игра из games/:
+ * демо-книги убраны из библиотеки, но разбор и переходы должны быть покрыты.
+ */
+const STORY = `## 1
+
+Тёмный вход в пещеру. Пахнет сыростью и старой золой. Где-то в глубине капает вода.
+
+- [Войти внутрь](2)
+- [Осмотреть стены](3)
+
+## 2
+
+Зал. В центре — сундук, запертый на ржавый замок. На стенах пляшут тени.
+
+- [Открыть сундук](4) {if: has_item rusty_key}
+- [Уйти ни с чем](5)
+
+## 3
+
+На стене выцарапаны имена. Под ногами что-то блестит — кажется, ключ.
+
+- [Поднять ключ](2) {take: rusty_key}
+- [Спуститься в провал](6)
+- [Вернуться](1)
+
+## 4
+
+Замок поддаётся. Сундук полон монет. Ты выходишь из пещеры богачом.
+
+## 5
+
+Ты уходишь с пустыми руками. Пещера остаётся ждать следующего смельчака.
+
+## 6
+
+Ты срываешься вниз и цепляешься за выступ. Куда ты приземлишься?
+`;
+
+const MANIFEST = `format: quest/1
+id: engine-fixture
+title: Тестовая пещера
+language: ru
+start: '1'
+items: items.yaml
+start_items:
+  sword: 1
+moods:
+  calm: assets/audio/calm.wav
+  tense: assets/audio/tense.wav
+  danger: assets/audio/danger.wav
+  victory: assets/audio/victory.wav
+scenes:
+  '1':
+    title: Глава 1. Вход в пещеру
+    mood: calm
+  '2':
+    title: Глава 2. Зал
+    mood: tense
+  '3':
+    title: Глава 3. Стены
+    mood: calm
+  '4':
+    title: Глава 4. Богатая добыча
+    mood: victory
+    ending: true
+  '5':
+    title: Глава 5. С пустыми руками
+    mood: calm
+    ending: true
+  '6':
+    title: Глава 6. Провал
+    mood: danger
+    next:
+      roll: 1d6
+      outcomes:
+        - min: 4
+          goto: '4'
+        - goto: '5'
+`;
+
+const ITEMS = `items:
+  sword:
+    title: Меч
+  rusty_key:
+    title: Ржавый ключ
+    description: Ключ от сундука в зале.
+`;
+
 const { game, problems } = parsePackage(
-  'cave',
-  parseYaml(readFileSync('games/cave/game.yaml', 'utf8')) as Record<string, unknown>,
-  readFileSync('games/cave/story.md', 'utf8'),
-  readFileSync('games/cave/items.yaml', 'utf8'),
+  'engine-fixture',
+  parseYaml(MANIFEST) as Record<string, unknown>,
+  STORY,
+  ITEMS,
 ) as { game: Game; problems: { level: string; code: string; message: string }[] };
 const fail: string[] = [];
 const ok = (name: string, cond: boolean) => {
@@ -18,6 +105,7 @@ const ok = (name: string, cond: boolean) => {
   if (!cond) fail.push(name);
 };
 
+ok('пакет разбирается без ошибок', problems.length === 0);
 let s = newState(game);
 ok('старт в сцене 1', s.scene === '1');
 ok('стартовый инвентарь — меч', s.inventory.sword === 1);

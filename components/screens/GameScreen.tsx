@@ -72,8 +72,6 @@ export default function GameScreen({
   onChoose,
   onAdvance,
   onRestart,
-  music,
-  onToggleMusic,
   problems = [],
 }: {
   game: Game;
@@ -81,8 +79,6 @@ export default function GameScreen({
   onChoose: (choice: Choice) => void;
   onAdvance: (value?: number) => void;
   onRestart: () => void;
-  music: boolean;
-  onToggleMusic: () => void;
   problems?: ParseProblem[];
 }) {
   const scene = sceneOf(game, state);
@@ -303,15 +299,6 @@ export default function GameScreen({
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div className="title-line">
         <span>{scene.title.toUpperCase()}</span>
-        <button
-          className={`music-btn${music ? '' : ' off'}`}
-          onClick={onToggleMusic}
-          aria-pressed={music}
-          aria-label="Музыка"
-          title={music ? 'Выключить музыку' : 'Включить музыку'}
-        >
-          ♪
-        </button>
         <button
           className={`raw-btn${rawOpen ? ' on' : ''}`}
           onClick={() => setRawOpen((v) => !v)}

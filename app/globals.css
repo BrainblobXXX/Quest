@@ -131,6 +131,8 @@ body {
   font-size: 16px;
   line-height: 1.5;
   overflow: hidden;
+  container-type: inline-size;
+  container-name: crt-screen;
 }
 
 .monitor-controls {
@@ -615,7 +617,7 @@ body {
 .list-item.dim { color: #8a6a2f; }
 
 .screen-heading { font-size: 16px; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 14px; }
-.hint { font-size: 11px; color: #8a6a2f; margin-top: 10px; }
+.hint { flex: 0 0 auto; font-size: 11px; color: #8a6a2f; margin-top: 10px; }
 .screen-note { font-size: 10px; letter-spacing: 1px; color: #5f4a1f; margin: 0 0 12px; }
 /* просмотр исходной разметки story.md (кнопка MD) */
 .raw-btn {
@@ -699,7 +701,6 @@ body {
   background: rgba(255, 176, 0, 0.1);
   box-shadow: inset 2px 0 0 var(--amber);
 }
-.lib-row.menu-focused-row .lib-play { opacity: 1; }
 
 /* выбранный с клавиатуры пункт */
 .choice.selected {
@@ -847,25 +848,6 @@ body {
   .power-label { display: none; }
 }
 
-.music-btn {
-  flex: 0 0 auto;
-  background: none;
-  border: none;
-  padding: 0 4px;
-  font-family: var(--mono);
-  font-size: 13px;
-  line-height: 1;
-  color: var(--green);
-  text-shadow: 0 0 6px rgba(51, 255, 0, 0.4);
-  cursor: pointer;
-}
-
-.music-btn.off {
-  color: #6b5222;
-  text-shadow: none;
-  text-decoration: line-through;
-}
-
 .volume-group { margin-bottom: 10px; }
 .volume-row { display: flex; align-items: center; gap: 12px; padding: 2px 18px 0; }
 .volume-value { flex: 0 0 44px; font-size: 12px; color: #b08a3a; text-align: right; }
@@ -978,18 +960,46 @@ body {
 }
 
 /* ── библиотека: таблица книг ─────────────────────────── */
+
+/* прокрутка: контент выше экрана не должен обрезаться */
+.library-screen {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.library-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 6px;
+  padding-bottom: 8px;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 176, 0, 0.4) transparent;
+}
+.library-scroll::-webkit-scrollbar { width: 8px; }
+.library-scroll::-webkit-scrollbar-track { background: transparent; }
+.library-scroll::-webkit-scrollbar-thumb { background: rgba(255, 176, 0, 0.35); }
+
 .lib-table { margin: 6px 0 4px; }
 
 .lib-row {
   display: grid;
-  grid-template-columns: 30px minmax(0, 1fr) 150px 170px 92px;
-  grid-template-areas: "num main author genre progress";
+  grid-template-columns: minmax(0, 1fr) 170px 140px 92px;
+  grid-template-areas: "main genre type start";
   column-gap: 14px;
   align-items: start;
-  padding: 8px 6px 10px;
+  padding: 9px 6px 11px;
   border-bottom: 1px dashed rgba(255, 176, 0, 0.18);
+  cursor: pointer;
 }
 .lib-row:hover { background: rgba(255, 176, 0, 0.06); }
+.lib-row-open { background: rgba(255, 176, 0, 0.05); }
+.lib-row-open:hover { background: rgba(255, 176, 0, 0.07); }
 
 .lib-head {
   padding: 0 6px 6px;
@@ -998,22 +1008,17 @@ body {
   letter-spacing: 2px;
   color: #6f5620;
   text-transform: uppercase;
+  cursor: default;
 }
-
-.lib-num {
-  grid-area: num;
-  padding-top: 4px;
-  font-size: 12px;
-  color: #6f5620;
-}
+.lib-head:hover { background: none; }
 
 .lib-main { grid-area: main; min-width: 0; }
 
 .lib-title {
+  width: 100%;
   display: flex;
-  flex-wrap: wrap;
   align-items: baseline;
-  gap: 4px 10px;
+  gap: 8px;
   max-width: 100%;
   margin: 0;
   padding: 0;
@@ -1036,35 +1041,15 @@ body {
   outline: none;
 }
 .lib-title-text { overflow-wrap: anywhere; }
-
-.lib-play {
-  font-size: 10px;
-  letter-spacing: 1px;
-  color: var(--green);
-  opacity: 0.45;
-  transition: opacity 0.15s ease;
-  text-shadow: 0 0 8px rgba(110, 231, 135, 0.5);
-}
-.lib-title:hover .lib-play,
-.lib-title:focus-visible .lib-play { opacity: 1; }
-@media (hover: none) { .lib-play { opacity: 0.75; } }
-
-.lib-annotation {
-  margin-top: 4px;
-  max-width: 70ch;
-  font-size: 11px;
-  line-height: 1.45;
-  color: #9a7a3a;
-}
-/* у аннотации подпись видна всегда: прочерк не должен читаться как мусор */
-.lib-annotation .lib-k {
-  display: inline;
-  margin-right: 6px;
-  font-size: 9px;
-  letter-spacing: 1px;
+.lib-num { flex: 0 0 auto; font-size: 12px; color: #6f5620; letter-spacing: 0; }
+.lib-chevron {
+  flex: 0 0 auto;
+  align-self: center;
+  font-size: 12px;
   color: #8a6a2f;
-  text-transform: uppercase;
+  transition: transform 0.15s ease, color 0.15s ease;
 }
+.lib-chevron.open { transform: rotate(90deg); color: var(--amber); }
 
 .lib-cell {
   padding-top: 4px;
@@ -1073,22 +1058,83 @@ body {
   color: #9a7a3a;
   overflow-wrap: anywhere;
 }
-.lib-author { grid-area: author; }
 .lib-genre { grid-area: genre; }
-.lib-progress { grid-area: progress; color: var(--green); }
+.lib-type { grid-area: type; color: #b08a3a; }
+.lib-actions { grid-area: start; padding-top: 2px; display: flex; justify-content: flex-end; }
+
+.lib-start {
+  min-width: 72px;
+  padding: 5px 10px;
+  border: 1px solid rgba(51, 255, 0, 0.55);
+  border-radius: 3px;
+  background: rgba(51, 255, 0, 0.06);
+  color: var(--green);
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-shadow: 0 0 6px rgba(51, 255, 0, 0.35);
+}
+.lib-start:hover,
+.lib-start:focus-visible {
+  background: var(--green);
+  color: var(--screen-bg);
+  text-shadow: none;
+  outline: none;
+}
+
+.lib-details {
+  grid-column: 1 / -1;
+  min-width: 0;
+  margin-top: 8px;
+  padding: 10px 0 2px;
+  border-top: 1px dashed rgba(255, 176, 0, 0.18);
+  cursor: default;
+}
+.lib-details-inner {
+  max-width: 78ch;
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.lib-details-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 28px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #b08a3a;
+}
+.lib-annotation {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #9a7a3a;
+}
+/* подписи в раскрытой карточке видны всегда */
+.lib-annotation .lib-k,
+.lib-details-meta .lib-k {
+  display: inline;
+  margin-right: 6px;
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: #8a6a2f;
+  text-transform: uppercase;
+}
 
 /* подписи колонок нужны только в мобильной раскладке */
 .lib-k { display: none; }
 
-@media (max-width: 760px) {
+@container crt-screen (max-width: 760px) {
   .lib-head { display: none; }
   .lib-row {
-    grid-template-columns: 24px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas:
-      "num main"
-      ". author"
-      ". genre"
-      ". progress";
+      "main start"
+      "genre genre"
+      "type type";
     row-gap: 2px;
     padding: 10px 4px 12px;
   }
@@ -1101,5 +1147,10 @@ body {
     text-transform: uppercase;
   }
   .lib-title { font-size: 17px; }
+  .lib-cell { padding-top: 0; font-size: 10px; }
+  .lib-genre { padding-top: 4px; }
+  .lib-actions { padding-top: 0; }
+  .lib-start { min-width: 64px; }
+  .lib-details-inner { padding-left: 24px; }
 }
 

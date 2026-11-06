@@ -29,8 +29,8 @@ const library = await page.evaluate(() => {
 });
 await page.screenshot({ path: 'shot-zombie-library.png' });
 
-const zombie = page.locator('.lib-title').filter({ hasText: /КРОВЬ ЗОМБИ/i });
-await zombie.click();
+const zombieRow = page.locator('.lib-row:not(.lib-head)').filter({ hasText: /КРОВЬ ЗОМБИ/i });
+await zombieRow.locator('.lib-start').click();
 await page.waitForSelector('.bookload', { timeout: 5000 });
 await page.waitForTimeout(500);
 await page.screenshot({ path: 'shot-zombie-loading.png' });

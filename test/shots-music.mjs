@@ -6,24 +6,23 @@ const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
 const track = () => page.evaluate(() => document.documentElement.dataset.track ?? 'тишина');
 
 await page.goto(url);
-await page.waitForSelector('button.list-item');
+await page.waitForSelector('.lib-table');
 
-// с настроениями
-await page.getByRole('button', { name: /Кощеева пещера/i }).click();
+// «Стань стальной крысой!» — moods с реальными треками
+await page.keyboard.press('1');
+await page.waitForSelector('.title-line');
 await page.waitForTimeout(700);
-console.log('пещера, глава 1:', await track());
-await page.getByRole('button', { name: /Войти внутрь/i }).click();
+console.log('стальная крыса, пролог:', await track());
+await page.keyboard.press('Enter');
 await page.waitForTimeout(700);
-console.log('пещера, глава 2:', await track());
-await page.getByRole('button', { name: /Уйти ни с чем/i }).click();
-await page.waitForTimeout(700);
-console.log('пещера, глава 5:', await track());
+console.log('стальная крыса, следующая сцена:', await track());
 
-// книга без настроений — музыка не должна появляться
-await page.locator('.panel-btn').first().click();
-await page.waitForTimeout(300);
-await page.getByRole('button', { name: /Стань стальной/i }).click();
+// «Кровь зомби» — moods объявлены, но все null → музыки быть не должно
+await page.keyboard.press('Escape');
+await page.waitForSelector('.lib-table');
+await page.keyboard.press('2');
+await page.waitForSelector('.title-line');
 await page.waitForTimeout(700);
-console.log('стальная крыса (без moods):', await track());
+console.log('кровь зомби (moods null):', await track());
 
 await browser.close();

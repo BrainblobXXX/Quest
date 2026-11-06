@@ -84,6 +84,8 @@ export type GameIndexEntry = {
   title: string;
   author?: string;
   genre?: string;
+  /** тип книги для колонки «Тип»: story-book, fighting-fantasy, rpg… */
+  type?: string;
   annotation?: string;
   /** когда в последний раз менялся пакет на диске (ISO) */
   updatedAt?: string;

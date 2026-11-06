@@ -3,6 +3,33 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { GameIndexEntry } from '@/lib/types';
 
+/** тип книги для колонки «Тип»; неизвестное значение показываем как есть */
+const TYPE_LABELS: Record<string, string> = {
+  'story-book': 'стори-бук',
+  storybook: 'стори-бук',
+  'fighting-fantasy': 'фентези-батл',
+  'fantasy-battle': 'фентези-батл',
+  fantasy: 'фентези',
+  rpg: 'рпг',
+  demo: 'демо',
+};
+
+function typeLabel(type?: string): string {
+  if (!type) return '—';
+  return TYPE_LABELS[type.toLowerCase()] ?? type;
+}
+
+/** «фантастика · книга-игра» → «фантастика»: тип теперь в отдельной колонке */
+function genreLabel(genre?: string): string {
+  if (!genre) return '—';
+  const clean = genre
+    .replace(/\s*[·•,/]?\s*книга[\s-]?игра\s*/gi, ' ')
+    .replace(/\s*[·•,/]\s*$/, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+  return clean || '—';
+}
+
 export default function Library({
   games,
   saves,
@@ -20,16 +47,17 @@ export default function Library({
 }) {
   const [confirmReset, setConfirmReset] = useState<string | null>(null);
   const [focusKey, setFocusKey] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
 
-  // порядок пунктов меню: книги, затем переключатели звука и музыки
+  // порядок пунктов меню: книги, затем перезагрузка, если список пуст
   const items = useMemo(
     () => [...games.map((g) => `game:${g.id}`), ...(games.length === 0 ? ['reload'] : [])],
     [games],
   );
 
-  const activate = (key: string) => {
-    if (key.startsWith('game:')) onStart(key.slice(5));
-    else if (key === 'reload') onReload();
+  const toggleOpen = (id: string) => {
+    setOpenId((prev) => (prev === id ? null : id));
+    setConfirmReset(null);
   };
 
   useEffect(() => {
@@ -60,8 +88,24 @@ export default function Library({
       }
 
       if (e.key === 'Enter' && focusKey) {
+        // если фокус на настоящей кнопке (Старт/Сброс), Enter должен нажать её,
+        // а не перехватываться глобальным меню
+        const active = document.activeElement;
+        if (
+          active instanceof HTMLElement &&
+          /^(BUTTON|INPUT|TEXTAREA|SELECT|A)$/.test(active.tagName)
+        ) {
+          return;
+        }
         e.preventDefault();
-        activate(focusKey);
+        if (focusKey.startsWith('game:')) {
+          // Enter раскрывает карточку; запуск — отдельной кнопкой «СТАРТ»
+          const id = focusKey.slice(5);
+          setOpenId((prev) => (prev === id ? null : id));
+          setConfirmReset(null);
+        } else if (focusKey === 'reload') {
+          onReload();
+        }
       }
     };
     window.addEventListener('keydown', onKey);
@@ -74,110 +118,159 @@ export default function Library({
     document
       .querySelector(`[data-menu-key="${CSS.escape(focusKey)}"]`)
       ?.scrollIntoView({ block: 'nearest' });
-  }, [focusKey]);
+  }, [focusKey, openId]);
 
   return (
-    <div>
-      <h1 className="screen-heading">=== БИБЛИОТЕКА ===</h1>
-      {sourceAt && new Date(sourceAt).getUTCFullYear() > 2000 && (
-        <div className="screen-note">
-          ИСТОЧНИК: {new Date(sourceAt).toISOString().slice(0, 16).replace('T', ' ')} UTC
-        </div>
-      )}
-
-      {games.length === 0 && (
-        <>
-          <div className="error">ИГРЫ НЕ НАЙДЕНЫ</div>
-          <button
-            className={`list-item${focusKey === 'reload' ? ' menu-focused' : ''}`}
-            data-menu-key="reload"
-            onClick={onReload}
-          >
-            ОБНОВИТЬ СПИСОК
-          </button>
-        </>
-      )}
-
-      {games.length > 0 && (
-        <div className="lib-table" role="table" aria-label="Список книг">
-          <div className="lib-row lib-head" role="row">
-            <span role="columnheader">№</span>
-            <span role="columnheader">Книга</span>
-            <span role="columnheader">Автор</span>
-            <span role="columnheader">Жанр</span>
-            <span role="columnheader">Прогресс</span>
+    <div className="library-screen">
+      <div className="library-scroll">
+        <h1 className="screen-heading">=== БИБЛИОТЕКА ===</h1>
+        {sourceAt && new Date(sourceAt).getUTCFullYear() > 2000 && (
+          <div className="screen-note">
+            ИСТОЧНИК: {new Date(sourceAt).toISOString().slice(0, 16).replace('T', ' ')} UTC
           </div>
+        )}
 
-          {games.map((g, i) => (
-            <div
-              className={`lib-row${focusKey === `game:${g.id}` ? ' menu-focused-row' : ''}`}
-              role="row"
-              key={g.id}
+        {games.length === 0 && (
+          <>
+            <div className="error">ИГРЫ НЕ НАЙДЕНЫ</div>
+            <button
+              className={`list-item${focusKey === 'reload' ? ' menu-focused' : ''}`}
+              data-menu-key="reload"
+              onClick={onReload}
             >
-              <span className="lib-num" role="cell">
-                {i + 1}.
-              </span>
+              ОБНОВИТЬ СПИСОК
+            </button>
+          </>
+        )}
 
-              <div className="lib-main" role="cell">
-                <button
-                  className={`lib-title${focusKey === `game:${g.id}` ? ' menu-focused' : ''}`}
-                  data-menu-key={`game:${g.id}`}
-                  onClick={() => onStart(g.id)}
-                  title={`Играть: ${g.title}`}
-                >
-                  <span className="lib-title-text">{g.title}</span>
-                  <span className="lib-play">▶ играть</span>
-                </button>
-
-                <div className="lib-annotation">
-                  <span className="lib-k">Аннотация</span>
-                  {g.annotation || '—'}
-                </div>
-
-                {saves[g.id] &&
-                  (confirmReset === g.id ? (
-                    <div className="reset-line">
-                      <button
-                        className="reset-btn"
-                        onClick={() => {
-                          onReset(g.id);
-                          setConfirmReset(null);
-                        }}
-                      >
-                        СБРОСИТЬ? ДА
-                      </button>
-                      <button className="reset-btn" onClick={() => setConfirmReset(null)}>
-                        НЕТ
-                      </button>
-                    </div>
-                  ) : (
-                    <button className="reset-btn" onClick={() => setConfirmReset(g.id)}>
-                      СБРОСИТЬ ПРОГРЕСС
-                    </button>
-                  ))}
-              </div>
-
-              <span className="lib-cell lib-author" role="cell">
-                <span className="lib-k">Автор</span>
-                {g.author || '—'}
-              </span>
-
-              <span className="lib-cell lib-genre" role="cell">
-                <span className="lib-k">Жанр</span>
-                {g.genre || '—'}
-              </span>
-
-              <span className="lib-cell lib-progress" role="cell">
-                <span className="lib-k">Прогресс</span>
-                {saves[g.id] ? `ГЛАВА ${saves[g.id]}` : '—'}
-              </span>
+        {games.length > 0 && (
+          <div className="lib-table" role="table" aria-label="Список книг">
+            <div className="lib-row lib-head" role="row">
+              <span role="columnheader">Книга</span>
+              <span role="columnheader">Жанр</span>
+              <span role="columnheader">Тип</span>
+              <span role="columnheader">Старт</span>
             </div>
-          ))}
-        </div>
-      )}
+
+            {games.map((g, i) => {
+              const key = `game:${g.id}`;
+              const open = openId === g.id;
+              const focused = focusKey === key;
+              const progress = saves[g.id];
+
+              return (
+                <div
+                  className={`lib-row${focused ? ' menu-focused-row' : ''}${
+                    open ? ' lib-row-open' : ''
+                  }`}
+                  role="row"
+                  key={g.id}
+                  onClick={(e) => {
+                    // клик по пустому месту строки тоже раскрывает карточку;
+                    // кнопки и раскрытый текст обрабатывают себя сами
+                    const target = e.target as HTMLElement;
+                    if (target.closest('button, .lib-details')) return;
+                    toggleOpen(g.id);
+                  }}
+                >
+                  <div className="lib-main" role="cell">
+                    <button
+                      type="button"
+                      className={`lib-title${focused ? ' menu-focused' : ''}`}
+                      data-menu-key={key}
+                      aria-expanded={open}
+                      aria-controls={`lib-details-${g.id}`}
+                      onClick={() => toggleOpen(g.id)}
+                      title={open ? 'Свернуть карточку' : 'Автор и аннотация'}
+                    >
+                      <span className="lib-num" aria-hidden="true">
+                        {i + 1}.
+                      </span>
+                      <span className="lib-title-text">{g.title}</span>
+                      <span className={`lib-chevron${open ? ' open' : ''}`} aria-hidden="true">
+                        ▸
+                      </span>
+                    </button>
+                  </div>
+
+                  <span className="lib-cell lib-genre" role="cell">
+                    <span className="lib-k">Жанр</span>
+                    {genreLabel(g.genre)}
+                  </span>
+
+                  <span className="lib-cell lib-type" role="cell">
+                    <span className="lib-k">Тип</span>
+                    {typeLabel(g.type)}
+                  </span>
+
+                  <div className="lib-actions" role="cell">
+                    <button
+                      type="button"
+                      className="lib-start"
+                      onClick={() => onStart(g.id)}
+                      title={`Начать: ${g.title}`}
+                    >
+                      Старт
+                    </button>
+                  </div>
+
+                  {open && (
+                    <div
+                      className="lib-details"
+                      id={`lib-details-${g.id}`}
+                      role="cell"
+                      aria-colspan={4}
+                    >
+                      <div className="lib-details-inner">
+                        <div className="lib-details-meta">
+                          <div>
+                            <span className="lib-k">Автор</span>
+                            {g.author || '—'}
+                          </div>
+                          <div>
+                            <span className="lib-k">Прогресс</span>
+                            {progress ? `ГЛАВА ${progress}` : '—'}
+                          </div>
+                        </div>
+
+                        <div className="lib-annotation">
+                          <span className="lib-k">Аннотация</span>
+                          {g.annotation || '—'}
+                        </div>
+
+                        {progress &&
+                          (confirmReset === g.id ? (
+                            <div className="reset-line">
+                              <button
+                                className="reset-btn"
+                                onClick={() => {
+                                  onReset(g.id);
+                                  setConfirmReset(null);
+                                }}
+                              >
+                                СБРОСИТЬ? ДА
+                              </button>
+                              <button className="reset-btn" onClick={() => setConfirmReset(null)}>
+                                НЕТ
+                              </button>
+                            </div>
+                          ) : (
+                            <button className="reset-btn" onClick={() => setConfirmReset(g.id)}>
+                              СБРОСИТЬ ПРОГРЕСС
+                            </button>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       <div className="hint">
-        МЕНЮ — ↑↓ И ENTER · ЦИФРА — ОТКРЫТЬ КНИГУ · НАСТРОЙКИ ЗВУКА — НА КОРПУСЕ · ESC — В БИБЛИОТЕКУ
+        МЕНЮ — ↑↓ И ENTER (РАСКРЫТЬ) · ЦИФРА — СТАРТ · ESC — В БИБЛИОТЕКУ
       </div>
     </div>
   );

@@ -40,7 +40,7 @@ await page.route('**/api/games/steel-rat/story.md', async (route) => {
   await route.continue();
 });
 
-await page.locator('.lib-title').filter({ hasText: /СТАНЬ/i }).click();
+await page.keyboard.press('1');
 await page.waitForSelector('.bookload', { timeout: 5000 });
 await page.waitForTimeout(550);
 await page.screenshot({ path: 'shot-book-loading-1.png' });
@@ -79,7 +79,7 @@ const libraryAfterPower = await page.evaluate(powerState);
 await page.screenshot({ path: 'shot-loading-library-after.png' });
 
 // отмена долгой загрузки: поздний ответ не должен увести с библиотеки
-await page.locator('.lib-title').filter({ hasText: /СТАНЬ/i }).click();
+await page.keyboard.press('1');
 await page.waitForSelector('.bookload', { timeout: 5000 });
 await page.keyboard.press('Escape');
 await page.waitForSelector('.lib-table', { timeout: 5000 });
@@ -94,7 +94,7 @@ const cancelState = await page.evaluate(() => ({
 const mobile = await newPage({ width: 420, height: 900 });
 await mobile.goto(url);
 await mobile.waitForSelector('.lib-table', { timeout: 20000 });
-await mobile.route('**/api/games/cave/story.md', async (route) => {
+await mobile.route('**/api/games/steel-rat/story.md', async (route) => {
   await new Promise((r) => setTimeout(r, 1800));
   await route.continue();
 });
@@ -116,7 +116,7 @@ const mobileFit = await mobile.evaluate(() => {
 const landscape = await newPage({ width: 900, height: 420 });
 await landscape.goto(url);
 await landscape.waitForSelector('.lib-table', { timeout: 20000 });
-await landscape.route('**/api/games/cave/story.md', async (route) => {
+await landscape.route('**/api/games/steel-rat/story.md', async (route) => {
   await new Promise((r) => setTimeout(r, 1800));
   await route.continue();
 });
