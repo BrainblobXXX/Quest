@@ -140,8 +140,9 @@ export default function GameScreen({
   const [rawOpen, setRawOpen] = useState(false);
   const [zoom, setZoom] = useState(false);
   const [imageFit, setImageFit] = useState<{ src: string; wide: boolean } | null>(null);
-  const [selected, setSelected] = useState(-1);
+  const [selection, setSelection] = useState({ scene: scene.key, index: -1 });
   const [pressed, setPressed] = useState<string | null>(null);
+  const selected = selection.scene === scene.key ? selection.index : -1;
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrollKey = `${game.id}:${state.scene}`;
   const choices = availableChoices(game, state);
@@ -182,10 +183,12 @@ export default function GameScreen({
         choice ? (
           <button
             key={`ref${index}`}
-            className="choice-ref"
+            type="button"
+            className={`choice-ref${pressed === `${scene.key}:r${index}` ? ' pressed' : ''}`}
             data-variant={letter}
             onClick={() => onChoose(choice)}
             title={`Вариант ${letter}`}
+            {...pressHandlers(`r${index}`)}
           >
             [{letter}]
           </button>
@@ -294,11 +297,23 @@ export default function GameScreen({
 
   useEffect(() => {
     setRollView(null);
-    setSelected(-1);
+    setSelection({ scene: scene.key, index: -1 });
     setPressed(null);
     for (const id of rollTimers.current) window.clearTimeout(id);
     rollTimers.current = [];
   }, [scene.key]);
+
+  // страховка от «залипшей» подсветки, если pointerup случился вне кнопки
+  useEffect(() => {
+    if (!pressed) return;
+    const clear = () => setPressed(null);
+    window.addEventListener('pointerup', clear, true);
+    window.addEventListener('pointercancel', clear, true);
+    return () => {
+      window.removeEventListener('pointerup', clear, true);
+      window.removeEventListener('pointercancel', clear, true);
+    };
+  }, [pressed]);
 
   useEffect(() => {
     if (!rollView || rollView.phase !== 'spin') return;
@@ -324,16 +339,17 @@ export default function GameScreen({
 
       if (e.key === 'Escape' || rollView) return;
 
-      // сколько пунктов можно выбрать: варианты, «далее» или бросок
-      const items = ending ? 0 : choices.length > 0 ? choices.length : dice || hasNext ? 1 : 0;
+      // сколько пунктов можно выбрать: варианты, «далее», бросок или рестарт
+      const items = ending ? 1 : choices.length > 0 ? choices.length : dice || hasNext ? 1 : 0;
       if (!items) return;
 
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         e.preventDefault();
         const step = e.key === 'ArrowDown' ? 1 : -1;
-        setSelected((prev) => {
-          if (prev < 0) return step === 1 ? 0 : items - 1;
-          return (prev + step + items) % items;
+        setSelection((prev) => {
+          const current = prev.scene === scene.key ? prev.index : -1;
+          const next = current < 0 ? (step === 1 ? 0 : items - 1) : (current + step + items) % items;
+          return { scene: scene.key, index: next };
         });
         return;
       }
@@ -343,6 +359,14 @@ export default function GameScreen({
       const onControl = active instanceof HTMLElement && /^(BUTTON|INPUT|TEXTAREA)$/.test(active.tagName);
       if (onControl) return;
 
+      if (ending) {
+        if (e.key === 'Enter' || e.key === '1') {
+          e.preventDefault();
+          onRestart();
+        }
+        return;
+      }
+
       if (/^[1-9]$/.test(e.key)) {
         if (dice) {
           if (e.key === '1') startRoll();
@@ -351,7 +375,6 @@ export default function GameScreen({
         const choice = choices[Number(e.key) - 1];
         if (choice) onChoose(choice);
       } else if (e.key === 'Enter') {
-        if (ending) return;
         e.preventDefault();
         if (dice) startRoll();
         else if (choices.length > 0 && selected >= 0) onChoose(choices[Math.min(selected, choices.length - 1)]);
@@ -360,15 +383,19 @@ export default function GameScreen({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [choices, ending, hasNext, onChoose, onAdvance, dice, rollView, selected, startRoll]);
+  }, [choices, ending, hasNext, onChoose, onAdvance, onRestart, dice, rollView, scene.key, selected, startRoll]);
 
   /** подсветка на время нажатия: подтверждение — только по отпусканию */
-  const pressHandlers = (key: string) => ({
-    onPointerDown: () => setPressed(key),
-    onPointerUp: () => setPressed(null),
-    onPointerLeave: () => setPressed(null),
-    onPointerCancel: () => setPressed(null),
-  });
+  const pressHandlers = (key: string) => {
+    const id = `${scene.key}:${key}`;
+    return {
+      onPointerDown: () => setPressed(id),
+      onPointerUp: () => setPressed(null),
+      onPointerLeave: () => setPressed(null),
+      onPointerCancel: () => setPressed(null),
+      onLostPointerCapture: () => setPressed(null),
+    };
+  };
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -471,7 +498,12 @@ export default function GameScreen({
       {ending && (
         <div className="choices">
           <div className="green">КОНЕЦ</div>
-          <button className="choice" onClick={onRestart} {...pressHandlers('restart')}>
+          <button
+            type="button"
+            className={`choice${selected === 0 ? ' selected' : ''}${pressed === `${scene.key}:restart` ? ' pressed' : ''}`}
+            onClick={onRestart}
+            {...pressHandlers('restart')}
+          >
             1. НАЧАТЬ ЗАНОВО
           </button>
         </div>
@@ -482,7 +514,7 @@ export default function GameScreen({
           {choices.map((c, i) => (
             <button
               key={`${c.goto}-${i}`}
-              className={`choice${i === selected ? ' selected' : ''}${pressed === `c${i}` ? ' pressed' : ''}`}
+              className={`choice${i === selected ? ' selected' : ''}${pressed === `${scene.key}:c${i}` ? ' pressed' : ''}`}
               data-variant={c.letter}
               onClick={() => onChoose(c)}
               {...pressHandlers(`c${i}`)}
@@ -495,7 +527,12 @@ export default function GameScreen({
 
       {!ending && choices.length === 0 && hasNext && !dice && (
         <div className="choices">
-          <button className="choice" onClick={() => onAdvance()} {...pressHandlers('next')}>
+          <button
+            type="button"
+            className={`choice${selected === 0 ? ' selected' : ''}${pressed === `${scene.key}:next` ? ' pressed' : ''}`}
+            onClick={() => onAdvance()}
+            {...pressHandlers('next')}
+          >
             1. ДАЛЕЕ
           </button>
         </div>
@@ -503,7 +540,12 @@ export default function GameScreen({
 
       {!ending && dice && !rollView && (
         <div className="choices">
-          <button className="choice" onClick={startRoll} {...pressHandlers('roll')}>
+          <button
+            type="button"
+            className={`choice${selected === 0 ? ' selected' : ''}${pressed === `${scene.key}:roll` ? ' pressed' : ''}`}
+            onClick={startRoll}
+            {...pressHandlers('roll')}
+          >
             1. {isCoin ? 'БРОСИТЬ МОНЕТКУ' : 'БРОСИТЬ КУБИК'}
           </button>
         </div>
