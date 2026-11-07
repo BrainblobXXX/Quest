@@ -120,10 +120,16 @@ export default function CombatPanel({
   const [roll, setRoll] = useState<DamageRoll | null>(null);
   const [log, setLog] = useState<string[]>(setup.log);
   const timer = useRef<number | null>(null);
+  const logRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => () => {
     if (timer.current !== null) window.clearTimeout(timer.current);
   }, []);
+
+  useEffect(() => {
+    const element = logRef.current;
+    if (element) element.scrollTop = element.scrollHeight;
+  }, [log]);
 
   const alive = enemies.filter((hp) => hp > 0).length;
   const initialAlive = setup.enemies.filter((hp) => hp > 0).length;
@@ -162,7 +168,7 @@ export default function CombatPanel({
   }, [firstUsable, weaponPicked]);
 
   const addLog = (...lines: string[]) => {
-    setLog((current) => [...current, ...lines].slice(-6));
+    setLog((current) => [...current, ...lines]);
   };
 
   const start = () => {
@@ -321,140 +327,121 @@ export default function CombatPanel({
     return () => window.removeEventListener('keydown', onKey);
   });
 
-  const staminaPercent = Math.max(0, Math.min(100, (stamina / Math.max(1, staminaMax)) * 100));
-  const enemyPercent = Math.max(0, Math.min(100, (alive / enemyTotal) * 100));
+  const fistsNumber = weaponOptions.length + 1;
+  const grenadeNumber = fistsNumber + 1;
+  const startNumber = fistsNumber + (grenades > 0 && !grenadeUsed ? 2 : 1);
 
   return (
     <div className="combat-panel" role="region" aria-label={`Бой: ${enemy.name}`}>
-      <div className="combat-head">
-        <span>БОЙ · {enemy.name.toUpperCase()}</span>
-        <span>РАУНД {round}</span>
-      </div>
-
-      <div className="combat-status">
-        <div className="combat-row">
-          <span>ВРАГИ</span>
-          <span className="combat-value">{alive} / {enemyTotal}</span>
-        </div>
-        <div className="combat-bar combat-bar-enemy">
-          <span style={{ width: `${enemyPercent}%` }} />
-        </div>
-        <div className="combat-row">
-          <span>ВЫНОСЛИВОСТЬ</span>
-          <span className="combat-value">{stamina} / {staminaMax}</span>
-        </div>
-        <div className="combat-bar combat-bar-stamina">
-          <span style={{ width: `${staminaPercent}%` }} />
-        </div>
+      <div className={`combat-status-line${stamina <= 0 ? ' low' : ''}`}>
+        <span>ЗОМБИ: {alive} / {enemyTotal}</span>
+        <span>ВЫНОСЛИВОСТЬ: {stamina} / {staminaMax}</span>
+        <span>РАУНД: {round}</span>
         {combat.threshold !== undefined && (
-          <div className="combat-row">
-            <span>ПОРОГ УРОНА</span>
-            <span className="combat-value">{combat.threshold}{combat.bonusDamage ? ` · ЭМИ +${combat.bonusDamage}` : ''}</span>
-          </div>
+          <span>
+            ПОРОГ: {combat.threshold}
+            {combat.bonusDamage ? ` · ЭМИ +${combat.bonusDamage}` : ''}
+          </span>
         )}
       </div>
 
-      {phase === 'loadout' && (
-        <div className="combat-loadout">
-          <div className="combat-section-title">ВЫБЕРИТЕ ОРУЖИЕ</div>
-          <div className="combat-weapons">
-            {weaponOptions.map((option) => (
-              <button
-                key={option.id}
-                type="button"
-                className={`combat-weapon${selected.id === option.id ? ' selected' : ''}`}
-                disabled={!option.usable}
-                onClick={() => {
-                  setSelectedWeapon(option.id);
-                  setWeaponPicked(true);
-                }}
-              >
-                <span>{option.title.toUpperCase()}</span>
-                <small>{option.damage}{option.note ? ` · ${option.note}` : ''}</small>
-              </button>
-            ))}
-            <button
-              type="button"
-              className={`combat-weapon${selected.id === FISTS ? ' selected' : ''}`}
-              onClick={() => {
-                setSelectedWeapon(FISTS);
-                setWeaponPicked(true);
-              }}
-            >
-              <span>КУЛАКИ</span>
-              <small>1d6−3</small>
-            </button>
-          </div>
-          {grenades > 0 && !grenadeUsed && (
-            <button type="button" className="combat-action combat-grenade" onClick={throwGrenade}>
-              БРОСИТЬ ГРАНАТУ ×{grenades} · 2d6+1
-            </button>
-          )}
-          <button type="button" className="combat-action combat-primary" onClick={start}>
-            В БОЙ
-          </button>
-        </div>
-      )}
-
-      {phase === 'round' && (
-        <div className="combat-actions">
-          <div className="combat-weapon-line">
-            <span>{weaponTitle}</span>
-            <span>{selectedDamage}</span>
-          </div>
-          <button type="button" className="combat-action combat-primary" onClick={attack}>
-            АТАКОВАТЬ
-          </button>
-          <div className="combat-secondary-actions">
-            <button type="button" className="combat-action" onClick={useMedkit} disabled={!canUseMedkit}>
-              АПТЕЧКА ×{inventory.medkit ?? 0}
-            </button>
-            <button type="button" className="combat-action" onClick={() => setPhase('loadout')}>
-              СМЕНИТЬ ОРУЖИЕ
-            </button>
-          </div>
-        </div>
-      )}
-
-      {phase === 'rolling' && roll && (
-        <div className="combat-roll" aria-live="polite">
-          <div className="combat-die">{roll.rolls.join('+')}</div>
-          <div>{rollLabel(roll)}</div>
-        </div>
-      )}
-
-      {phase === 'victory' && (
-        <div className="combat-result combat-victory" aria-live="polite">
-          <strong>ПОБЕДА</strong>
-          <span>Выносливость {stamina} / {staminaMax}</span>
-          <button type="button" className="combat-action combat-primary" onClick={finish}>
-            ПРОДОЛЖИТЬ
-          </button>
-        </div>
-      )}
-
-      {phase === 'defeat' && (
-        <div className="combat-result combat-defeat" aria-live="polite">
-          <strong>ВЫ ПОГИБЛИ</strong>
-          <span>Выносливость 0 — приключение окончено.</span>
-          <div className="combat-secondary-actions">
-            <button type="button" className="combat-action combat-primary" onClick={retry}>
-              ПОПРОБОВАТЬ СНОВА
-            </button>
-            <button type="button" className="combat-action" onClick={onExit}>
-              В БИБЛИОТЕКУ
-            </button>
-          </div>
-        </div>
-      )}
-
-      <div className="combat-log" aria-live="polite">
+      <div className="combat-log" aria-live="polite" ref={logRef}>
         {log.map((line, index) => (
           <div key={`${line}-${index}`} className={index === log.length - 1 ? 'combat-log-last' : ''}>
             &gt; {line}
           </div>
         ))}
       </div>
+
+      {phase === 'loadout' && (
+        <>
+          <div className="combat-note">ВЫБЕРИТЕ ОРУЖИЕ</div>
+          <div className="choices combat-choices">
+            {weaponOptions.map((option, index) => (
+              <button
+                key={option.id}
+                type="button"
+                className={`choice${selected.id === option.id ? ' combat-selected' : ''}${option.usable ? '' : ' dim'}`}
+                disabled={!option.usable}
+                onClick={() => {
+                  setSelectedWeapon(option.id);
+                  setWeaponPicked(true);
+                }}
+              >
+                {index + 1}. {option.title.toUpperCase()} · {option.damage}
+                {option.note ? ` · ${option.note}` : ''}
+                {selected.id === option.id ? ' · ВЫБРАНО' : ''}
+              </button>
+            ))}
+            <button
+              type="button"
+              className={`choice${selected.id === FISTS ? ' combat-selected' : ''}`}
+              onClick={() => {
+                setSelectedWeapon(FISTS);
+                setWeaponPicked(true);
+              }}
+            >
+              {fistsNumber}. КУЛАКИ · 1d6−3{selected.id === FISTS ? ' · ВЫБРАНО' : ''}
+            </button>
+            {grenades > 0 && !grenadeUsed && (
+              <button type="button" className="choice combat-grenade" onClick={throwGrenade}>
+                {grenadeNumber}. БРОСИТЬ ГРАНАТУ ×{grenades} · 2d6+1
+              </button>
+            )}
+            <button type="button" className="choice" onClick={start}>
+              {startNumber}. В БОЙ
+            </button>
+          </div>
+        </>
+      )}
+
+      {phase === 'round' && (
+        <>
+          <div className="combat-note">ОРУЖИЕ: {weaponTitle} · {selectedDamage}</div>
+          <div className="choices combat-choices">
+            <button type="button" className="choice" onClick={attack}>
+              1. АТАКОВАТЬ
+            </button>
+            <button type="button" className="choice" onClick={useMedkit} disabled={!canUseMedkit}>
+              2. АПТЕЧКА ×{inventory.medkit ?? 0}
+            </button>
+            <button type="button" className="choice" onClick={() => setPhase('loadout')}>
+              3. СМЕНИТЬ ОРУЖИЕ
+            </button>
+          </div>
+        </>
+      )}
+
+      {phase === 'rolling' && <div className="combat-note">БРОСОК…</div>}
+
+      {phase === 'victory' && (
+        <>
+          <div className="combat-note combat-victory-note">
+            ПОБЕДА. Выносливость {stamina} / {staminaMax}.
+          </div>
+          <div className="choices combat-choices">
+            <button type="button" className="choice" onClick={finish}>
+              1. ПРОДОЛЖИТЬ
+            </button>
+          </div>
+        </>
+      )}
+
+      {phase === 'defeat' && (
+        <>
+          <div className="combat-note combat-defeat-note">
+            ВЫ ПОГИБЛИ. Выносливость 0 — приключение окончено.
+          </div>
+          <div className="choices combat-choices">
+            <button type="button" className="choice" onClick={retry}>
+              1. ПОПРОБОВАТЬ СНОВА
+            </button>
+            <button type="button" className="choice" onClick={onExit}>
+              2. В БИБЛИОТЕКУ
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

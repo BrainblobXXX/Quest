@@ -1305,86 +1305,49 @@ body {
   .raw-btn.on { background: #c9a24a; color: var(--screen-bg); }
 }
 
-/* ── боевой терминал ZombieBlood ─────────────────────────── */
+/* ── бой как продолжение главы ───────────────────────────── */
 .combat-panel {
-  flex: 0 1 auto;
-  max-height: 62%;
-  overflow-y: auto;
   margin-top: 12px;
-  padding: 10px 12px;
-  border: 1px solid rgba(255, 80, 60, 0.5);
-  background: rgba(55, 8, 6, 0.38);
-  box-shadow: inset 0 0 22px rgba(255, 40, 20, 0.06);
-  font-size: 12px;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  max-height: none;
+  overflow: visible;
+  font-size: 15px;
+  line-height: 1.6;
 }
 
-.combat-head {
+.combat-status-line {
   display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  color: #ff9b3d;
+  flex-wrap: wrap;
+  gap: 2px 18px;
+  color: #c9a24a;
   letter-spacing: 1px;
-  border-bottom: 1px dashed rgba(255, 80, 60, 0.35);
-  padding-bottom: 5px;
-  margin-bottom: 8px;
+  margin: 0 0 4px;
 }
+.combat-status-line.low { color: var(--magenta); }
 
-.combat-status { display: flex; flex-direction: column; gap: 3px; }
-.combat-row { display: flex; justify-content: space-between; gap: 12px; color: #c9a24a; letter-spacing: 1px; }
-.combat-value { color: #ffd27a; }
-.combat-bar { height: 9px; border: 1px solid rgba(255, 176, 0, 0.35); background: rgba(0, 0, 0, 0.35); margin-bottom: 4px; }
-.combat-bar span { display: block; height: 100%; transition: width 180ms linear; }
-.combat-bar-enemy span { background: #c43b32; box-shadow: 0 0 8px rgba(255, 60, 40, 0.45); }
-.combat-bar-stamina span { background: #62d84e; box-shadow: 0 0 8px rgba(51, 255, 0, 0.35); }
-
-.combat-section-title { color: #ff9b3d; letter-spacing: 1px; margin: 8px 0 5px; }
-.combat-weapons { display: flex; flex-wrap: wrap; gap: 5px; }
-.combat-weapon {
-  display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
-  min-width: 120px; padding: 4px 7px; text-align: left;
-  color: var(--amber); background: rgba(255, 176, 0, 0.04);
-  border: 1px solid rgba(255, 176, 0, 0.28); font-family: var(--mono); font-size: 11px;
-  cursor: pointer;
+.combat-log {
+  color: #d8b25a;
+  max-height: 190px;
+  overflow-y: auto;
+  margin: 4px 0 2px;
+  white-space: pre-wrap;
 }
-.combat-weapon small { color: #9d7a35; font-size: 9px; letter-spacing: 0.5px; }
-.combat-weapon.selected { color: #181006; background: var(--amber); border-color: var(--amber); }
-.combat-weapon.selected small { color: #4a3308; }
-.combat-weapon:disabled { opacity: 0.35; cursor: not-allowed; }
-
-.combat-actions { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
-.combat-weapon-line { display: flex; justify-content: space-between; color: #ffd27a; letter-spacing: 1px; margin-bottom: 2px; }
-.combat-secondary-actions { display: flex; flex-wrap: wrap; gap: 6px; }
-.combat-action {
-  padding: 5px 9px; font-family: var(--mono); font-size: 11px; letter-spacing: 1px;
-  color: var(--amber); background: rgba(255, 176, 0, 0.05);
-  border: 1px solid rgba(255, 176, 0, 0.45); cursor: pointer;
-}
-.combat-action:hover { color: #181006; background: var(--amber); }
-.combat-action:disabled { opacity: 0.35; cursor: not-allowed; }
-.combat-action.combat-primary { color: #181006; background: #c9a24a; border-color: #c9a24a; }
-.combat-action.combat-primary:hover { background: #ffd27a; }
-.combat-grenade { color: #ff7a52; border-color: rgba(255, 80, 60, 0.5); }
-
-.combat-roll { display: flex; align-items: center; gap: 12px; margin: 9px 0; color: #ffd27a; }
-.combat-die {
-  min-width: 42px; padding: 4px 6px; text-align: center;
-  border: 1px solid rgba(255, 176, 0, 0.55); background: rgba(255, 176, 0, 0.08);
-  font-size: 18px; animation: combat-tick 90ms linear infinite alternate;
-}
-@keyframes combat-tick { from { transform: translateY(-1px); } to { transform: translateY(1px); } }
-.combat-result { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 9px 0; padding: 7px; border: 1px solid rgba(255, 176, 0, 0.35); }
-.combat-result strong { font-size: 15px; letter-spacing: 2px; }
-.combat-victory strong { color: var(--green); }
-.combat-defeat strong { color: var(--magenta); }
-.combat-result span { color: #c9a24a; }
-.combat-log { margin-top: 8px; padding-top: 6px; border-top: 1px dashed rgba(255, 80, 60, 0.28); color: #9d7a35; font-size: 10px; line-height: 1.5; max-height: 88px; overflow-y: auto; }
+.combat-log > div { min-height: 1.5em; }
 .combat-log-last { color: #ffd27a; }
 
-@container crt-screen (max-width: 760px) {
-  .combat-panel { max-height: 68%; padding: 8px; }
-  .combat-head { font-size: 10px; }
-  .combat-weapons { flex-direction: column; }
-  .combat-weapon { width: 100%; }
-  .combat-secondary-actions { flex-direction: column; }
-  .combat-action { width: 100%; }
+.combat-note {
+  color: #c9a24a;
+  letter-spacing: 1px;
+  margin: 8px 0 2px;
 }
+.combat-note.combat-victory-note { color: var(--green); }
+.combat-note.combat-defeat-note { color: var(--magenta); }
+
+.combat-choices .choice { display: block; }
+.combat-choices .choice.dim { color: #6f5620; cursor: not-allowed; }
+.combat-choices .choice.combat-selected { color: #ffd27a; }
+.combat-choices .choice.combat-grenade { color: #ff9b3d; }
+.combat-choices .choice:disabled { color: #6f5620; cursor: not-allowed; }
