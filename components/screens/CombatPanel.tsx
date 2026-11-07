@@ -77,12 +77,14 @@ export default function CombatPanel({
   combat,
   onWin,
   onExit,
+  onRestart,
 }: {
   game: Game;
   state: GameState;
   combat: CombatDef;
   onWin: (result: GameState) => void;
   onExit: () => void;
+  onRestart: () => void;
 }) {
   const enemy = combat.enemy;
   const count = Math.max(1, Math.floor(enemy.count ?? 1));
@@ -331,25 +333,6 @@ export default function CombatPanel({
     audio.beep();
   };
 
-  const retry = () => {
-    if (timer.current !== null) {
-      window.clearTimeout(timer.current);
-      timer.current = null;
-    }
-    setEnemies(setup.enemies);
-    setInventory({ ...initialInventory });
-    setStamina(setup.stamina);
-    setPhase(setup.phase);
-    setRound(1);
-    setSelectedWeapon(firstUsable);
-    setWeaponPicked(false);
-    setGrenadeUsed(false);
-    setRoll(null);
-    setDiceFaces([]);
-    setLog(setup.log);
-    audio.click();
-  };
-
   const finish = () => {
     onWin({
       ...state,
@@ -520,8 +503,8 @@ export default function CombatPanel({
             ВЫ ПОГИБЛИ. Выносливость 0 — приключение окончено.
           </div>
           <div className="choices combat-choices">
-            <button type="button" className={`choice${selectedChoice === 0 ? ' selected' : ''}`} onFocus={() => setSelectedChoice(0)} onClick={retry}>
-              1. ПОПРОБОВАТЬ СНОВА
+            <button type="button" className={`choice${selectedChoice === 0 ? ' selected' : ''}`} onFocus={() => setSelectedChoice(0)} onClick={onRestart}>
+              1. НАЧАТЬ ЗАНОВО
             </button>
             <button type="button" className={`choice${selectedChoice === 1 ? ' selected' : ''}`} onFocus={() => setSelectedChoice(1)} onClick={onExit}>
               2. В БИБЛИОТЕКУ

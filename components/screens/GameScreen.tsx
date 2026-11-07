@@ -145,6 +145,8 @@ export default function GameScreen({
   const scene = sceneOf(game, state);
   const combat = game.combat?.[scene.key];
   const hasCombat = Boolean(combat?.enemy.count && combat.enemy.count > 0);
+  const [combatStarted, setCombatStarted] = useState(false);
+  const combatActive = hasCombat && combatStarted;
   const [invOpen, setInvOpen] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
   const [rawOpen, setRawOpen] = useState(false);
@@ -155,6 +157,10 @@ export default function GameScreen({
   const selected = selection.scene === scene.key ? selection.index : -1;
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrollKey = `${game.id}:${state.scene}`;
+
+  useEffect(() => {
+    setCombatStarted(false);
+  }, [scene.key]);
   const choices = availableChoices(game, state);
   const stats = Object.entries(game.stats ?? {}).map(([id, def]) => ({
     id,
@@ -337,7 +343,7 @@ export default function GameScreen({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (hasCombat) return;
+      if (hasCombat && combatStarted) return;
       // PageUp/PageDown листают текст сцены, как колесо мыши
       if (e.key === 'PageDown' || e.key === 'PageUp') {
         const el = scrollRef.current;
@@ -345,6 +351,18 @@ export default function GameScreen({
         e.preventDefault();
         const page = el.clientHeight * 0.9;
         el.scrollBy({ top: e.key === 'PageDown' ? page : -page, behavior: 'smooth' });
+        return;
+      }
+
+      if (hasCombat && !combatStarted) {
+        if (e.key === 'Enter' || e.key === ' ' || e.key === '1') {
+          const active = document.activeElement;
+          const onButton = active instanceof HTMLElement && active.tagName === 'BUTTON';
+          if (onButton && (e.key === 'Enter' || e.key === ' ')) return;
+          e.preventDefault();
+          audio.click();
+          setCombatStarted(true);
+        }
         return;
       }
 
@@ -394,7 +412,7 @@ export default function GameScreen({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [choices, ending, hasCombat, hasNext, onChoose, onAdvance, onRestart, dice, rollView, scene.key, selected, startRoll]);
+  }, [choices, ending, hasCombat, combatStarted, hasNext, onChoose, onAdvance, onRestart, dice, rollView, scene.key, selected, startRoll]);
 
   /** подсветка на время нажатия: подтверждение — только по отпусканию */
   const pressHandlers = (key: string) => {
@@ -423,7 +441,7 @@ export default function GameScreen({
           <span className="btn-text">MD</span>
           <HeaderIcon kind="raw" />
         </button>
-        {!hasCombat && hasStats && (
+        {!combatActive && hasStats && (
           <button
             type="button"
             className={`stats-toggle${statsOpen ? ' is-open' : ''}`}
@@ -437,7 +455,7 @@ export default function GameScreen({
             <HeaderIcon kind="stats" />
           </button>
         )}
-        {!hasCombat && hasItems && (
+        {!combatActive && hasItems && (
           <button
             type="button"
             className={`inventory-toggle${invOpen ? ' is-open' : ''}`}
@@ -453,8 +471,8 @@ export default function GameScreen({
         )}
       </div>
 
-      {!hasCombat && hasStats && statsOpen && <StatsPanel stats={stats} />}
-      {!hasCombat && hasItems && invOpen && <InventoryPanel game={game} state={state} />}
+      {!combatActive && hasStats && statsOpen && <StatsPanel stats={stats} />}
+      {!combatActive && hasItems && invOpen && <InventoryPanel game={game} state={state} />}
 
       {problems.length > 0 && (
         <details className="parse-report">
@@ -504,7 +522,7 @@ export default function GameScreen({
         ) : (
           <div className="scene-text">{sceneText()}</div>
         )}
-        {hasCombat && combat && (
+        {combatActive && combat && (
           <CombatPanel
             key={scene.key}
             game={game}
@@ -512,9 +530,25 @@ export default function GameScreen({
             combat={combat}
             onWin={onCombatWin}
             onExit={onCombatExit}
+            onRestart={onRestart}
           />
         )}
       </div>
+
+      {hasCombat && combat && !combatStarted && (
+        <div className="choices combat-start-choices">
+          <button
+            type="button"
+            className="choice selected"
+            onClick={() => {
+              audio.click();
+              setCombatStarted(true);
+            }}
+          >
+            1. НАЧАТЬ БОЙ
+          </button>
+        </div>
+      )}
 
       {!hasCombat && scene.shop && scene.shop.length > 0 && (
         <ShopPanel game={game} state={state} offers={scene.shop} onBuy={onBuy} />
