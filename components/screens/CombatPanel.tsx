@@ -21,7 +21,8 @@ type CombatSetup = {
 };
 
 const ALIASES: Record<string, string> = { automatic: 'submachine' };
-const DICE_ROLL_MS = 1500;
+const DICE_ROLL_MS = 2000;
+const DICE_RANDOM_MS = 1500;
 const FISTS = 'fists';
 
 function rollDamage(formula: string): DamageRoll {
@@ -52,11 +53,6 @@ function rollLabel(roll: DamageRoll): string {
   return `${rollExpression(roll)} = ${roll.total}`;
 }
 
-function diceCount(formula: string): number {
-  const match = /^(\d+)d/i.exec(formula.trim());
-  return Math.max(1, Number(match?.[1] ?? 1));
-}
-
 function applyDamage(enemies: number[], damage: number): { next: number[]; killed: number } {
   let remaining = damage;
   let killed = 0;
@@ -69,6 +65,29 @@ function applyDamage(enemies: number[], damage: number): { next: number[]; kille
     if (next[i] <= 0) killed += 1;
   }
   return { next, killed };
+}
+
+const DIE_PIPS: Record<number, number[]> = {
+  1: [5],
+  2: [1, 9],
+  3: [1, 5, 9],
+  4: [1, 3, 7, 9],
+  5: [1, 3, 5, 7, 9],
+  6: [1, 3, 4, 6, 7, 9],
+};
+
+function DieFace({ value }: { value: number }) {
+  const active = DIE_PIPS[value] ?? [];
+  return (
+    <span className="combat-die-face" role="img" aria-label={`${value}`}>
+      {Array.from({ length: 9 }, (_, index) => (
+        <span
+          key={index}
+          className={`combat-die-pip${active.includes(index + 1) ? ' on' : ''}`}
+        />
+      ))}
+    </span>
+  );
 }
 
 export default function CombatPanel({
@@ -130,6 +149,8 @@ export default function CombatPanel({
   const [log, setLog] = useState<string[]>(setup.log);
   const [selectedChoice, setSelectedChoice] = useState(0);
   const timer = useRef<number | null>(null);
+  const faceTimer = useRef<number | null>(null);
+  const diceInterval = useRef<number | null>(null);
   const logRef = useRef<HTMLDivElement | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
 
@@ -138,6 +159,8 @@ export default function CombatPanel({
 
   useEffect(() => () => {
     if (timer.current !== null) window.clearTimeout(timer.current);
+    if (faceTimer.current !== null) window.clearTimeout(faceTimer.current);
+    if (diceInterval.current !== null) window.clearInterval(diceInterval.current);
   }, []);
 
   useEffect(() => {
@@ -149,14 +172,6 @@ export default function CombatPanel({
     });
     return () => window.cancelAnimationFrame(frame);
   }, [log, phase]);
-
-  useEffect(() => {
-    if (phase !== 'rolling' || diceFaces.length === 0) return;
-    const interval = window.setInterval(() => {
-      setDiceFaces((faces) => faces.map(() => 1 + Math.floor(Math.random() * 6)));
-    }, 70);
-    return () => window.clearInterval(interval);
-  }, [phase, diceFaces.length]);
 
   useEffect(() => {
     setSelectedChoice(0);
@@ -237,12 +252,32 @@ export default function CombatPanel({
     const weaponRoll = rollDamage(selectedDamage);
     const bonusRoll = combat.bonusDamage ? rollDamage(combat.bonusDamage) : null;
     const total = weaponRoll.total + (bonusRoll?.total ?? 0);
-    const faces = diceCount(selectedDamage) + (combat.bonusDamage ? diceCount(combat.bonusDamage) : 0);
-    setDiceFaces(Array.from({ length: faces }, () => 1 + Math.floor(Math.random() * 6)));
+    const finalFaces = [...weaponRoll.rolls, ...(bonusRoll?.rolls ?? [])];
+    const randomFace = () => 1 + Math.floor(Math.random() * 6);
+    setDiceFaces(Array.from({ length: finalFaces.length }, randomFace));
+    diceInterval.current = window.setInterval(() => {
+      setDiceFaces(Array.from({ length: finalFaces.length }, randomFace));
+    }, 80);
+    faceTimer.current = window.setTimeout(() => {
+      setDiceFaces(finalFaces);
+      if (diceInterval.current !== null) {
+        window.clearInterval(diceInterval.current);
+        diceInterval.current = null;
+      }
+      faceTimer.current = null;
+    }, DICE_RANDOM_MS);
     setRoll({ ...weaponRoll, total });
     setPhase('rolling');
     audio.click();
     timer.current = window.setTimeout(() => {
+      if (faceTimer.current !== null) {
+        window.clearTimeout(faceTimer.current);
+        faceTimer.current = null;
+      }
+      if (diceInterval.current !== null) {
+        window.clearInterval(diceInterval.current);
+        diceInterval.current = null;
+      }
       const expression = `${rollExpression(weaponRoll)}${bonusRoll ? ` + ${rollExpression(bonusRoll)}` : ''} = ${total}`;
       if (combat.threshold) {
         if (total >= combat.threshold) {
@@ -417,7 +452,7 @@ export default function CombatPanel({
           <span>БРОСОК {diceFaces.length}d6:</span>
           <span className="combat-dice-faces">
             {diceFaces.map((face, index) => (
-              <span className="combat-die-face" key={index}>{face}</span>
+              <DieFace value={face} key={index} />
             ))}
           </span>
         </div>

@@ -1376,14 +1376,28 @@ body {
 }
 .combat-dice-faces { display: inline-flex; gap: 5px; }
 .combat-die-face {
-  display: inline-flex;
-  min-width: 28px;
-  justify-content: center;
-  padding: 0 6px;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 2px;
+  padding: 5px;
   border: 1px solid rgba(255, 176, 0, 0.55);
   background: rgba(255, 176, 0, 0.08);
-  font-size: 17px;
-  animation: combat-dice-tick 90ms linear infinite alternate;
+  animation: combat-dice-tick 180ms linear infinite alternate;
+}
+.combat-die-pip {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  align-self: center;
+  justify-self: center;
+  background: transparent;
+}
+.combat-die-pip.on {
+  background: #ffd27a;
+  box-shadow: 0 0 5px rgba(255, 210, 122, 0.65);
 }
 @keyframes combat-dice-tick {
   from { transform: translateY(-1px) rotate(-2deg); }
