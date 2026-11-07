@@ -101,6 +101,31 @@ export default function Page() {
     };
   }, [sound, music, soundVolume, musicVolume]);
 
+  // уход из приложения: свернуть вкладку, закрыть её или перейти на другой адрес —
+  // гул и музыка должны замолчать; при возврате включаем их по настройкам
+  useEffect(() => {
+    const pause = () => audio.pauseAll();
+    const resume = () => {
+      if (document.visibilityState === 'visible') audio.resumeAll();
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') pause();
+      else resume();
+    };
+    const onPageHide = () => pause();
+
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('pagehide', onPageHide);
+    window.addEventListener('pageshow', resume);
+    window.addEventListener('beforeunload', onPageHide);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('pagehide', onPageHide);
+      window.removeEventListener('pageshow', resume);
+      window.removeEventListener('beforeunload', onPageHide);
+    };
+  }, []);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {

@@ -5,6 +5,7 @@ type Ctx = AudioContext;
 class AudioEngine {
   private ctx: Ctx | null = null;
   private humGain: GainNode | null = null;
+  private humOsc: OscillatorNode | null = null;
   private enabled = true;
   private music: HTMLAudioElement | null = null;
   /** все живые аудиоэлементы: гарантия, что играет ровно один трек */
@@ -172,6 +173,41 @@ class AudioEngine {
     }
   }
 
+  /**
+   * Пауза всего звука при уходе из приложения: трек не выбрасывается,
+   * чтобы после возврата продолжить с того же места.
+   */
+  pauseAll(): void {
+    this.clearFade();
+    for (const track of this.tracks) {
+      try {
+        track.pause();
+      } catch {
+        // трек мог быть уже выгружен
+      }
+    }
+    this.stopHum();
+    void this.ctx?.suspend().catch(() => {});
+  }
+
+  /** Возврат в приложение: гул и текущий трек включаются по настройкам. */
+  resumeAll(): void {
+    if (!this.ctx) return;
+    void this.ctx.resume().catch(() => {});
+    if (this.enabled) this.startHum();
+    if (!this.musicEnabled) return;
+    if (this.music) {
+      this.music.volume = this.currentMusicVolume();
+      void this.music.play().catch(() => {});
+      return;
+    }
+    if (this.pendingMusic) {
+      const url = this.pendingMusic;
+      this.pendingMusic = null;
+      this.playMusic(url, 0.4);
+    }
+  }
+
   stopMusic(): void {
     this.musicUrl = null;
     this.pendingMusic = null;
@@ -191,12 +227,20 @@ class AudioEngine {
     gain.gain.value = this.enabled ? 0.015 * this.soundVolume : 0;
     osc.connect(gain).connect(ctx.destination);
     osc.start();
+    this.humOsc = osc;
     this.humGain = gain;
   }
 
   private stopHum(): void {
     this.humGain?.disconnect();
     this.humGain = null;
+    try {
+      this.humOsc?.stop();
+    } catch {
+      // осциллятор мог быть уже остановлен
+    }
+    this.humOsc?.disconnect();
+    this.humOsc = null;
   }
 
   click(): void {
