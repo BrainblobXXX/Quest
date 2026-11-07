@@ -84,6 +84,16 @@ export type CombatDef = {
   win: string;
   lose?: string;
   note?: string;
+  /** урон, который уже случился перед боем (граната/первый залп) */
+  preDamage?: string;
+  /** если задано, preDamage применяется только после этих сцен */
+  preDamageFrom?: string[];
+  /** фиксированная потеря Выносливости до боя */
+  preStamina?: number;
+  /** особый бой: нужно нанести не меньше порога за раунд */
+  threshold?: number;
+  /** дополнительный бросок к урону (пистолет Эми у Конга) */
+  bonusDamage?: string;
 };
 
 export type Game = {

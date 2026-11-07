@@ -408,6 +408,13 @@ export function parsePackage(
             win,
             lose: item.lose ? String(item.lose) : undefined,
             note: item.note ? String(item.note) : undefined,
+            preDamage: item.preDamage ? String(item.preDamage) : undefined,
+            preDamageFrom: Array.isArray(item.preDamageFrom)
+              ? item.preDamageFrom.map(String)
+              : undefined,
+            preStamina: item.preStamina === undefined ? undefined : Number(item.preStamina),
+            threshold: item.threshold === undefined ? undefined : Number(item.threshold),
+            bonusDamage: item.bonusDamage ? String(item.bonusDamage) : undefined,
           };
         }
       }

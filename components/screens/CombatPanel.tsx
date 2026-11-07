@@ -13,6 +13,13 @@ type DamageRoll = {
   total: number;
 };
 
+type CombatSetup = {
+  enemies: number[];
+  stamina: number;
+  log: string[];
+  phase: Phase;
+};
+
 const ALIASES: Record<string, string> = { automatic: 'submachine' };
 const FISTS = 'fists';
 
@@ -34,10 +41,14 @@ function rollDamage(formula: string): DamageRoll {
   };
 }
 
-function rollLabel(roll: DamageRoll): string {
+function rollExpression(roll: DamageRoll): string {
   const parts = roll.rolls.map(String);
   const bonus = roll.bonus === 0 ? '' : roll.bonus > 0 ? ` + ${roll.bonus}` : ` − ${Math.abs(roll.bonus)}`;
-  return `${parts.join(' + ')}${bonus} = ${roll.total}`;
+  return `${parts.join(' + ')}${bonus}`;
+}
+
+function rollLabel(roll: DamageRoll): string {
+  return `${rollExpression(roll)} = ${roll.total}`;
 }
 
 function applyDamage(enemies: number[], damage: number): { next: number[]; killed: number } {
@@ -76,18 +87,38 @@ export default function CombatPanel({
   const initialStamina = Number(state.stats[staminaId] ?? staminaInitial);
   const initialInventory = state.inventory;
 
-  const [enemies, setEnemies] = useState<number[]>(() => Array.from({ length: count }, () => enemy.health));
+  const [setup] = useState<CombatSetup>(() => {
+    const previous = state.visited.length > 1 ? state.visited[state.visited.length - 2] : null;
+    const preDamageAllowed =
+      !combat.preDamageFrom || (previous !== null && combat.preDamageFrom.includes(previous));
+    const next = Array.from({ length: count }, () => enemy.health);
+    const lines = [`ВСТРЕЧА: ${enemy.name.toUpperCase()} × ${count}`];
+    if (combat.preDamage && preDamageAllowed) {
+      const prepared = rollDamage(combat.preDamage);
+      const damage = applyDamage(next, prepared.total);
+      next.splice(0, next.length, ...damage.next);
+      lines.push(`ДО БОЯ: ${rollLabel(prepared)}. Убито ${damage.killed}.`);
+    }
+    let currentStamina = initialStamina;
+    if (combat.preStamina !== undefined) {
+      currentStamina = Math.max(0, currentStamina - Math.max(0, Number(combat.preStamina)));
+      lines.push(`ДО БОЯ: −${combat.preStamina} Выносливости.`);
+    }
+    let initialPhase: Phase = 'loadout';
+    if (next.every((hp) => hp <= 0)) initialPhase = 'victory';
+    else if (currentStamina <= 0) initialPhase = 'defeat';
+    return { enemies: next, stamina: currentStamina, log: lines, phase: initialPhase };
+  });
+  const [enemies, setEnemies] = useState<number[]>(setup.enemies);
   const [inventory, setInventory] = useState<Record<string, number>>(() => ({ ...initialInventory }));
-  const [stamina, setStamina] = useState(initialStamina);
-  const [phase, setPhase] = useState<Phase>('loadout');
+  const [stamina, setStamina] = useState(setup.stamina);
+  const [phase, setPhase] = useState<Phase>(setup.phase);
   const [round, setRound] = useState(1);
   const [selectedWeapon, setSelectedWeapon] = useState<string>(FISTS);
   const [weaponPicked, setWeaponPicked] = useState(false);
   const [grenadeUsed, setGrenadeUsed] = useState(false);
   const [roll, setRoll] = useState<DamageRoll | null>(null);
-  const [log, setLog] = useState<string[]>([
-    `ВСТРЕЧА: ${enemy.name.toUpperCase()} × ${count}`,
-  ]);
+  const [log, setLog] = useState<string[]>(setup.log);
   const timer = useRef<number | null>(null);
 
   useEffect(() => () => {
@@ -95,6 +126,8 @@ export default function CombatPanel({
   }, []);
 
   const alive = enemies.filter((hp) => hp > 0).length;
+  const initialAlive = setup.enemies.filter((hp) => hp > 0).length;
+  const enemyTotal = Math.max(1, initialAlive);
   const aliasedWeapons = (combat.weapon ?? []).map((id) => ALIASES[id] ?? id);
   const weaponOptions = [...new Set(aliasedWeapons)]
     .filter((id) => id !== 'grenade')
@@ -144,20 +177,48 @@ export default function CombatPanel({
 
   const attack = () => {
     if (phase !== 'round') return;
-    const result = rollDamage(selectedDamage);
-    setRoll(result);
+    const weaponRoll = rollDamage(selectedDamage);
+    const bonusRoll = combat.bonusDamage ? rollDamage(combat.bonusDamage) : null;
+    const total = weaponRoll.total + (bonusRoll?.total ?? 0);
+    setRoll({ ...weaponRoll, total });
     setPhase('rolling');
     audio.click();
     timer.current = window.setTimeout(() => {
-      const before = alive;
-      const { next, killed } = applyDamage(enemies, result.total);
+      const expression = `${rollExpression(weaponRoll)}${bonusRoll ? ` + ${rollExpression(bonusRoll)}` : ''} = ${total}`;
+      if (combat.threshold) {
+        if (total >= combat.threshold) {
+          addLog(
+            `РАУНД ${round}: ${expression}. Порог ${combat.threshold} пройден.`,
+            'Зомби Конг уничтожен.',
+          );
+          setPhase('victory');
+          audio.beep();
+        } else {
+          const nextStamina = Math.max(0, stamina - enemy.attack);
+          setStamina(nextStamina);
+          addLog(
+            `РАУНД ${round}: ${expression}. Порог ${combat.threshold} не пройден.`,
+            `Ответ: −${enemy.attack} Выносливости.`,
+          );
+          if (nextStamina <= 0) setPhase('defeat');
+          else {
+            setRound((value) => value + 1);
+            setPhase('round');
+          }
+        }
+        setRoll(null);
+        timer.current = null;
+        return;
+      }
+
+      const { next, killed } = applyDamage(enemies, total);
       const after = next.filter((hp) => hp > 0).length;
       const retaliation = after * enemy.attack;
       const nextStamina = Math.max(0, stamina - retaliation);
       setEnemies(next);
       setStamina(nextStamina);
       addLog(
-        `РАУНД ${round}: ${rollLabel(result)} урона. Убито ${killed}.`,
+        `РАУНД ${round}: ${expression} урона. Убито ${killed}.`,
         after > 0
           ? `Осталось ${after}. Ответ: −${retaliation} Выносливости.`
           : 'Все противники уничтожены.',
@@ -218,16 +279,16 @@ export default function CombatPanel({
       window.clearTimeout(timer.current);
       timer.current = null;
     }
-    setEnemies(Array.from({ length: count }, () => enemy.health));
+    setEnemies(setup.enemies);
     setInventory({ ...initialInventory });
-    setStamina(initialStamina);
-    setPhase('loadout');
+    setStamina(setup.stamina);
+    setPhase(setup.phase);
     setRound(1);
     setSelectedWeapon(firstUsable);
     setWeaponPicked(false);
     setGrenadeUsed(false);
     setRoll(null);
-    setLog([`ВСТРЕЧА: ${enemy.name.toUpperCase()} × ${count}`]);
+    setLog(setup.log);
     audio.click();
   };
 
@@ -261,7 +322,7 @@ export default function CombatPanel({
   });
 
   const staminaPercent = Math.max(0, Math.min(100, (stamina / Math.max(1, staminaMax)) * 100));
-  const enemyPercent = Math.max(0, Math.min(100, (alive / Math.max(1, count)) * 100));
+  const enemyPercent = Math.max(0, Math.min(100, (alive / enemyTotal) * 100));
 
   return (
     <div className="combat-panel" role="region" aria-label={`Бой: ${enemy.name}`}>
@@ -273,7 +334,7 @@ export default function CombatPanel({
       <div className="combat-status">
         <div className="combat-row">
           <span>ВРАГИ</span>
-          <span className="combat-value">{alive} / {count}</span>
+          <span className="combat-value">{alive} / {enemyTotal}</span>
         </div>
         <div className="combat-bar combat-bar-enemy">
           <span style={{ width: `${enemyPercent}%` }} />
@@ -285,6 +346,12 @@ export default function CombatPanel({
         <div className="combat-bar combat-bar-stamina">
           <span style={{ width: `${staminaPercent}%` }} />
         </div>
+        {combat.threshold !== undefined && (
+          <div className="combat-row">
+            <span>ПОРОГ УРОНА</span>
+            <span className="combat-value">{combat.threshold}{combat.bonusDamage ? ` · ЭМИ +${combat.bonusDamage}` : ''}</span>
+          </div>
+        )}
       </div>
 
       {phase === 'loadout' && (
@@ -369,6 +436,7 @@ export default function CombatPanel({
       {phase === 'defeat' && (
         <div className="combat-result combat-defeat" aria-live="polite">
           <strong>ВЫ ПОГИБЛИ</strong>
+          <span>Выносливость 0 — приключение окончено.</span>
           <div className="combat-secondary-actions">
             <button type="button" className="combat-action combat-primary" onClick={retry}>
               ПОПРОБОВАТЬ СНОВА
