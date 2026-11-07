@@ -7,6 +7,7 @@ import Loading from '@/components/screens/Loading';
 import Library from '@/components/screens/Library';
 import Settings from '@/components/screens/Settings';
 import GameScreen from '@/components/screens/GameScreen';
+import InitialRoll from '@/components/screens/InitialRoll';
 import ErrorScreen from '@/components/screens/ErrorScreen';
 import { audio } from '@/lib/audio';
 import { trackFor } from '@/lib/music';
@@ -22,16 +23,37 @@ function repairSceneItems(game: Game, state: GameState): GameState {
   const requiredByScene: Record<string, Record<string, number>> = {
     '178': { short_rope: 1 },
     '291': { baseball_bat: 1 },
-    '222': { medkit: 1 },
+    '44': { pistol: 1, ammo: 1 },
+    '92': { pistol: 1, ammo: 1 },
+    '105': { submachine: 1, ammo: 1 },
+    '136': { pistol: 1 },
+    '222': { medkit: 1, pistol: 1 },
     '235': { medkit: 1, ammo: 2 },
-    '162': { medkit: 2, ammo: 12 },
-    '181': { ammo: 5 },
-    '213': { ammo: 6 },
-    '304': { ammo: 6 },
+    '293': { grenade: 1 },
+    '302': { grenade: 3 },
+    '373': { axe: 1 },
+    '162': { medkit: 2, ammo: 6, shotgun_ammo: 6 },
+    '181': { ammo: 2, shotgun_ammo: 3 },
+    '213': { ammo: 3, shotgun_ammo: 3 },
+    '236': { shotgun_ammo: 1 },
+    '304': { ammo: 2, shotgun_ammo: 4 },
   };
-  const required = requiredByScene[state.scene] ?? {};
+  /** Старые сейвы складывали обычные и дробовые патроны в один счётчик. */
+  const legacySplit: Record<string, number> = { '162': 6, '181': 3, '213': 3, '236': 1, '304': 4 };
   const inventory = { ...state.inventory };
   let changed = false;
+  const split = legacySplit[state.scene];
+  if (split && (inventory.shotgun_ammo ?? 0) === 0) {
+    const currentAmmo = inventory.ammo ?? 0;
+    const moved = Math.min(split, currentAmmo);
+    if (moved > 0) {
+      inventory.shotgun_ammo = moved;
+      if (currentAmmo > moved) inventory.ammo = currentAmmo - moved;
+      else delete inventory.ammo;
+      changed = true;
+    }
+  }
+  const required = requiredByScene[state.scene] ?? {};
   for (const [id, count] of Object.entries(required)) {
     if ((inventory[id] ?? 0) < count) {
       inventory[id] = count;
@@ -39,6 +61,14 @@ function repairSceneItems(game: Game, state: GameState): GameState {
     }
   }
   return changed ? { ...state, inventory } : state;
+}
+
+/** статус со стартовым броском (ZombieBlood: Выносливость 2d6+20) */
+function initialRollStat(game: Game): string | null {
+  for (const [id, def] of Object.entries(game.stats ?? {})) {
+    if (def.roll) return id;
+  }
+  return null;
 }
 
 /** минимум, сколько видна загрузка: иначе на быстром диске она мелькает одним кадром */
@@ -73,6 +103,7 @@ export default function Page() {
   const [musicVolume, setMusicVolume] = useState(0.7);
   const [error, setError] = useState<string | null>(null);
   const [confirmRestart, setConfirmRestart] = useState(false);
+  const [initialRoll, setInitialRoll] = useState<string | null>(null);
   const audioStarted = useRef(false);
   const refreshSavesRef = useRef<() => void>(() => {});
   const cancelLoadingRef = useRef<() => void>(() => {});
@@ -183,11 +214,15 @@ export default function Page() {
   // музыка по настроению сцены
   useEffect(() => {
     if (!game || !state) return;
+    if (initialRoll) {
+      audio.stopMusic();
+      return;
+    }
     const scene = game.scenes[state.scene];
     if (!scene) return;
     const track = trackFor(game, scene);
     if (track) audio.playMusic(`/api/games/${game.id}/${track}`);
-  }, [game, state]);
+  }, [game, state, initialRoll]);
 
   const startGame = useCallback(
     async (id: string) => {
@@ -221,7 +256,9 @@ export default function Page() {
           save.game === g.id &&
           (!g.rev || save.rev === g.rev) &&
           g.scenes[save.scene];
+        const fresh = !valid;
         const next = repairSceneItems(g, valid ? save : newState(g));
+        const rollStat = fresh ? initialRollStat(g) : null;
 
         // последние проценты и число сцен: экран успевает показать «READY»
         setLoading((current) =>
@@ -245,8 +282,9 @@ export default function Page() {
         audio.beep();
         setGame(g);
         setState(next);
+        setInitialRoll(rollStat);
         setScreen('game');
-        saveState(next);
+        if (!rollStat) saveState(next);
       } catch (e: unknown) {
         if (loadToken.current !== token) return;
         setLoading(null);
@@ -352,13 +390,30 @@ export default function Page() {
     if (loadToken.current !== token) return;
 
     const next = newState(game);
+    const rollStat = initialRollStat(game);
     audio.stopMusic();
     audio.beep();
     setState(next);
-    saveState(next);
+    setInitialRoll(rollStat);
+    if (!rollStat) saveState(next);
     setLoading(null);
     setScreen('game');
   }, [game]);
+
+  const handleInitialRollDone = useCallback(
+    (value: number) => {
+      if (!game || !state || !initialRoll) return;
+      const next: GameState = {
+        ...state,
+        stats: { ...state.stats, [initialRoll]: value },
+        initialStats: { ...(state.initialStats ?? state.stats), [initialRoll]: value },
+      };
+      setState(next);
+      saveState(next);
+      setInitialRoll(null);
+    },
+    [game, state, initialRoll],
+  );
 
   const handlePower = useCallback(() => {
     if (!game || !state) return;
@@ -484,7 +539,11 @@ export default function Page() {
         />
       )}
 
-      {screen === 'game' && game && state && (
+      {screen === 'game' && initialRoll && game && state && (
+        <InitialRoll game={game} statId={initialRoll} onDone={handleInitialRollDone} />
+      )}
+
+      {screen === 'game' && game && state && !initialRoll && (
         <GameScreen
           game={game}
           state={state}

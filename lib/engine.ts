@@ -14,6 +14,7 @@ export function newState(game: Game): GameState {
     inventory: { ...(game.startItems ?? {}) },
     flags: [],
     stats,
+    initialStats: { ...stats },
     visited: [game.start],
     updated: new Date().toISOString(),
   };
@@ -162,6 +163,7 @@ function applyOnEnter(game: Game, state: GameState, scene?: Scene): GameState {
   let stats = state.stats;
   let flags = state.flags;
   for (const effect of scene.onEnter) {
+    if (effect.if && !evalCond(effect.if, state)) continue;
     addItems(inventory, effect.take);
     dropItems(inventory, effect.drop);
     flags = addFlags(flags, effect.set);

@@ -248,13 +248,14 @@
 
 ## Треки
 
-| Настроение | Файл | Готов |
+| Настроение | Файл | Статус |
 |---|---|---|
-| calm | — | нет, план |
-| tense | — | нет, план |
-| danger | — | нет, план |
-| victory | — | нет, план |
-| mystery | — | нет, план |
-| grief | — | нет, план |
+| calm | `music/Kupala - calm.mp3` | да |
+| tense | `music/Kupala - tense.mp3` | да |
+| danger | `music/Kupala - danger.mp3` | да |
+| mystery | `music/Kupala - mystery.mp3` | да |
+| victory | `music/Kupala - calm.mp3` | fallback: отдельного трека нет |
+| grief | `music/Kupala - tense.mp3` | fallback: отдельного трека нет |
 
-Все шесть настроений объявлены в `game.yaml` как `null`: музыка пока не написана, сцена продолжает текущий трек. Смена настроения — ориентир для композитора, а не обязательный трек на каждую сцену.
+Приоритет: `scene.music` → `moods[mood]` → `moods[default_mood]` → тишина.
+Файлы лежат в `music/`; fallback-настроения используют ближайший по настроению трек.

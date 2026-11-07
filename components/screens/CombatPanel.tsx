@@ -110,7 +110,9 @@ export default function CombatPanel({
   const staminaId = 'stamina';
   const staminaDef = game.stats?.[staminaId];
   const staminaMax = Number(staminaDef?.max ?? 32);
-  const staminaInitial = Number(staminaDef?.initial ?? state.stats[staminaId] ?? 20);
+  const staminaInitial = Number(
+    state.initialStats?.[staminaId] ?? staminaDef?.initial ?? state.stats[staminaId] ?? 20,
+  );
   const initialStamina = Number(state.stats[staminaId] ?? staminaInitial);
   const initialInventory = state.inventory;
 
@@ -377,8 +379,12 @@ export default function CombatPanel({
   };
 
   const onKey = (event: KeyboardEvent) => {
+    if (document.querySelector('.rules-modal')) return;
     const buttons = choiceButtons();
-    if (buttons.length === 0) return;
+    if (buttons.length === 0) {
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') event.preventDefault();
+      return;
+    }
     const active = document.activeElement;
     const focusedChoice =
       active instanceof HTMLElement && Boolean(active.closest('.combat-choices'));

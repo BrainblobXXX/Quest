@@ -83,7 +83,7 @@ function StatsPanel({ stats }: { stats: StatView[] }) {
   );
 }
 
-function HeaderIcon({ kind }: { kind: 'inventory' | 'stats' | 'raw' }) {
+function HeaderIcon({ kind }: { kind: 'inventory' | 'stats' | 'raw' | 'rules' }) {
   return (
     <svg
       className="btn-icon"
@@ -117,6 +117,13 @@ function HeaderIcon({ kind }: { kind: 'inventory' | 'stats' | 'raw' }) {
           <path d="m15 7 5 5-5 5" />
         </>
       )}
+      {kind === 'rules' && (
+        <>
+          <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5v-15Z" />
+          <path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5" />
+          <path d="M8 7h8M8 10h5" />
+        </>
+      )}
     </svg>
   );
 }
@@ -147,6 +154,8 @@ export default function GameScreen({
   const hasCombat = Boolean(combat?.enemy.count && combat.enemy.count > 0);
   const [combatStarted, setCombatStarted] = useState(false);
   const combatActive = hasCombat && combatStarted;
+  const [rulesOpen, setRulesOpen] = useState(false);
+  const rulesScene = game.scenes.rules;
   const [invOpen, setInvOpen] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
   const [rawOpen, setRawOpen] = useState(false);
@@ -285,6 +294,7 @@ export default function GameScreen({
     setStatsOpen(false);
     setRawOpen(false);
     setZoom(false);
+    setRulesOpen(false);
   }, [scene.key]);
 
   // лайтбокс: Esc и клик по фону закрывают, и Esc не уводит в библиотеку
@@ -299,6 +309,23 @@ export default function GameScreen({
     window.addEventListener('keydown', onKey, true);
     return () => window.removeEventListener('keydown', onKey, true);
   }, [zoom]);
+
+  useEffect(() => {
+    if (!rulesOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        return;
+      }
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        setRulesOpen(false);
+      }
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [rulesOpen]);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -343,6 +370,7 @@ export default function GameScreen({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (rulesOpen) return;
       if (hasCombat && combatStarted) return;
       // PageUp/PageDown листают текст сцены, как колесо мыши
       if (e.key === 'PageDown' || e.key === 'PageUp') {
@@ -355,6 +383,10 @@ export default function GameScreen({
       }
 
       if (hasCombat && !combatStarted) {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          return;
+        }
         if (e.key === 'Enter' || e.key === ' ' || e.key === '1') {
           const active = document.activeElement;
           const onButton = active instanceof HTMLElement && active.tagName === 'BUTTON';
@@ -366,14 +398,12 @@ export default function GameScreen({
         return;
       }
 
-      if (e.key === 'Escape' || rollView) return;
-
-      // сколько пунктов можно выбрать: варианты, «далее», бросок или рестарт
-      const items = ending ? 1 : choices.length > 0 ? choices.length : dice || hasNext ? 1 : 0;
-      if (!items) return;
-
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        // стрелки — только для выбора вариантов, не для прокрутки рассказа
         e.preventDefault();
+        if (rollView) return;
+        const items = ending ? 1 : choices.length > 0 ? choices.length : dice || hasNext ? 1 : 0;
+        if (!items) return;
         const step = e.key === 'ArrowDown' ? 1 : -1;
         setSelection((prev) => {
           const current = prev.scene === scene.key ? prev.index : -1;
@@ -382,6 +412,12 @@ export default function GameScreen({
         });
         return;
       }
+
+      if (e.key === 'Escape' || rollView) return;
+
+      // сколько пунктов можно выбрать: варианты, «далее», бросок или рестарт
+      const items = ending ? 1 : choices.length > 0 ? choices.length : dice || hasNext ? 1 : 0;
+      if (!items) return;
 
       // на кнопке в фокусе Enter должен сработать как обычный клик
       const active = document.activeElement;
@@ -412,7 +448,7 @@ export default function GameScreen({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [choices, ending, hasCombat, combatStarted, hasNext, onChoose, onAdvance, onRestart, dice, rollView, scene.key, selected, startRoll]);
+  }, [choices, ending, hasCombat, combatStarted, hasNext, onChoose, onAdvance, onRestart, dice, rollView, rulesOpen, scene.key, selected, startRoll]);
 
   /** подсветка на время нажатия: подтверждение — только по отпусканию */
   const pressHandlers = (key: string) => {
@@ -430,6 +466,19 @@ export default function GameScreen({
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div className="title-line">
         <span>{scene.title.toUpperCase()}</span>
+        {rulesScene && (
+          <button
+            type="button"
+            className={`rules-btn${rulesOpen ? ' on' : ''}`}
+            onClick={() => setRulesOpen((value) => !value)}
+            aria-expanded={rulesOpen}
+            aria-controls="rules-panel"
+            aria-label="Открыть правила книги"
+            title="Правила книги"
+          >
+            <HeaderIcon kind="rules" />
+          </button>
+        )}
         <button
           type="button"
           className={`raw-btn${rawOpen ? ' on' : ''}`}
@@ -644,6 +693,33 @@ export default function GameScreen({
       )}
         </>
       )}
+
+      {rulesOpen && rulesScene && typeof document !== 'undefined' &&
+        createPortal(
+          <div
+            className="rules-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Правила книги"
+            onClick={() => setRulesOpen(false)}
+          >
+            <div className="rules-dialog" onClick={(event) => event.stopPropagation()}>
+              <div className="rules-head">
+                <span>{rulesScene.title.toUpperCase()}</span>
+                <button
+                  type="button"
+                  className="rules-close"
+                  onClick={() => setRulesOpen(false)}
+                  aria-label="Закрыть правила"
+                >
+                  ЗАКРЫТЬ
+                </button>
+              </div>
+              <div className="rules-body">{rulesScene.text}</div>
+            </div>
+          </div>,
+          document.body,
+        )}
 
       {zoom &&
         scene.image &&

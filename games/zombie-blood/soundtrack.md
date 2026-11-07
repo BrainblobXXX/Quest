@@ -425,14 +425,14 @@
 
 ## Треки
 
-| Настроение | Файл | Готов |
+| Настроение | Файл | Статус |
 |---|---|---|
-| calm | — | нет, план |
-| tense | — | нет, план |
-| danger | — | нет, план |
-| victory | — | нет, план |
-| mystery | — | нет, план |
-| grief | — | нет, план |
+| calm | `music/bloodzombies - calm.mp3` | да |
+| tense | `music/bloodzombies - tense.mp3` | да |
+| danger | `music/bloodzombies - danger.mp3` | да |
+| victory | `music/bloodzombies - calm.mp3` | fallback: отдельного трека нет |
+| mystery | `music/bloodzombies - tense.mp3` | fallback: отдельного трека нет |
+| grief | `music/bloodzombies - calm.mp3` | fallback: отдельного трека нет |
 
-Приоритет воспроизведения: `scene.music` → `moods[mood]` → `moods[default_mood]` → тишина.
-Пока не готов ни один трек, музыка не играет; `default_mood` не задан намеренно.
+Приоритет: `scene.music` → `moods[mood]` → `moods[default_mood]` → тишина.
+Файлы лежат в `music/`; fallback-настроения используют ближайший по настроению трек.

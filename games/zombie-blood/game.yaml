@@ -15,18 +15,18 @@ annotation: Безумный мегаломаньяк Гингрич Юрр го
 language: ru
 source: Книга-игра Кровь зомби.pdf
 cover: assets/cover.jpg
-start: rules
+start: prolog
 story: story.md
 stats: stats.yaml
 items: items.yaml
 mechanics: mechanics.yaml
 moods:
-  calm: null
-  tense: null
-  danger: null
-  victory: null
-  mystery: null
-  grief: null
+  calm: "music/bloodzombies - calm.mp3"
+  tense: "music/bloodzombies - tense.mp3"
+  danger: "music/bloodzombies - danger.mp3"
+  victory: "music/bloodzombies - calm.mp3"
+  mystery: "music/bloodzombies - tense.mp3"
+  grief: "music/bloodzombies - calm.mp3"
 scenes:
   rules:
     title: Введение и правила боя
@@ -848,6 +848,8 @@ scenes:
   "136":
     title: Параграф 136
     mood: danger
+    on_enter:
+      - take: {pistol: 1}
     variants:
       А: "152"
       Б: "210"
@@ -1003,7 +1005,7 @@ scenes:
     mood: calm
     on_enter:
       - take: {medkit: 2}
-      - take: {ammo: 12}
+      - take: {ammo: 6, shotgun_ammo: 6}
     variants:
       А: "30"
       Б: "119"
@@ -1114,7 +1116,7 @@ scenes:
     mood: danger
     on_enter:
       - stat: {money: +44}
-      - take: {ammo: 5}
+      - take: {ammo: 2, shotgun_ammo: 3}
       - take: [grenade]
     next: "160"
   "182":
@@ -1312,7 +1314,7 @@ scenes:
     mood: calm
     on_enter:
       - stat: {money: +15}
-      - take: {ammo: 6}
+      - take: {ammo: 3, shotgun_ammo: 3}
     next: "388"
   "214":
     title: Параграф 214
@@ -1362,6 +1364,8 @@ scenes:
     mood: calm
     on_enter:
       - take: {medkit: 1}
+      - if: not has_item pistol
+        take: {pistol: 1}
     variants:
       А: "303"
       Б: "258"
@@ -1446,7 +1450,7 @@ scenes:
     mood: calm
     on_enter:
       - take: [sawed_off]
-      - take: [ammo]
+      - take: {shotgun_ammo: 1}
     next: "369"
   "237":
     title: Параграф 237
@@ -1763,6 +1767,8 @@ scenes:
   "293":
     title: Параграф 293
     mood: danger
+    on_enter:
+      - take: {grenade: 1}
     variants:
       А: "281"
       Б: "81"
@@ -1808,6 +1814,8 @@ scenes:
   "302":
     title: Параграф 302
     mood: calm
+    on_enter:
+      - take: {grenade: 3}
     next: "271"
   "303":
     title: Параграф 303
@@ -1818,7 +1826,7 @@ scenes:
     mood: calm
     on_enter:
       - take: [shotgun]
-      - take: {ammo: 6}
+      - take: {ammo: 2, shotgun_ammo: 4}
     variants:
       А: "223"
       Б: "113"
@@ -2223,6 +2231,8 @@ scenes:
   "373":
     title: Параграф 373
     mood: calm
+    on_enter:
+      - take: {axe: 1}
     variants:
       А: "47"
       Б: "240"

@@ -499,6 +499,28 @@ export function parsePackage(
             });
           }
         }
+        for (const match of effect.if?.match(/has_item\s+([a-z0-9_]+)/gi) ?? []) {
+          const itemId = match.split(/\s+/)[1];
+          if (!items[itemId]) {
+            problems.push({
+              level: 'error',
+              code: 'E_COND_UNKNOWN_ID',
+              message: `on_enter.if ссылается на необъявленный предмет «${itemId}»`,
+              scene: key,
+            });
+          }
+        }
+        for (const match of effect.if?.match(/\bflag\s+([a-z0-9_]+)/gi) ?? []) {
+          const flagId = match.split(/\s+/)[1];
+          if (!flags.includes(flagId)) {
+            problems.push({
+              level: 'error',
+              code: 'E_COND_UNKNOWN_ID',
+              message: `on_enter.if ссылается на необъявленный флаг «${flagId}»`,
+              scene: key,
+            });
+          }
+        }
         if (effect.stat) {
           for (const [statId, value] of Object.entries(effect.stat)) {
             if (!stats[statId]) {

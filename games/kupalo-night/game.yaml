@@ -12,12 +12,12 @@ cover: assets/cover.jpg
 story: story.md
 start: "1"
 moods:
-  calm: null
-  tense: null
-  danger: null
-  victory: null
-  mystery: null
-  grief: null
+  calm: "music/Kupala - calm.mp3"
+  tense: "music/Kupala - tense.mp3"
+  danger: "music/Kupala - danger.mp3"
+  victory: "music/Kupala - calm.mp3"
+  mystery: "music/Kupala - mystery.mp3"
+  grief: "music/Kupala - tense.mp3"
 scenes:
   "1":
     title: "Глава 1"

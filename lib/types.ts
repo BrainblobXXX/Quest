@@ -17,6 +17,8 @@ export type StatDef = {
   initial?: number;
   min?: number;
   max?: number;
+  /** стартовый бросок, который прибавляется к initial (например, `2d6`) */
+  roll?: string;
 };
 
 export type Choice = {
@@ -44,6 +46,8 @@ export type MoodTracks = string | string[] | null;
  * `stat` — изменить характеристики.
  */
 export type SceneEffect = {
+  /** условие применения эффекта (например, `not has_item pistol`) */
+  if?: string;
   take?: string | string[] | Record<string, number>;
   drop?: string | string[];
   set?: string | string[];
@@ -134,6 +138,8 @@ export type GameState = {
   inventory: Record<string, number>;
   flags: string[];
   stats: Record<string, number>;
+  /** стартовые значения после бросков (для лечения «до начального уровня») */
+  initialStats?: Record<string, number>;
   visited: string[];
   updated: string;
 };
