@@ -201,10 +201,10 @@ export function blockedChoices(game: Game, state: GameState): Choice[] {
 
 export function choose(game: Game, state: GameState, choice: Choice): GameState {
   const moved = applyMods(game, state, choice);
-  return goTo(game, moved, choice.goto);
+  return goToScene(game, moved, choice.goto);
 }
 
-function goTo(game: Game, state: GameState, key: string): GameState {
+export function goToScene(game: Game, state: GameState, key: string): GameState {
   const moved: GameState = {
     ...state,
     scene: key,
@@ -230,13 +230,13 @@ export function resolveRoll(game: Game, state: GameState, value: number): GameSt
   const outcome =
     scene.next.outcomes.find((o) => o.min !== undefined && value >= o.min) ??
     scene.next.outcomes[scene.next.outcomes.length - 1];
-  return goTo(game, state, outcome.goto);
+  return goToScene(game, state, outcome.goto);
 }
 
 export function advance(game: Game, state: GameState): GameState {
   const scene = sceneOf(game, state);
   if (!scene.next) throw new Error('E_NO_NEXT');
-  if (typeof scene.next === 'string') return goTo(game, state, scene.next);
+  if (typeof scene.next === 'string') return goToScene(game, state, scene.next);
   return resolveRoll(game, state, roll(scene.next.roll));
 }
 

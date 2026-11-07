@@ -1,14 +1,15 @@
-# Бои. Движок бой пока не ведёт: сцена остаётся текстом, а запись — заготовка.
+# Бои. Движок MVP ведёт раунды, если у боя заполнен count.
 # Параметры, которых книга не называет, взяты из правил во «Введении»:
 # у зомби 1 очко Выносливости, каждый выживший снимает 1 очко Выносливости за раунд.
-# count приведён только там, где число врагов названо в тексте сцены;
-# остальные записи отмечены в review.md (C_COMBAT_INCOMPLETE).
+# count заполнен у 31 сцены; для 17, 22, 158, 209, 256, 325, 357 и 375 нужен
+# отдельный аудит (динамика/особые правила), пока для них работает обычный переход.
 # lose в книге не указан: при нуле Выносливости приключение заканчивается.
 
 combat:
   - scene: "8"
     enemy:
       name: Зомби
+      count: 24
       attack: 1
       health: 1
     weapon: [knife, shotgun, automatic, grenade]
@@ -16,6 +17,7 @@ combat:
   - scene: "13"
     enemy:
       name: Существа
+      count: 2
       attack: 1
       health: 1
     weapon: [knife, shotgun, automatic, grenade]
@@ -46,6 +48,7 @@ combat:
   - scene: "53"
     enemy:
       name: Зомби
+      count: 6
       attack: 1
       health: 1
     weapon: [knife, shotgun, automatic, grenade]
@@ -61,6 +64,7 @@ combat:
   - scene: "74"
     enemy:
       name: Зомби
+      count: 24
       attack: 1
       health: 1
     weapon: [knife, shotgun, automatic, grenade]
@@ -68,6 +72,7 @@ combat:
   - scene: "89"
     enemy:
       name: Зомби
+      count: 1
       attack: 1
       health: 1
     weapon: [knife, shotgun, automatic, grenade]
@@ -83,13 +88,15 @@ combat:
   - scene: "117"
     enemy:
       name: Зомби
+      count: 1
       attack: 1
       health: 7
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: []
     win: "44"
   - scene: "122"
     enemy:
       name: Крысы
+      count: 2
       attack: 1
       health: 1
     weapon: [knife, shotgun, automatic, grenade]
@@ -113,6 +120,7 @@ combat:
   - scene: "151"
     enemy:
       name: Зомби
+      count: 24
       attack: 1
       health: 1
     weapon: [knife, shotgun, automatic, grenade]
@@ -127,6 +135,7 @@ combat:
   - scene: "168"
     enemy:
       name: Зомби
+      count: 2
       attack: 2
       health: 1
     weapon: [knife, shotgun, automatic, grenade]
@@ -205,6 +214,7 @@ combat:
   - scene: "303"
     enemy:
       name: Зомби
+      count: 2
       attack: 1
       health: 1
     weapon: [knife, shotgun, automatic, grenade]
@@ -212,6 +222,7 @@ combat:
   - scene: "318"
     enemy:
       name: Зомби
+      count: 2
       attack: 1
       health: 1
     weapon: [knife, shotgun, automatic, grenade]
@@ -258,6 +269,7 @@ combat:
   - scene: "363"
     enemy:
       name: Зомби
+      count: 2
       attack: 1
       health: 1
     weapon: [knife, shotgun, automatic, grenade]
@@ -265,6 +277,7 @@ combat:
   - scene: "367"
     enemy:
       name: Зомби
+      count: 7
       attack: 1
       health: 2
     weapon: [knife, shotgun, automatic, grenade]
@@ -280,6 +293,7 @@ combat:
   - scene: "371"
     enemy:
       name: Зомби
+      count: 2
       attack: 1
       health: 1
     weapon: [knife, shotgun, automatic, grenade]

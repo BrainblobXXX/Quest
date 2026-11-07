@@ -4,6 +4,12 @@ export type ItemDef = {
   icon?: string;
   countable?: boolean;
   consumable?: boolean;
+  /** формула урона: 1d6, 2d6+5, 1d6-3… */
+  damage?: string;
+  /** id предмета-патронов, если оружие огнестрельное */
+  ammo?: string;
+  /** id характеристики, которую восстанавливает предмет */
+  restore?: string;
 };
 
 export type StatDef = {
@@ -62,6 +68,24 @@ export type Scene = {
   rich?: { text: string; letter?: string }[];
 };
 
+export type CombatEnemy = {
+  name: string;
+  /** число врагов; без него бой не запускается — данные неполные */
+  count?: number;
+  attack: number;
+  health: number;
+};
+
+export type CombatDef = {
+  scene: string;
+  enemy: CombatEnemy;
+  /** разрешённые id оружия; `automatic` — алиас `submachine` */
+  weapon?: string[];
+  win: string;
+  lose?: string;
+  note?: string;
+};
+
 export type Game = {
   format: string;
   id: string;
@@ -74,6 +98,8 @@ export type Game = {
   stats?: Record<string, StatDef>;
   /** объявленные в flags.yaml флаги; начальное состояние — пустое */
   flags?: string[];
+  /** бои из mechanics.yaml по ключу сцены */
+  combat?: Record<string, CombatDef>;
   moods?: Record<string, MoodTracks>;
   defaultMood?: string | null;
   /** отпечаток версии книги: считается в браузере по тексту story.md */

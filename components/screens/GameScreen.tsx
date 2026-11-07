@@ -4,6 +4,7 @@ import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { availableChoices, inventoryLine, isEnding, roll as rollDice, sceneOf } from '@/lib/engine';
 import { audio } from '@/lib/audio';
+import CombatPanel from '@/components/screens/CombatPanel';
 import type { Choice, Game, GameState, ParseProblem } from '@/lib/types';
 
 /** подсветка исходной разметки story.md: теги вариантов, отсылки, маркеры */
@@ -125,6 +126,8 @@ export default function GameScreen({
   onChoose,
   onAdvance,
   onRestart,
+  onCombatWin,
+  onCombatExit,
   problems = [],
 }: {
   game: Game;
@@ -132,9 +135,13 @@ export default function GameScreen({
   onChoose: (choice: Choice) => void;
   onAdvance: (value?: number) => void;
   onRestart: () => void;
+  onCombatWin: (result: GameState) => void;
+  onCombatExit: () => void;
   problems?: ParseProblem[];
 }) {
   const scene = sceneOf(game, state);
+  const combat = game.combat?.[scene.key];
+  const hasCombat = Boolean(combat?.enemy.count && combat.enemy.count > 0);
   const [invOpen, setInvOpen] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
   const [rawOpen, setRawOpen] = useState(false);
@@ -327,6 +334,7 @@ export default function GameScreen({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (hasCombat) return;
       // PageUp/PageDown листают текст сцены, как колесо мыши
       if (e.key === 'PageDown' || e.key === 'PageUp') {
         const el = scrollRef.current;
@@ -383,7 +391,7 @@ export default function GameScreen({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [choices, ending, hasNext, onChoose, onAdvance, onRestart, dice, rollView, scene.key, selected, startRoll]);
+  }, [choices, ending, hasCombat, hasNext, onChoose, onAdvance, onRestart, dice, rollView, scene.key, selected, startRoll]);
 
   /** подсветка на время нажатия: подтверждение — только по отпусканию */
   const pressHandlers = (key: string) => {
@@ -412,7 +420,7 @@ export default function GameScreen({
           <span className="btn-text">MD</span>
           <HeaderIcon kind="raw" />
         </button>
-        {hasStats && (
+        {!hasCombat && hasStats && (
           <button
             type="button"
             className={`stats-toggle${statsOpen ? ' is-open' : ''}`}
@@ -426,7 +434,7 @@ export default function GameScreen({
             <HeaderIcon kind="stats" />
           </button>
         )}
-        {hasItems && (
+        {!hasCombat && hasItems && (
           <button
             type="button"
             className={`inventory-toggle${invOpen ? ' is-open' : ''}`}
@@ -442,8 +450,8 @@ export default function GameScreen({
         )}
       </div>
 
-      {hasStats && statsOpen && <StatsPanel stats={stats} />}
-      {hasItems && invOpen && <InventoryPanel game={game} state={state} />}
+      {!hasCombat && hasStats && statsOpen && <StatsPanel stats={stats} />}
+      {!hasCombat && hasItems && invOpen && <InventoryPanel game={game} state={state} />}
 
       {problems.length > 0 && (
         <details className="parse-report">
@@ -495,7 +503,18 @@ export default function GameScreen({
         )}
       </div>
 
-      {ending && (
+      {hasCombat && combat ? (
+        <CombatPanel
+          key={scene.key}
+          game={game}
+          state={state}
+          combat={combat}
+          onWin={onCombatWin}
+          onExit={onCombatExit}
+        />
+      ) : (
+        <>
+          {ending && (
         <div className="choices">
           <div className="green">КОНЕЦ</div>
           <button
@@ -580,6 +599,8 @@ export default function GameScreen({
 
       {!ending && choices.length === 0 && !hasNext && (
         <div className="choices error">СБОЙ: ТУПИК В СЦЕНЕ {scene.key}</div>
+      )}
+        </>
       )}
 
       {zoom &&

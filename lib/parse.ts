@@ -1,5 +1,5 @@
 import { parse as parseYaml } from 'yaml';
-import type { Choice, Game, ItemDef, ParseProblem, Scene, SceneEffect, StatDef } from './types';
+import type { Choice, CombatDef, Game, ItemDef, ParseProblem, Scene, SceneEffect, StatDef } from './types';
 
 /**
  * Разбор пакета игры прямо в браузере: story.md + game.yaml → объект Game.
@@ -210,6 +210,7 @@ export function parsePackage(
   itemsText?: string | null,
   statsText?: string | null,
   flagsText?: string | null,
+  mechanicsText?: string | null,
 ): ParsedPackage {
   const problems: ParseProblem[] = [];
 
@@ -351,6 +352,73 @@ export function parsePackage(
     }
   }
   flags = [...new Set(flags)];
+
+  const combat: Record<string, CombatDef> = {};
+  if (mechanicsText) {
+    try {
+      const doc = (parseYaml(mechanicsText) ?? {}) as { combat?: unknown };
+      if (Array.isArray(doc.combat)) {
+        for (const raw of doc.combat) {
+          if (!raw || typeof raw !== 'object') continue;
+          const item = raw as Record<string, unknown>;
+          const enemyRaw = item.enemy as Record<string, unknown> | undefined;
+          const sceneKey = String(item.scene ?? '');
+          if (!sceneKey || !enemyRaw) {
+            problems.push({
+              level: 'warn',
+              code: 'W_COMBAT_INVALID',
+              message: 'mechanics.yaml: у боя нет scene/enemy',
+            });
+            continue;
+          }
+          const rawCount = enemyRaw.count;
+          const count = rawCount === undefined ? undefined : Number(rawCount);
+          if (count !== undefined && (!Number.isFinite(count) || count < 1)) {
+            problems.push({
+              level: 'warn',
+              code: 'W_COMBAT_COUNT',
+              message: `mechanics.yaml: у боя §${sceneKey} некорректный count`,
+              scene: sceneKey,
+            });
+          }
+          const win = String(item.win ?? '');
+          if (!win) {
+            problems.push({
+              level: 'error',
+              code: 'E_COMBAT_WIN',
+              message: `mechanics.yaml: у боя §${sceneKey} нет win`,
+              scene: sceneKey,
+            });
+          }
+          const weapons = Array.isArray(item.weapon)
+            ? item.weapon.map((id) => {
+                const weapon = String(id);
+                return weapon === 'automatic' ? 'submachine' : weapon;
+              })
+            : undefined;
+          combat[sceneKey] = {
+            scene: sceneKey,
+            enemy: {
+              name: String(enemyRaw.name ?? 'Противник'),
+              count: count !== undefined && Number.isFinite(count) && count >= 1 ? Math.floor(count) : undefined,
+              attack: Math.max(0, Number(enemyRaw.attack ?? 1) || 0),
+              health: Math.max(1, Number(enemyRaw.health ?? 1) || 1),
+            },
+            weapon: weapons,
+            win,
+            lose: item.lose ? String(item.lose) : undefined,
+            note: item.note ? String(item.note) : undefined,
+          };
+        }
+      }
+    } catch (e) {
+      problems.push({
+        level: 'error',
+        code: 'E_MECHANICS_YAML',
+        message: `mechanics.yaml не разбирается: ${(e as Error).message}`,
+      });
+    }
+  }
 
   const moods = ((manifest.moods ?? {}) as Record<string, string | string[] | null>) ?? {};
   const defaultMood = (manifest.default_mood ?? null) as string | null;
@@ -589,6 +657,33 @@ export function parsePackage(
     scenes[key] = out;
   }
 
+  for (const [sceneKey, definition] of Object.entries(combat)) {
+    if (!scenes[sceneKey]) {
+      problems.push({
+        level: 'warn',
+        code: 'W_COMBAT_SCENE',
+        message: `mechanics.yaml: бой ссылается на несуществующую сцену §${sceneKey}`,
+        scene: sceneKey,
+      });
+    }
+    if (definition.win && !scenes[definition.win]) {
+      problems.push({
+        level: 'error',
+        code: 'E_COMBAT_WIN',
+        message: `mechanics.yaml: win §${definition.win} не существует`,
+        scene: sceneKey,
+      });
+    }
+    if (definition.lose && !scenes[definition.lose]) {
+      problems.push({
+        level: 'error',
+        code: 'E_COMBAT_LOSE',
+        message: `mechanics.yaml: lose §${definition.lose} не существует`,
+        scene: sceneKey,
+      });
+    }
+  }
+
   const start = String(manifest.start ?? '');
   if (!start) {
     problems.push({ level: 'error', code: 'E_START_MISSING', message: 'в game.yaml не задан start' });
@@ -620,6 +715,7 @@ export function parsePackage(
     items,
     stats,
     flags,
+    combat,
     moods,
     defaultMood,
     rev: hash(storyText),

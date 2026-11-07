@@ -12,7 +12,7 @@ import { audio } from '@/lib/audio';
 import { trackFor } from '@/lib/music';
 import { loadGame, loadIndex, type LoadProgress } from '@/lib/games';
 import { PackageError } from '@/lib/parse';
-import { advance, choose, newState, resolveRoll } from '@/lib/engine';
+import { advance, choose, goToScene, newState, resolveRoll } from '@/lib/engine';
 import { clearSave, loadSave, saveState, loadSettings, saveSettings } from '@/lib/storage';
 import type { Choice, Game, GameIndexEntry, GameState, ParseProblem } from '@/lib/types';
 
@@ -255,6 +255,25 @@ export default function Page() {
     [game, state],
   );
 
+  const handleCombatWin = useCallback(
+    (result: GameState) => {
+      if (!game) return;
+      const target = game.combat?.[result.scene]?.win;
+      if (!target) return;
+      const next = goToScene(game, result, target);
+      setState(next);
+      saveState(next);
+    },
+    [game],
+  );
+
+  const handleCombatExit = useCallback(() => {
+    if (state) saveState(state);
+    refreshSaves();
+    setScreen('library');
+    audio.click();
+  }, [state, refreshSaves]);
+
   const handleRestart = useCallback(async () => {
     if (!game) return;
 
@@ -430,6 +449,8 @@ export default function Page() {
           onChoose={handleChoose}
           onAdvance={handleAdvance}
           onRestart={handleRestart}
+          onCombatWin={handleCombatWin}
+          onCombatExit={handleCombatExit}
           problems={problems}
         />
       )}
