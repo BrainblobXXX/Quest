@@ -1003,7 +1003,7 @@ scenes:
     mood: calm
     on_enter:
       - take: {medkit: 2}
-      - take: {ammo: 6}
+      - take: {ammo: 12}
     variants:
       А: "30"
       Б: "119"
@@ -1090,7 +1090,7 @@ scenes:
     mood: calm
     on_enter:
       - stat: {money: +15}
-      - take: [penknife]
+      - take: [penknife, short_rope]
     next: "93"
   "179":
     title: Параграф 179
@@ -1114,7 +1114,7 @@ scenes:
     mood: danger
     on_enter:
       - stat: {money: +44}
-      - take: {ammo: 2}
+      - take: {ammo: 5}
       - take: [grenade]
     next: "160"
   "182":
@@ -1312,7 +1312,7 @@ scenes:
     mood: calm
     on_enter:
       - stat: {money: +15}
-      - take: {ammo: 3}
+      - take: {ammo: 6}
     next: "388"
   "214":
     title: Параграф 214
@@ -1360,6 +1360,8 @@ scenes:
   "222":
     title: Параграф 222
     mood: calm
+    on_enter:
+      - take: {medkit: 1}
     variants:
       А: "303"
       Б: "258"
@@ -1436,6 +1438,8 @@ scenes:
   "235":
     title: Параграф 235
     mood: calm
+    on_enter:
+      - take: {medkit: 1, ammo: 2}
     next: "265"
   "236":
     title: Параграф 236
@@ -1749,6 +1753,8 @@ scenes:
   "291":
     title: Параграф 291
     mood: calm
+    on_enter:
+      - take: [baseball_bat]
     next: "13"
   "292":
     title: Параграф 292
@@ -1957,6 +1963,10 @@ scenes:
   "329":
     title: Параграф 329
     mood: grief
+    shop:
+      - {item: pulley, price: 1}
+      - {item: hacksaw, price: 1}
+      - {item: rubber_gloves, price: 1}
     variants:
       А: "28"
       Б: "157"

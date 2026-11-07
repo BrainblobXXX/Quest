@@ -50,6 +50,12 @@ export type SceneEffect = {
   stat?: Record<string, number>;
 };
 
+export type ShopOffer = {
+  /** id предмета из items.yaml */
+  item: string;
+  price: number;
+};
+
 export type Scene = {
   key: string;
   title: string;
@@ -62,6 +68,8 @@ export type Scene = {
   ending?: boolean;
   /** что происходит при входе в сцену: выдача и изъятие предметов */
   onEnter?: SceneEffect[];
+  /** покупки в лавке: предмет и цена */
+  shop?: ShopOffer[];
   /** исходный текст сцены из story.md: теги, отсылки, строки «Вариант А» */
   raw?: string;
   /** текст, разбитый по тегам вариантов: из него рисуется подсветка */

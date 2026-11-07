@@ -21,6 +21,7 @@ type CombatSetup = {
 };
 
 const ALIASES: Record<string, string> = { automatic: 'submachine' };
+const DICE_ROLL_MS = 1500;
 const FISTS = 'fists';
 
 function rollDamage(formula: string): DamageRoll {
@@ -49,6 +50,11 @@ function rollExpression(roll: DamageRoll): string {
 
 function rollLabel(roll: DamageRoll): string {
   return `${rollExpression(roll)} = ${roll.total}`;
+}
+
+function diceCount(formula: string): number {
+  const match = /^(\d+)d/i.exec(formula.trim());
+  return Math.max(1, Number(match?.[1] ?? 1));
 }
 
 function applyDamage(enemies: number[], damage: number): { next: number[]; killed: number } {
@@ -118,23 +124,65 @@ export default function CombatPanel({
   const [weaponPicked, setWeaponPicked] = useState(false);
   const [grenadeUsed, setGrenadeUsed] = useState(false);
   const [roll, setRoll] = useState<DamageRoll | null>(null);
+  const [diceFaces, setDiceFaces] = useState<number[]>([]);
   const [log, setLog] = useState<string[]>(setup.log);
+  const [selectedChoice, setSelectedChoice] = useState(0);
   const timer = useRef<number | null>(null);
   const logRef = useRef<HTMLDivElement | null>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+
+  const choiceButtons = () =>
+    Array.from(panelRef.current?.querySelectorAll<HTMLButtonElement>('.combat-choices .choice') ?? []);
 
   useEffect(() => () => {
     if (timer.current !== null) window.clearTimeout(timer.current);
   }, []);
 
   useEffect(() => {
-    const element = logRef.current;
-    if (element) element.scrollTop = element.scrollHeight;
-  }, [log]);
+    const element = logRef.current?.closest('.scene-scroll') as HTMLElement | null;
+    if (!element) return;
+    // ждём раскладку после добавления абзаца/смены фазы
+    const frame = window.requestAnimationFrame(() => {
+      element.scrollTop = element.scrollHeight;
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [log, phase]);
+
+  useEffect(() => {
+    if (phase !== 'rolling' || diceFaces.length === 0) return;
+    const interval = window.setInterval(() => {
+      setDiceFaces((faces) => faces.map(() => 1 + Math.floor(Math.random() * 6)));
+    }, 70);
+    return () => window.clearInterval(interval);
+  }, [phase, diceFaces.length]);
+
+  useEffect(() => {
+    setSelectedChoice(0);
+  }, [phase]);
+
+  useEffect(() => {
+    const buttons = choiceButtons();
+    if (buttons.length === 0) return;
+    setSelectedChoice((current) => {
+      if (current >= 0 && current < buttons.length && !buttons[current].disabled) return current;
+      const first = buttons.findIndex((button) => !button.disabled);
+      return first >= 0 ? first : 0;
+    });
+  }, [phase, weaponPicked, grenadeUsed, log.length]);
 
   const alive = enemies.filter((hp) => hp > 0).length;
   const initialAlive = setup.enemies.filter((hp) => hp > 0).length;
   const enemyTotal = Math.max(1, initialAlive);
-  const aliasedWeapons = (combat.weapon ?? []).map((id) => ALIASES[id] ?? id);
+  const damageWeapons = Object.entries(game.items ?? {})
+    .filter(([id, item]) => id !== 'grenade' && Boolean(item.damage))
+    .map(([id]) => id);
+  const explicitWeapons = combat.weapon ?? [];
+  const aliasedWeapons = (combat.weapon === undefined
+    ? damageWeapons
+    : explicitWeapons.length === 0
+      ? []
+      : [...explicitWeapons, ...damageWeapons]
+  ).map((id) => ALIASES[id] ?? id);
   const weaponOptions = [...new Set(aliasedWeapons)]
     .filter((id) => id !== 'grenade')
     .map((id) => {
@@ -149,9 +197,10 @@ export default function CombatPanel({
         owned,
         ammoOk,
         usable: owned && ammoOk,
-        note: !owned ? 'нет в инвентаре' : !ammoOk ? 'нет патронов' : null,
+        note: !ammoOk ? 'нет патронов' : null,
       };
-    });
+    })
+    .filter((option) => option.owned);
   const usableOptions = weaponOptions.filter((option) => option.usable);
   const firstUsable = usableOptions[0]?.id ?? FISTS;
   const selected =
@@ -186,6 +235,8 @@ export default function CombatPanel({
     const weaponRoll = rollDamage(selectedDamage);
     const bonusRoll = combat.bonusDamage ? rollDamage(combat.bonusDamage) : null;
     const total = weaponRoll.total + (bonusRoll?.total ?? 0);
+    const faces = diceCount(selectedDamage) + (combat.bonusDamage ? diceCount(combat.bonusDamage) : 0);
+    setDiceFaces(Array.from({ length: faces }, () => 1 + Math.floor(Math.random() * 6)));
     setRoll({ ...weaponRoll, total });
     setPhase('rolling');
     audio.click();
@@ -240,7 +291,7 @@ export default function CombatPanel({
         setPhase('round');
       }
       timer.current = null;
-    }, 650);
+    }, DICE_ROLL_MS);
   };
 
   const throwGrenade = () => {
@@ -294,6 +345,7 @@ export default function CombatPanel({
     setWeaponPicked(false);
     setGrenadeUsed(false);
     setRoll(null);
+    setDiceFaces([]);
     setLog(setup.log);
     audio.click();
   };
@@ -307,18 +359,42 @@ export default function CombatPanel({
   };
 
   const onKey = (event: KeyboardEvent) => {
-    if (phase !== 'round') return;
+    const buttons = choiceButtons();
+    if (buttons.length === 0) return;
     const active = document.activeElement;
-    const onButton = active instanceof HTMLElement && active.tagName === 'BUTTON';
-    if (event.key === 'Enter' && !onButton) {
+    const focusedChoice =
+      active instanceof HTMLElement && Boolean(active.closest('.combat-choices'));
+
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault();
-      attack();
-    } else if (event.key === '1' && !onButton) {
+      const direction = event.key === 'ArrowDown' ? 1 : -1;
+      let next = selectedChoice;
+      for (let step = 0; step < buttons.length; step += 1) {
+        next = (next + direction + buttons.length) % buttons.length;
+        if (!buttons[next].disabled) break;
+      }
+      setSelectedChoice(next);
+      buttons[next]?.focus({ preventScroll: true });
+      return;
+    }
+
+    if (event.key === 'Enter' || event.key === ' ') {
+      // если кнопка уже в фокусе, Enter/Space обработает сама кнопка
+      if (focusedChoice) return;
       event.preventDefault();
-      attack();
-    } else if (event.key === '2' && !onButton && canUseMedkit) {
-      event.preventDefault();
-      useMedkit();
+      const target = !buttons[selectedChoice]?.disabled
+        ? buttons[selectedChoice]
+        : buttons.find((button) => !button.disabled);
+      target?.click();
+      return;
+    }
+
+    if (/^[1-9]$/.test(event.key)) {
+      const target = buttons[Number(event.key) - 1];
+      if (target && !target.disabled) {
+        event.preventDefault();
+        target.click();
+      }
     }
   };
 
@@ -332,15 +408,15 @@ export default function CombatPanel({
   const startNumber = fistsNumber + (grenades > 0 && !grenadeUsed ? 2 : 1);
 
   return (
-    <div className="combat-panel" role="region" aria-label={`Бой: ${enemy.name}`}>
+    <div className="combat-panel" role="region" aria-label={`Бой: ${enemy.name}`} ref={panelRef}>
       <div className={`combat-status-line${stamina <= 0 ? ' low' : ''}`}>
-        <span>ЗОМБИ: {alive} / {enemyTotal}</span>
-        <span>ВЫНОСЛИВОСТЬ: {stamina} / {staminaMax}</span>
-        <span>РАУНД: {round}</span>
+        <span>РАУНД: {round}.</span>
+        <span>Противник - {enemy.name.toUpperCase()} {alive}/{enemyTotal}.</span>
+        <span>Персонаж - Выносливость {stamina}/{staminaMax}.</span>
         {combat.threshold !== undefined && (
           <span>
-            ПОРОГ: {combat.threshold}
-            {combat.bonusDamage ? ` · ЭМИ +${combat.bonusDamage}` : ''}
+            Порог - {combat.threshold}
+            {combat.bonusDamage ? ` · ЭМИ +${combat.bonusDamage}` : ''}.
           </span>
         )}
       </div>
@@ -353,6 +429,17 @@ export default function CombatPanel({
         ))}
       </div>
 
+      {phase === 'rolling' && diceFaces.length > 0 && (
+        <div className="combat-dice-live" aria-live="polite">
+          <span>БРОСОК {diceFaces.length}d6:</span>
+          <span className="combat-dice-faces">
+            {diceFaces.map((face, index) => (
+              <span className="combat-die-face" key={index}>{face}</span>
+            ))}
+          </span>
+        </div>
+      )}
+
       {phase === 'loadout' && (
         <>
           <div className="combat-note">ВЫБЕРИТЕ ОРУЖИЕ</div>
@@ -361,8 +448,9 @@ export default function CombatPanel({
               <button
                 key={option.id}
                 type="button"
-                className={`choice${selected.id === option.id ? ' combat-selected' : ''}${option.usable ? '' : ' dim'}`}
+                className={`choice${selectedChoice === index ? ' selected' : ''}${selected.id === option.id ? ' combat-selected' : ''}${option.usable ? '' : ' dim'}`}
                 disabled={!option.usable}
+                onFocus={() => setSelectedChoice(index)}
                 onClick={() => {
                   setSelectedWeapon(option.id);
                   setWeaponPicked(true);
@@ -375,7 +463,8 @@ export default function CombatPanel({
             ))}
             <button
               type="button"
-              className={`choice${selected.id === FISTS ? ' combat-selected' : ''}`}
+              className={`choice${selectedChoice === weaponOptions.length ? ' selected' : ''}${selected.id === FISTS ? ' combat-selected' : ''}`}
+              onFocus={() => setSelectedChoice(weaponOptions.length)}
               onClick={() => {
                 setSelectedWeapon(FISTS);
                 setWeaponPicked(true);
@@ -384,11 +473,11 @@ export default function CombatPanel({
               {fistsNumber}. КУЛАКИ · 1d6−3{selected.id === FISTS ? ' · ВЫБРАНО' : ''}
             </button>
             {grenades > 0 && !grenadeUsed && (
-              <button type="button" className="choice combat-grenade" onClick={throwGrenade}>
+              <button type="button" className={`choice${selectedChoice === grenadeNumber - 1 ? ' selected' : ''} combat-grenade`} onFocus={() => setSelectedChoice(grenadeNumber - 1)} onClick={throwGrenade}>
                 {grenadeNumber}. БРОСИТЬ ГРАНАТУ ×{grenades} · 2d6+1
               </button>
             )}
-            <button type="button" className="choice" onClick={start}>
+            <button type="button" className={`choice${selectedChoice === startNumber - 1 ? ' selected' : ''}`} onFocus={() => setSelectedChoice(startNumber - 1)} onClick={start}>
               {startNumber}. В БОЙ
             </button>
           </div>
@@ -399,20 +488,18 @@ export default function CombatPanel({
         <>
           <div className="combat-note">ОРУЖИЕ: {weaponTitle} · {selectedDamage}</div>
           <div className="choices combat-choices">
-            <button type="button" className="choice" onClick={attack}>
+            <button type="button" className={`choice${selectedChoice === 0 ? ' selected' : ''}`} onFocus={() => setSelectedChoice(0)} onClick={attack}>
               1. АТАКОВАТЬ
             </button>
-            <button type="button" className="choice" onClick={useMedkit} disabled={!canUseMedkit}>
+            <button type="button" className={`choice${selectedChoice === 1 ? ' selected' : ''}`} onFocus={() => setSelectedChoice(1)} onClick={useMedkit} disabled={!canUseMedkit}>
               2. АПТЕЧКА ×{inventory.medkit ?? 0}
             </button>
-            <button type="button" className="choice" onClick={() => setPhase('loadout')}>
+            <button type="button" className={`choice${selectedChoice === 2 ? ' selected' : ''}`} onFocus={() => setSelectedChoice(2)} onClick={() => setPhase('loadout')}>
               3. СМЕНИТЬ ОРУЖИЕ
             </button>
           </div>
         </>
       )}
-
-      {phase === 'rolling' && <div className="combat-note">БРОСОК…</div>}
 
       {phase === 'victory' && (
         <>
@@ -420,7 +507,7 @@ export default function CombatPanel({
             ПОБЕДА. Выносливость {stamina} / {staminaMax}.
           </div>
           <div className="choices combat-choices">
-            <button type="button" className="choice" onClick={finish}>
+            <button type="button" className={`choice${selectedChoice === 0 ? ' selected' : ''}`} onFocus={() => setSelectedChoice(0)} onClick={finish}>
               1. ПРОДОЛЖИТЬ
             </button>
           </div>
@@ -433,10 +520,10 @@ export default function CombatPanel({
             ВЫ ПОГИБЛИ. Выносливость 0 — приключение окончено.
           </div>
           <div className="choices combat-choices">
-            <button type="button" className="choice" onClick={retry}>
+            <button type="button" className={`choice${selectedChoice === 0 ? ' selected' : ''}`} onFocus={() => setSelectedChoice(0)} onClick={retry}>
               1. ПОПРОБОВАТЬ СНОВА
             </button>
-            <button type="button" className="choice" onClick={onExit}>
+            <button type="button" className={`choice${selectedChoice === 1 ? ' selected' : ''}`} onFocus={() => setSelectedChoice(1)} onClick={onExit}>
               2. В БИБЛИОТЕКУ
             </button>
           </div>

@@ -16,6 +16,31 @@ import { advance, choose, goToScene, newState, resolveRoll } from '@/lib/engine'
 import { clearSave, loadSave, saveState, loadSettings, saveSettings } from '@/lib/storage';
 import type { Choice, Game, GameIndexEntry, GameState, ParseProblem } from '@/lib/types';
 
+/** добирает предметы, которые не попали в старые сейвы до исправления данных */
+function repairSceneItems(game: Game, state: GameState): GameState {
+  if (game.id !== 'zombie-blood') return state;
+  const requiredByScene: Record<string, Record<string, number>> = {
+    '178': { short_rope: 1 },
+    '291': { baseball_bat: 1 },
+    '222': { medkit: 1 },
+    '235': { medkit: 1, ammo: 2 },
+    '162': { medkit: 2, ammo: 12 },
+    '181': { ammo: 5 },
+    '213': { ammo: 6 },
+    '304': { ammo: 6 },
+  };
+  const required = requiredByScene[state.scene] ?? {};
+  const inventory = { ...state.inventory };
+  let changed = false;
+  for (const [id, count] of Object.entries(required)) {
+    if ((inventory[id] ?? 0) < count) {
+      inventory[id] = count;
+      changed = true;
+    }
+  }
+  return changed ? { ...state, inventory } : state;
+}
+
 /** минимум, сколько видна загрузка: иначе на быстром диске она мелькает одним кадром */
 const MIN_LOADING_MS = 1000;
 /** пауза на строке «READY», чтобы лог успел дочитаться */
@@ -196,7 +221,7 @@ export default function Page() {
           save.game === g.id &&
           (!g.rev || save.rev === g.rev) &&
           g.scenes[save.scene];
-        const next = valid ? save : newState(g);
+        const next = repairSceneItems(g, valid ? save : newState(g));
 
         // последние проценты и число сцен: экран успевает показать «READY»
         setLoading((current) =>
@@ -273,6 +298,23 @@ export default function Page() {
     setScreen('library');
     audio.click();
   }, [state, refreshSaves]);
+
+  const handleBuy = useCallback(
+    (itemId: string, price: number) => {
+      if (!game || !state || !game.items?.[itemId]) return;
+      if ((state.inventory[itemId] ?? 0) > 0) return;
+      const cost = Math.max(0, Number(price) || 0);
+      if (Number(state.stats.money ?? 0) < cost) return;
+      const next: GameState = {
+        ...state,
+        stats: { ...state.stats, money: Number(state.stats.money ?? 0) - cost },
+        inventory: { ...state.inventory, [itemId]: 1 },
+      };
+      setState(next);
+      saveState(next);
+    },
+    [game, state],
+  );
 
   const handleRestart = useCallback(async () => {
     if (!game) return;
@@ -451,6 +493,7 @@ export default function Page() {
           onRestart={handleRestart}
           onCombatWin={handleCombatWin}
           onCombatExit={handleCombatExit}
+          onBuy={handleBuy}
           problems={problems}
         />
       )}

@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { availableChoices, inventoryLine, isEnding, roll as rollDice, sceneOf } from '@/lib/engine';
 import { audio } from '@/lib/audio';
 import CombatPanel from '@/components/screens/CombatPanel';
+import ShopPanel from '@/components/screens/ShopPanel';
 import type { Choice, Game, GameState, ParseProblem } from '@/lib/types';
 
 /** подсветка исходной разметки story.md: теги вариантов, отсылки, маркеры */
@@ -128,6 +129,7 @@ export default function GameScreen({
   onRestart,
   onCombatWin,
   onCombatExit,
+  onBuy,
   problems = [],
 }: {
   game: Game;
@@ -137,6 +139,7 @@ export default function GameScreen({
   onRestart: () => void;
   onCombatWin: (result: GameState) => void;
   onCombatExit: () => void;
+  onBuy: (itemId: string, price: number) => void;
   problems?: ParseProblem[];
 }) {
   const scene = sceneOf(game, state);
@@ -501,18 +504,23 @@ export default function GameScreen({
         ) : (
           <div className="scene-text">{sceneText()}</div>
         )}
+        {hasCombat && combat && (
+          <CombatPanel
+            key={scene.key}
+            game={game}
+            state={state}
+            combat={combat}
+            onWin={onCombatWin}
+            onExit={onCombatExit}
+          />
+        )}
       </div>
 
-      {hasCombat && combat ? (
-        <CombatPanel
-          key={scene.key}
-          game={game}
-          state={state}
-          combat={combat}
-          onWin={onCombatWin}
-          onExit={onCombatExit}
-        />
-      ) : (
+      {!hasCombat && scene.shop && scene.shop.length > 0 && (
+        <ShopPanel game={game} state={state} offers={scene.shop} onBuy={onBuy} />
+      )}
+
+      {!hasCombat && (
         <>
           {ending && (
         <div className="choices">

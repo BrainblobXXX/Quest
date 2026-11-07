@@ -1320,18 +1320,17 @@ body {
 
 .combat-status-line {
   display: flex;
-  flex-wrap: wrap;
-  gap: 2px 18px;
+  flex-direction: column;
+  gap: 1px;
   color: #c9a24a;
   letter-spacing: 1px;
   margin: 0 0 4px;
 }
+.combat-status-line > span { display: block; }
 .combat-status-line.low { color: var(--magenta); }
 
 .combat-log {
   color: #d8b25a;
-  max-height: 190px;
-  overflow-y: auto;
   margin: 4px 0 2px;
   white-space: pre-wrap;
 }
@@ -1351,3 +1350,42 @@ body {
 .combat-choices .choice.combat-selected { color: #ffd27a; }
 .combat-choices .choice.combat-grenade { color: #ff9b3d; }
 .combat-choices .choice:disabled { color: #6f5620; cursor: not-allowed; }
+
+/* ── лавка ─────────────────────────────────────────────────── */
+.shop-panel {
+  margin-top: 12px;
+  padding: 0;
+}
+.shop-title {
+  color: #c9a24a;
+  letter-spacing: 1px;
+  margin: 8px 0 2px;
+}
+.shop-choices .choice { display: block; }
+.shop-choices .choice:disabled { color: #6f5620; cursor: not-allowed; }
+
+/* бросок кубика внутри текста боя */
+.combat-dice-live {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 2px;
+  color: #ffd27a;
+  letter-spacing: 1px;
+}
+.combat-dice-faces { display: inline-flex; gap: 5px; }
+.combat-die-face {
+  display: inline-flex;
+  min-width: 28px;
+  justify-content: center;
+  padding: 0 6px;
+  border: 1px solid rgba(255, 176, 0, 0.55);
+  background: rgba(255, 176, 0, 0.08);
+  font-size: 17px;
+  animation: combat-dice-tick 90ms linear infinite alternate;
+}
+@keyframes combat-dice-tick {
+  from { transform: translateY(-1px) rotate(-2deg); }
+  to { transform: translateY(1px) rotate(2deg); }
+}

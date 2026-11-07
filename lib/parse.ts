@@ -461,6 +461,14 @@ export function parsePackage(
     }
     if (m.ending) out.ending = true;
     if (m.next) out.next = m.next as Scene['next'];
+    if (Array.isArray(m.shop)) {
+      out.shop = m.shop
+        .filter((offer): offer is Record<string, unknown> => Boolean(offer) && typeof offer === 'object')
+        .map((offer) => ({
+          item: String(offer.item ?? ''),
+          price: Number(offer.price ?? 0),
+        }));
+    }
 
     // эффекты входа: выдача и изъятие предметов (ZombieBlood, Steel Rat и др.)
     const onEnter = Array.isArray(m.on_enter)
@@ -688,6 +696,27 @@ export function parsePackage(
         message: `mechanics.yaml: lose §${definition.lose} не существует`,
         scene: sceneKey,
       });
+    }
+  }
+
+  for (const [sceneKey, scene] of Object.entries(scenes)) {
+    for (const offer of scene.shop ?? []) {
+      if (!items[offer.item]) {
+        problems.push({
+          level: 'error',
+          code: 'E_SHOP_UNKNOWN_ITEM',
+          message: `shop ссылается на необъявленный предмет «${offer.item}»`,
+          scene: sceneKey,
+        });
+      }
+      if (!Number.isFinite(offer.price) || offer.price < 0) {
+        problems.push({
+          level: 'error',
+          code: 'E_SHOP_PRICE',
+          message: `shop: некорректная цена для «${offer.item}»`,
+          scene: sceneKey,
+        });
+      }
     }
   }
 
