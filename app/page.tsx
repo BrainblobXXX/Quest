@@ -13,7 +13,7 @@ import { audio } from '@/lib/audio';
 import { trackFor } from '@/lib/music';
 import { loadGame, loadIndex, type LoadProgress } from '@/lib/games';
 import { PackageError } from '@/lib/parse';
-import { advance, choose, goToScene, newState, resolveRoll } from '@/lib/engine';
+import { advance, choose, goToScene, newState, resolveRoll, useCode } from '@/lib/engine';
 import { clearSave, loadSave, saveState, loadSettings, saveSettings } from '@/lib/storage';
 import type { Choice, Game, GameIndexEntry, GameState, ParseProblem } from '@/lib/types';
 
@@ -53,6 +53,24 @@ function repairSceneItems(game: Game, state: GameState): GameState {
       changed = true;
     }
   }
+  // старые сейвы §218: аптечка расходуется, без неё — смерть
+  if (state.scene === '218') {
+    if ((inventory.medkit ?? 0) > 0) {
+      const left = inventory.medkit - 1;
+      if (left > 0) inventory.medkit = left;
+      else delete inventory.medkit;
+      changed = true;
+    } else {
+      return {
+        ...state,
+        inventory,
+        scene: '218_death',
+        visited: [...state.visited, '218_death'],
+        updated: new Date().toISOString(),
+      };
+    }
+  }
+
   const required = requiredByScene[state.scene] ?? {};
   for (const [id, count] of Object.entries(required)) {
     if ((inventory[id] ?? 0) < count) {
@@ -188,6 +206,7 @@ export default function Page() {
         cancelLoadingRef.current();
         refreshSavesRef.current();
         setConfirmRestart(false);
+        audio.stopMusic();
         setScreen('library');
       }
     };
@@ -331,11 +350,80 @@ export default function Page() {
   );
 
   const handleCombatExit = useCallback(() => {
-    if (state) saveState(state);
+    // смерть в бою не должна оставлять сейв на той же сцене
+    if (game) clearSave(game.id);
     refreshSaves();
     setScreen('library');
     audio.click();
-  }, [state, refreshSaves]);
+  }, [game, refreshSaves]);
+
+  const handleBack = useCallback(() => {
+    if (!game || !state) return;
+    const previous = state.visited[state.visited.length - 2];
+    if (!previous) return;
+    const next = goToScene(game, state, previous);
+    setState(next);
+    saveState(next);
+    audio.click();
+  }, [game, state]);
+
+  const handleGamble = useCallback(
+    (delta: number) => {
+      if (!game || !state) return;
+      const scene = game.gambles?.[state.scene];
+      if (!scene) return;
+      const money = Math.max(0, Number(state.stats.money ?? 0) + delta);
+      const next: GameState = {
+        ...state,
+        stats: { ...state.stats, money },
+        gamblesDone: [...new Set([...(state.gamblesDone ?? []), state.scene])],
+      };
+      setState(next);
+      saveState(next);
+      audio.beep();
+    },
+    [game, state],
+  );
+
+  const handleCheck = useCallback(
+    (success: boolean, moraleCost = 0) => {
+      if (!game || !state) return;
+      const check = game.checks?.[state.scene];
+      if (!check) return;
+      let prepared = state;
+      if (moraleCost > 0) {
+        const moraleBefore = Number(state.stats.morale ?? 0);
+        const fromMorale = Math.min(moraleBefore, moraleCost);
+        const overflow = moraleCost - fromMorale;
+        prepared = {
+          ...state,
+          stats: {
+            ...state.stats,
+            morale: moraleBefore - fromMorale,
+            hp: Math.max(0, Number(state.stats.hp ?? 0) - overflow),
+          },
+        };
+      }
+      const next = goToScene(game, prepared, success ? check.success : check.failure);
+      setState(next);
+      saveState(next);
+      audio.beep();
+    },
+    [game, state],
+  );
+
+  const handleCode = useCallback(
+    (id: string): boolean => {
+      if (!game || !state) return false;
+      const next = useCode(game, state, id);
+      if (!next) return false;
+      setState(next);
+      saveState(next);
+      audio.beep();
+      return true;
+    },
+    [game, state],
+  );
 
   const handleBuy = useCallback(
     (itemId: string, price: number) => {
@@ -400,6 +488,23 @@ export default function Page() {
     setScreen('game');
   }, [game]);
 
+  useEffect(() => {
+    if (!confirmRestart) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === '1') {
+        event.preventDefault();
+        event.stopPropagation();
+        void handleRestart();
+      } else if (event.key === '2' || event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        setConfirmRestart(false);
+      }
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [confirmRestart, handleRestart]);
+
   const handleInitialRollDone = useCallback(
     (value: number) => {
       if (!game || !state || !initialRoll) return;
@@ -438,6 +543,7 @@ export default function Page() {
   const toLibrary = useCallback(() => {
     cancelLoading();
     setConfirmRestart(false);
+    audio.stopMusic();
     audio.click();
     refreshSaves();
     setScreen('library');
@@ -455,6 +561,7 @@ export default function Page() {
   const toSettings = useCallback(() => {
     cancelLoading();
     setConfirmRestart(false);
+    audio.stopMusic();
     audio.click();
     setScreen('settings');
   }, [cancelLoading]);
@@ -552,6 +659,10 @@ export default function Page() {
           onRestart={handleRestart}
           onCombatWin={handleCombatWin}
           onCombatExit={handleCombatExit}
+          onBack={handleBack}
+          onCode={handleCode}
+          onGamble={handleGamble}
+          onCheck={handleCheck}
           onBuy={handleBuy}
           problems={problems}
         />

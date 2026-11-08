@@ -1,0 +1,140 @@
+codes:
+  klamath_map:
+    title: Карта Кламата
+    offset: -260
+  sheriff:
+    title: Шериф
+    offset: -32
+  new_reno_map:
+    title: Карта Нью-Рено
+    offset: -142
+  slaves_address:
+    title: Адрес рабов
+    offset: 153
+  inner_bar:
+    title: Внутренний бар
+    offset: -40
+  power_armor_upgrade:
+    title: Улучшение Силовой брони
+    offset: 45
+  grenade:
+    title: Граната
+    offset: -84
+  jimmy_j:
+    title: Джимми Джи
+    offset: 37
+  slavers_hideout:
+    title: Убежище рабовладельцев
+    offset: -54
+  area_map:
+    title: Карта района
+    offset: -212
+  ncr_coords:
+    title: Координаты НКР
+    offset: -73
+  mission_report:
+    title: Доклад о задании
+    offset: 176
+  bunker:
+    title: Бункер Братства
+    offset: -29
+  power_armor_search:
+    title: Поиск улучшения брони
+    offset: -112
+  marked_place:
+    title: Отмеченное место
+    offset: 73
+  darwin_city:
+    title: Дарвин-Сити
+    offset: 77
+  vault_city_map:
+    title: Карта Волт-Сити
+    offset: -144
+  mayor:
+    title: Мэр
+    offset: 65
+  report_work:
+    title: Доклад о работе
+    offset: -43
+  gecko_coords:
+    title: Координаты Гекко
+    offset: -50
+  clinic_right:
+    title: Поворот у поликлиники
+    offset: -113
+  shark_club:
+    title: Клуб «Акула»
+    offset: -136
+  material:
+    title: Материалы
+    offset: -70
+  northeast:
+    title: Северо-восток
+    offset: -46
+  attention:
+    title: Внимание Линнет
+    offset: 150
+  main_street_bomb:
+    title: Подрыв на главной улице
+    offset: 18
+  holodisk:
+    title: Голодиск
+    offset: 174
+  city_search:
+    title: Поиски в городе
+    offset: -25
+  san_francisco:
+    title: Сан-Франциско
+    offset: -193
+  ring:
+    title: Кольцо
+    offset: 200
+  tell:
+    title: Коррекционный Центр
+    offset: 145
+  reaction:
+    title: Реакция Волт-Сити
+    offset: 129
+  interest:
+    title: Поиски беглеца
+    offset: -7
+  topic:
+    title: Разговор на тему
+    offset: 83
+  reactor:
+    title: История реактора
+    offset: 56
+  drugs:
+    title: Поставки наркотиков
+    offset: -92
+  klamath_east:
+    title: Кламат, восточная часть
+    offset: 330
+  shop_games:
+    title: Подпольные игры
+    offset: 360
+    base: '197'
+  propaganda:
+    title: Отдел пропаганды
+    offset: -37
+    base: '100'
+  bar_fight:
+    title: Драка в баре
+    offset: -41
+    base: '343'
+  bar_painting:
+    title: Картина в баре
+    offset: -31
+    base: '197'
+  mine_ustinovka:
+    title: Шахта «Утренняя Звезда»
+    offset: 33
+    base: '97'
+  residential_quarter:
+    title: Жилой квартал
+    offset: -44
+    base: '324'
+  bar_lloyd:
+    title: Бар Ллойда
+    offset: -258
+    base: '352'

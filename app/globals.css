@@ -1024,7 +1024,15 @@ body {
 
 .roll-die {
   border-radius: 8px;
+  padding: 6px;
   animation: die-roll 1.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+.roll-die-face {
+  width: 78px;
+  height: 78px;
+  padding: 8px;
+  gap: 4px;
+  animation: scene-die-tick 180ms linear infinite alternate;
 }
 
 .roll-caption {
@@ -1040,11 +1048,16 @@ body {
   100% { transform: rotateY(1440deg) scale(1); }
 }
 
+@keyframes scene-die-tick {
+  from { transform: translateY(-1px); }
+  to { transform: translateY(1px); }
+}
+
 @keyframes die-roll {
-  0% { transform: rotate(0) translateY(-46px) scale(0.7); }
-  55% { transform: rotate(520deg) translateY(8px) scale(1.12); }
-  78% { transform: rotate(670deg) translateY(-8px) scale(0.98); }
-  100% { transform: rotate(720deg) translateY(0) scale(1); }
+  0% { transform: translateY(-46px) scale(0.7); }
+  55% { transform: translateY(8px) scale(1.12); }
+  78% { transform: translateY(-8px) scale(0.98); }
+  100% { transform: translateY(0) scale(1); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1535,3 +1548,145 @@ body {
 }
 .stamina-roll-choices { margin-top: 6px; }
 .stamina-roll-empty { color: #8a6a2f; font-size: 26px; }
+
+
+/* низкий/узкий десктоп: кнопки корпуса не должны вылезать */
+@media (min-width: 721px) and (max-width: 1000px) {
+  .case-front { gap: 8px; }
+  .case-nav { gap: 4px; }
+  .panel-btn { min-width: 60px; padding: 6px 6px; font-size: 10px; letter-spacing: 0; }
+}
+
+/* ── коды «параграф ± число» ─────────────────────────────── */
+.codes-toggle {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  margin: 0;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(100, 200, 255, 0.45);
+  border-radius: 3px;
+  background: rgba(100, 200, 255, 0.06);
+  color: #72c8ff;
+  cursor: pointer;
+}
+.codes-toggle:hover,
+.codes-toggle:focus-visible,
+.codes-toggle.is-open {
+  border-color: #72c8ff;
+  background: rgba(100, 200, 255, 0.2);
+  color: #b5e6ff;
+  outline: none;
+}
+.codes-toggle .btn-icon { display: block; }
+.codes-panel {
+  border: 1px solid rgba(100, 200, 255, 0.35);
+  background: rgba(20, 40, 55, 0.35);
+  padding: 8px 10px;
+  margin: 6px 0;
+}
+.codes-title {
+  color: #72c8ff;
+  font-size: 11px;
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+}
+.codes-empty,
+.codes-message {
+  color: #b5e6ff;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.codes-message { color: #ffb36b; margin-bottom: 6px; }
+
+/* ── проверки характеристик/навыков ─────────────────────── */
+.check-panel {
+  border: 1px solid rgba(255, 176, 0, 0.45);
+  background: rgba(255, 176, 0, 0.06);
+  padding: 8px 10px;
+  margin: 8px 0;
+}
+.check-title {
+  color: #ffb000;
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+.check-formula {
+  color: #ffd27a;
+  font-size: 13px;
+  margin: 4px 0 6px;
+}
+.check-dice {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 6px 0;
+}
+.check-die-face { width: 42px; height: 42px; padding: 5px; gap: 2px; }
+.check-note { color: #ffd27a; letter-spacing: 2px; }
+.check-result { font-size: 14px; margin: 4px 0; }
+.check-result.ok { color: var(--green); }
+.check-result.fail { color: #ff8b6b; }
+.check-choices { margin-top: 4px; }
+
+/* контестный бой (День орка) */
+.contest-die-face { width: 38px; height: 38px; padding: 4px; gap: 2px; }
+.contest-panel .combat-dice-live { flex-wrap: wrap; gap: 8px; }
+
+/* ставки (День орка) */
+.gamble-panel {
+  border: 1px solid rgba(255, 176, 0, 0.45);
+  background: rgba(255, 176, 0, 0.06);
+  padding: 8px 10px;
+  margin: 8px 0;
+}
+.gamble-stakes { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
+.gamble-stakes .choice { min-width: 36px; text-align: center; }
+
+/* Fallout: ролевой бой */
+.fallout-panel .combat-target {
+  color: #ffd27a;
+  font-size: 11px;
+  letter-spacing: 1px;
+  margin: 3px 0;
+}
+
+/* грань сценического кубика: точки, без наклона */
+.roll-die .roll-die-face {
+  width: 78px;
+  height: 78px;
+  padding: 8px;
+  gap: 4px;
+  animation: scene-die-tick 180ms linear infinite alternate;
+}
+
+/* низкая высота окна: кнопки корпуса не выходят за край */
+@media (max-height: 760px) {
+  .case-nav { gap: 4px; }
+  .panel-btn { min-width: 62px; padding: 6px 5px; font-size: 10px; letter-spacing: 0; }
+  .case-vents { max-width: 80px; }
+}
+
+@media (max-height: 760px) {
+  .panel-btn { min-width: 52px; padding: 5px 4px; font-size: 9px; }
+  .case-nav { gap: 2px; }
+}
+
+.lib-status {
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.lib-status-alpha { color: #ff9b6b; }
+.lib-status-beta { color: #ffd27a; }
+.lib-status-complete { color: var(--green); }
+
+/* создание персонажа Orcsday */
+.creation-counter {
+  color: #ffd27a;
+  font-size: 12px;
+  letter-spacing: 1px;
+  margin: 4px 0 6px;
+}

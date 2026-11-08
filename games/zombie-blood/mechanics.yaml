@@ -12,15 +12,15 @@ combat:
       count: 24
       attack: 1
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "382"
   - scene: "13"
     enemy:
-      name: Существа
+      name: Зомби
       count: 2
       attack: 1
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "235"
   - scene: "17"
     enemy:
@@ -28,7 +28,7 @@ combat:
       count: 27
       attack: 1
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "215"
     preDamage: "2d6+1"
     preDamageFrom: ["200", "253", "275", "352"]
@@ -38,7 +38,7 @@ combat:
       count: 26
       attack: 1
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "168"
     note: потеря выносливости равна числу выживших зомби
     preDamage: "2d6+15"
@@ -48,7 +48,7 @@ combat:
       count: 19
       attack: 1
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "149"
   - scene: "53"
     enemy:
@@ -56,15 +56,15 @@ combat:
       count: 6
       attack: 1
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "268"
   - scene: "69"
     enemy:
       name: Зомби
       count: 3
       attack: 1
-      health: 2
-    weapon: [knife, shotgun, automatic, grenade]
+      health: 1
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "273"
   - scene: "74"
     enemy:
@@ -72,7 +72,7 @@ combat:
       count: 24
       attack: 1
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "40"
   - scene: "89"
     enemy:
@@ -80,7 +80,7 @@ combat:
       count: 1
       attack: 1
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "349"
   - scene: "109"
     enemy:
@@ -88,11 +88,11 @@ combat:
       count: 4
       attack: 1
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "136"
   - scene: "117"
     enemy:
-      name: Зомби
+      name: Юрр
       count: 1
       attack: 1
       health: 7
@@ -100,11 +100,11 @@ combat:
     win: "44"
   - scene: "122"
     enemy:
-      name: Крысы
+      name: Зомби
       count: 2
       attack: 1
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "187"
   - scene: "143"
     enemy:
@@ -112,15 +112,15 @@ combat:
       count: 17
       attack: 1
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "351"
   - scene: "148"
     enemy:
       name: Зомби
       count: 12
       attack: 2
-      health: 2
-    weapon: [knife, shotgun, automatic, grenade]
+      health: 1
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "373"
   - scene: "151"
     enemy:
@@ -128,7 +128,7 @@ combat:
       count: 24
       attack: 1
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "40"
   - scene: "158"
     enemy:
@@ -136,7 +136,7 @@ combat:
       count: 1
       attack: 6
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "19"
     threshold: 20
     bonusDamage: "1d6+2"
@@ -146,15 +146,15 @@ combat:
       count: 2
       attack: 2
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "360"
   - scene: "176"
     enemy:
-      name: Собаки
+      name: Зомби
       count: 16
       attack: 1
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "6"
   - scene: "189"
     enemy:
@@ -162,15 +162,15 @@ combat:
       count: 19
       attack: 1
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "232"
   - scene: "195"
     enemy:
       name: Зомби
-      count: 9
+      count: 19
       attack: 1
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "298"
   - scene: "199"
     enemy:
@@ -178,7 +178,7 @@ combat:
       count: 10
       attack: 1
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "280"
   - scene: "209"
     enemy:
@@ -186,7 +186,7 @@ combat:
       count: 28
       attack: 1
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "298"
     preDamage: "2d6+1"
   - scene: "244"
@@ -195,7 +195,7 @@ combat:
       count: 8
       attack: 1
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "395"
   - scene: "256"
     enemy:
@@ -203,7 +203,7 @@ combat:
       count: 24
       attack: 1
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "182"
     note: потеря выносливости равна числу выживших зомби
     preDamage: "2d6+15"
@@ -213,7 +213,7 @@ combat:
       count: 17
       attack: 1
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "145"
   - scene: "301"
     enemy:
@@ -221,7 +221,7 @@ combat:
       count: 2
       attack: 1
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "365"
   - scene: "303"
     enemy:
@@ -229,7 +229,7 @@ combat:
       count: 2
       attack: 1
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "169"
   - scene: "318"
     enemy:
@@ -237,7 +237,7 @@ combat:
       count: 2
       attack: 1
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "29"
   - scene: "325"
     enemy:
@@ -245,7 +245,7 @@ combat:
       count: 27
       attack: 1
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "110"
     note: потеря выносливости равна числу выживших зомби
     preDamage: "2d6+15"
@@ -255,7 +255,7 @@ combat:
       count: 17
       attack: 1
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "95"
   - scene: "331"
     enemy:
@@ -263,7 +263,7 @@ combat:
       count: 24
       attack: 1
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "40"
   - scene: "341"
     enemy:
@@ -271,7 +271,7 @@ combat:
       count: 17
       attack: 1
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "245"
   - scene: "357"
     enemy:
@@ -279,7 +279,7 @@ combat:
       count: 17
       attack: 1
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "145"
     preDamage: "2d6+1"
   - scene: "363"
@@ -288,23 +288,23 @@ combat:
       count: 2
       attack: 1
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "83"
   - scene: "367"
     enemy:
       name: Зомби
       count: 7
       attack: 1
-      health: 2
-    weapon: [knife, shotgun, automatic, grenade]
+      health: 1
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "316"
   - scene: "369"
     enemy:
       name: Зомби
       count: 13
-      attack: 1
+      attack: 2
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "247"
   - scene: "371"
     enemy:
@@ -312,7 +312,7 @@ combat:
       count: 2
       attack: 1
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "83"
   - scene: "375"
     enemy:
@@ -320,7 +320,7 @@ combat:
       count: 6
       attack: 1
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "20"
     preStamina: 6
   - scene: "379"
@@ -329,5 +329,5 @@ combat:
       count: 15
       attack: 1
       health: 1
-    weapon: [knife, shotgun, automatic, grenade]
+    weapon: [penknife, shotgun, automatic, grenade]
     win: "122"

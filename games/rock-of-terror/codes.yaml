@@ -1,0 +1,28 @@
+codes:
+  anna:
+    title: "Анна, дочь лесоруба"
+    offset: -8
+  old_woman:
+    title: "Хижина старухи"
+    offset: 20
+  crucifix:
+    title: "Золотое распятие с рубином"
+    offset: 10
+  mirror:
+    title: "Зеркало Джеймса Маррела"
+    offset: 12
+  medallion:
+    title: "Бронзовый медальон с корабликом"
+    offset: -10
+  dream_death:
+    title: "Пробуждение от смерти во сне"
+    offset: 17
+  wife_name:
+    title: "Имя жены — Августина"
+    offset: -15
+  witch_name:
+    title: "Имя ведьмы из Книги Теней"
+    offset: 30
+  atso_place:
+    title: "Тайный вход у западного склона"
+    offset: -20

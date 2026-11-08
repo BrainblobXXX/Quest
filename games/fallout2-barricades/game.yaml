@@ -1,0 +1,3394 @@
+format: quest/1
+id: fallout2-barricades
+title: 'Fallout II: По Ту Сторону Баррикад'
+type: rpg
+status: alpha
+author: Денис Морозов
+genre: постапокалипсис
+annotation: Закончился 2240 год. Затяжной финансовый кризис вынудил вас искать деньги на стороне, и вот, как раз прямо сейчас вам пришло в голову сходить заняться к своему старому знакомому, а ныне главе Службы Государственной Безопасности Анклава Джеку Олдвину.
+language: ru
+year: 2010
+source: Fallout II v1.04.5.pdf
+edition: v1.04.5, 27.11.2010
+start: prologue
+story: story.md
+items: items.yaml
+stats: stats.yaml
+flags: flags.yaml
+mechanics: mechanics.yaml
+codes: codes.yaml
+start_items:
+  combat_leather_jacket: 1
+  pistol_14mm: 1
+  knife: 1
+moods:
+  calm: null
+  tense: null
+  danger: null
+  victory: null
+  mystery: null
+  grief: null
+scenes:
+  prologue:
+    title: Пролог
+    mood: calm
+    next: '1'
+  '1':
+    title: Глава 1
+    mood: danger
+    next: '87'
+  '2':
+    title: Глава 2
+    mood: victory
+    next: '224'
+  '3':
+    title: Глава 3
+    mood: calm
+    variants:
+      А: '281'
+      Б: '69'
+      В: '37'
+      Г: '187'
+      Д: '568'
+      Е: '227'
+      Ж: '579'
+  '4':
+    title: Глава 4
+    mood: danger
+    image: assets/illustrations/ill-e3a4ab4430.png
+    next: '320'
+    on_enter:
+    - set: perk_wanted_ncr_theft
+    - stat:
+        hp: 1
+        morale: 1
+        experience: 1
+  '5':
+    title: Глава 5
+    mood: calm
+    variants:
+      А: '264'
+      Б: '107'
+      В: '166'
+      Г: '358'
+      Д: '425'
+  '6':
+    title: Глава 6
+    mood: grief
+    ending: true
+  '7':
+    title: Глава 7
+    mood: tense
+    next: '359'
+  '8':
+    title: Глава 8
+    mood: calm
+    variants:
+      А: '176'
+      Б: '377'
+  '9':
+    title: Глава 9
+    mood: danger
+    next: '171'
+  '10':
+    title: Глава 10
+    mood: calm
+    variants:
+      А: '32'
+      Б: '336'
+      В: '61'
+      Г: '219'
+      Д: '415'
+      Е: '356'
+      Ж: '230'
+      З: '532'
+    on_enter:
+    - learn_code: klamath_map
+  '11':
+    title: Глава 11
+    mood: calm
+    next: '179'
+  '12':
+    title: Глава 12
+    mood: grief
+    ending: true
+  '13':
+    title: Глава 13
+    mood: danger
+    next: '274'
+  '14':
+    title: Глава 14
+    mood: danger
+    shopTitle: МАГАЗИН «САМЫЙ ЛУЧШИЙ ВО ВСЕЙ КАЛИФОРНИИ»
+    shopCurrency: золотых
+    shop:
+      - {item: bozar, price: 5300}
+      - {item: assault_rifle, price: 1300}
+      - {item: desert_eagle, price: 1100}
+      - {item: pistol_223, price: 3500}
+      - {item: hunting_rifle, price: 1500}
+      - {item: sniper_rifle, price: 2500}
+      - {item: laser_pistol, price: 1500}
+      - {item: combat_armor, price: 7000}
+      - {item: plasma_pistol, price: 2500}
+      - {item: hk_caws, price: 4500}
+      - {item: hk_g11, price: 5000}
+    next: '197'
+  '15':
+    title: Глава 15
+    mood: calm
+    shopTitle: АПТЕКА
+    shopCurrency: золотых
+    shop:
+      - {item: antidote, price: 100}
+      - {item: stimpak, price: 300}
+      - {item: medkit, price: 300}
+      - {item: lockpicks, price: 200}
+      - {item: crowbar, price: 100}
+    next: '359'
+  '16':
+    title: Глава 16
+    mood: calm
+    next: '358'
+  '17':
+    title: Глава 17
+    mood: danger
+    next: '320'
+  '18':
+    title: Глава 18
+    mood: danger
+    next: '324'
+    on_enter:
+    - learn_code: residential_quarter
+  '19':
+    title: Глава 19
+    mood: calm
+    next: '107'
+  '20':
+    title: Глава 20
+    mood: calm
+    variants:
+      А: '25'
+      Б: '90'
+      В: '157'
+      Г: '342'
+      Д: '120'
+      Е: '100'
+      Ж: '180'
+  '21':
+    title: Глава 21
+    mood: danger
+    variants:
+      А: '566'
+      Б: '488'
+      В: '77'
+  '22':
+    title: Глава 22
+    mood: danger
+    variants:
+      А: '323'
+      Б: '144'
+      В: '489'
+  '23':
+    title: Глава 23
+    mood: danger
+    next: '171'
+  '24':
+    title: Глава 24
+    mood: calm
+    shopTitle: НОЧЛЕЖКА ФЛИКА
+    shopCurrency: золотых
+    shop:
+      - {item: beer, price: 15}
+      - {item: crowbar, price: 250}
+      - {item: lockpicks, price: 250}
+      - {item: rope, price: 50}
+      - {item: psycho, price: 800}
+    next: '294'
+  '25':
+    title: Глава 25
+    mood: danger
+    next: '20'
+  '26':
+    title: Глава 26
+    mood: grief
+    ending: true
+  '27':
+    title: Глава 27
+    mood: danger
+    shopTitle: ОРУЖЕЙНЫЙ МАГАЗИН НА ТАНКЕРЕ
+    shopCurrency: золотых
+    shop:
+      - {item: pancor_jackhammer, price: 5500}
+      - {item: combat_shotgun, price: 950}
+      - {item: fn_fal, price: 1500}
+      - {item: grenade_plasma, price: 300}
+      - {item: magnum, price: 1500}
+    next: '379'
+  '28':
+    title: Глава 28
+    mood: tense
+    next: '292'
+  '29':
+    title: Глава 29
+    mood: danger
+    variants:
+      А: '592'
+      Б: '64'
+  '30':
+    title: Глава 30
+    mood: tense
+    variants:
+      А: '90'
+      Б: '72'
+  '31':
+    title: Глава 31
+    mood: calm
+    next: '56'
+  '32':
+    title: Глава 32
+    mood: calm
+    variants:
+      А: '86'
+      Б: '392'
+      В: '164'
+      Г: '349'
+      Д: '10'
+  '33':
+    title: Глава 33
+    mood: victory
+    next: '264'
+    on_enter:
+    - set: perk_homosexual
+    - stat:
+        hp: 1
+        morale: 1
+        experience: 1
+  '34':
+    title: Глава 34
+    mood: danger
+    next: '333'
+  '35':
+    title: Глава 35
+    mood: tense
+    next: '320'
+  '36':
+    title: Глава 36
+    mood: tense
+    variants:
+      А: '266'
+      Б: '374'
+  '37':
+    title: Глава 37
+    mood: danger
+    next: '3'
+  '38':
+    title: Глава 38
+    mood: calm
+    variants:
+      А: '95'
+      Б: '118'
+      В: '366'
+  '39':
+    title: Глава 39
+    mood: danger
+    image: assets/illustrations/ill-3d46dde98a.png
+    variants:
+      А: '386'
+      Б: '181'
+      В: '48'
+      Г: '302'
+  '40':
+    title: Глава 40
+    mood: danger
+    next: '356'
+    on_enter:
+    - stat:
+        hp: -6
+  '41':
+    title: Глава 41
+    mood: mystery
+    next: '133'
+  '42':
+    title: Глава 42
+    mood: tense
+    next: '226'
+  '43':
+    title: Глава 43
+    mood: tense
+    next: '343'
+  '44':
+    title: Глава 44
+    mood: mystery
+    next: '25'
+  '45':
+    title: Глава 45
+    mood: grief
+    next: '77'
+  '46':
+    title: Глава 46
+    mood: danger
+    image: assets/illustrations/ill-faeb482088.png
+    variants:
+      А: '52'
+      Б: '197'
+    on_enter:
+    - set: perk_ranger
+    - stat:
+        hp: 1
+        morale: 1
+        experience: 1
+    - take:
+        desert_eagle: 2
+        grenade_plasma: 1
+  '47':
+    title: Глава 47
+    mood: danger
+    next: '464'
+  '48':
+    title: Глава 48
+    mood: victory
+    image: assets/illustrations/ill-adbb25d0a6.png
+    next: '302'
+  '49':
+    title: Глава 49
+    mood: tense
+    next: '144'
+  '50':
+    title: Глава 50
+    mood: grief
+    ending: true
+  '51':
+    title: Глава 51
+    mood: calm
+    next: '493'
+  '52':
+    title: Глава 52
+    mood: danger
+    next: '46'
+  '53':
+    title: Глава 53
+    mood: danger
+    next: '359'
+  '54':
+    title: Глава 54
+    mood: calm
+    next: '330'
+  '55':
+    title: Глава 55
+    mood: danger
+    next: '139'
+  '56':
+    title: Глава 56
+    mood: tense
+    next: '77'
+  '57':
+    title: Глава 57
+    mood: tense
+    variants:
+      А: '468'
+      Б: '163'
+  '58':
+    title: Глава 58
+    mood: tense
+    variants:
+      А: '144'
+      Б: '294'
+  '59':
+    title: Глава 59
+    mood: danger
+    next: '320'
+  '60':
+    title: Глава 60
+    mood: tense
+    variants:
+      А: '152'
+      Б: '335'
+  '61':
+    title: Глава 61
+    mood: tense
+    variants:
+      А: '247'
+      Б: '372'
+      В: '10'
+  '62':
+    title: Глава 62
+    mood: danger
+    next: '379'
+  '63':
+    title: Глава 63
+    mood: grief
+    ending: true
+  '64':
+    title: Глава 64
+    mood: danger
+    next: '592'
+  '65':
+    title: Глава 65
+    mood: danger
+    next: '294'
+  '66':
+    title: Глава 66
+    mood: tense
+    next: '3'
+  '67':
+    title: Глава 67
+    mood: tense
+    next: '343'
+    on_enter:
+    - learn_code: sheriff
+  '68':
+    title: Глава 68
+    mood: tense
+    variants:
+      А: '120'
+      Б: '128'
+      В: '533'
+    on_enter:
+    - learn_code: new_reno_map
+  '69':
+    title: Глава 69
+    mood: calm
+    variants:
+      А: '121'
+      Б: '255'
+      В: '354'
+      Г: '174'
+      Д: '3'
+  '70':
+    title: Глава 70
+    mood: danger
+    variants:
+      А: '383'
+      Б: '197'
+    on_enter:
+    - learn_code: shop_games
+  '71':
+    title: Глава 71
+    mood: danger
+    next: '359'
+  '72':
+    title: Глава 72
+    mood: danger
+    image: assets/illustrations/ill-221671099a.png
+    next: '20'
+  '73':
+    title: Глава 73
+    mood: danger
+    next: '226'
+    on_enter:
+    - set: perk_addict
+    - stat:
+        hp: 1
+        morale: 1
+        experience: 1
+    - stat:
+        hp: -5
+  '74':
+    title: Глава 74
+    mood: danger
+    variants:
+      А: '109'
+      Б: '185'
+  '75':
+    title: Глава 75
+    mood: tense
+    variants:
+      А: '170'
+      Б: '267'
+      В: '270'
+  '76':
+    title: Глава 76
+    mood: victory
+    next: '224'
+    on_enter:
+    - learn_code: new_reno_map
+  '77':
+    title: Глава 77
+    mood: danger
+    variants:
+      А: '396'
+      Б: '117'
+      В: '21'
+      Г: '56'
+      Д: '333'
+      Е: '224'
+      Ж: '495'
+      З: '379'
+      И: '244'
+      Й: '230'
+  '78':
+    title: Глава 78
+    mood: tense
+    variants:
+      А: '197'
+      Б: '23'
+      В: '197'
+  '79':
+    title: Глава 79
+    mood: danger
+    next: '100'
+  '80':
+    title: Глава 80
+    mood: tense
+    next: '597'
+  '81':
+    title: Глава 81
+    mood: calm
+    next: '377'
+  '82':
+    title: Глава 82
+    mood: danger
+    next: '77'
+  '83':
+    title: Глава 83
+    mood: danger
+    next: '324'
+  '84':
+    title: Глава 84
+    mood: tense
+    variants:
+      А: '279'
+      Б: '326'
+      В: '20'
+    on_enter:
+    - learn_code: slaves_address
+  '85':
+    title: Глава 85
+    mood: grief
+    next: '69'
+  '86':
+    title: Глава 86
+    mood: grief
+    next: '32'
+  '87':
+    title: Глава 87
+    mood: danger
+    variants:
+      А: '139'
+      Б: '254'
+  '88':
+    title: Глава 88
+    mood: tense
+    variants:
+      А: '351'
+      Б: '180'
+      В: '555'
+  '89':
+    title: Глава 89
+    mood: grief
+    variants:
+      А: '167'
+      Б: '379'
+  '90':
+    title: Глава 90
+    mood: tense
+    variants:
+      А: '25'
+      Б: '72'
+  '91':
+    title: Глава 91
+    mood: tense
+    next: '97'
+    on_enter:
+    - learn_code: mine_ustinovka
+  '92':
+    title: Глава 92
+    mood: calm
+    variants:
+      А: '152'
+      Б: '357'
+      В: '287'
+      Г: '359'
+  '93':
+    title: Глава 93
+    mood: danger
+    next: '229'
+  '94':
+    title: Глава 94
+    mood: danger
+    next: '464'
+  '95':
+    title: Глава 95
+    mood: tense
+    variants:
+      А: '118'
+      Б: '38'
+      В: '366'
+  '96':
+    title: Глава 96
+    mood: tense
+    variants:
+      А: '151'
+      Б: '144'
+  '97':
+    title: Глава 97
+    mood: calm
+    variants:
+      А: '161'
+      Б: '183'
+      В: '198'
+      Г: '240'
+      Д: '256'
+      Е: '343'
+  '98':
+    title: Глава 98
+    mood: danger
+    next: '11'
+  '99':
+    title: Глава 99
+    mood: victory
+    image: assets/illustrations/ill-07d147feb5.png
+    next: '197'
+    on_enter:
+    - set: perk_throw_master
+    - stat:
+        hp: 1
+        morale: 1
+        experience: 1
+    - take:
+        grenade_frag: 5
+  '100':
+    title: Глава 100
+    mood: calm
+    variants:
+      А: '113'
+      Б: '134'
+      В: '180'
+      Г: '20'
+      Д: '439'
+      Е: '79'
+  '101':
+    title: Глава 101
+    mood: victory
+    variants:
+      А: '344'
+      Б: '224'
+      В: '2'
+  '102':
+    title: Глава 102
+    mood: tense
+    variants:
+      А: '204'
+      Б: '97'
+  '103':
+    title: Глава 103
+    mood: danger
+    variants:
+      А: '487'
+      Б: '138'
+  '104':
+    title: Глава 104
+    mood: danger
+    next: '11'
+  '105':
+    title: Глава 105
+    mood: grief
+    next: '294'
+  '106':
+    title: Глава 106
+    mood: danger
+    next: '152'
+  '107':
+    title: Глава 107
+    mood: grief
+    variants:
+      А: '371'
+      Б: '355'
+      В: '133'
+      Г: '19'
+      Д: '5'
+  '108':
+    title: Глава 108
+    mood: danger
+    next: '320'
+  '109':
+    title: Глава 109
+    mood: danger
+    next: '556'
+  '110':
+    title: Глава 110
+    mood: grief
+    ending: true
+    on_enter:
+    - set: perk_ghoul_favorite
+    - stat:
+        hp: 1
+        morale: 1
+        experience: 1
+  '112':
+    title: Глава 112
+    mood: victory
+    next: '152'
+  '113':
+    title: Глава 113
+    mood: calm
+    next: '100'
+    on_enter:
+    - stat:
+        money: -50
+  '114':
+    title: Глава 114
+    mood: grief
+    next: '294'
+  '115':
+    title: Глава 115
+    mood: danger
+    next: '22'
+  '116':
+    title: Глава 116
+    mood: grief
+    ending: true
+  '117':
+    title: Глава 117
+    mood: danger
+    next: '77'
+  '118':
+    title: Глава 118
+    mood: grief
+    variants:
+      А: '307'
+      Б: '291'
+      В: '313'
+  '119':
+    title: Глава 119
+    mood: calm
+    next: '359'
+  '120':
+    title: Глава 120
+    mood: calm
+    variants:
+      А: '305'
+      Б: '552'
+      В: '404'
+      Г: '20'
+  '121':
+    title: Глава 121
+    mood: tense
+    variants:
+      А: '304'
+      Б: '69'
+  '122':
+    title: Глава 122
+    mood: tense
+    next: '464'
+  '123':
+    title: Глава 123
+    mood: calm
+    next: '226'
+  '124':
+    title: Глава 124
+    mood: danger
+    next: '3'
+  '125':
+    title: Глава 125
+    mood: victory
+    image: assets/illustrations/ill-84c4c91864.png
+    next: '3'
+    on_enter:
+    - set: perk_sobriety
+    - stat:
+        hp: 1
+        morale: 1
+        experience: 1
+    - learn_code: inner_bar
+  '126':
+    title: Глава 126
+    mood: calm
+    variants:
+      А: '100'
+      Б: '339'
+  '127':
+    title: Глава 127
+    mood: danger
+    next: '197'
+  '128':
+    title: Глава 128
+    mood: grief
+    next: '5'
+  '129':
+    title: Глава 129
+    mood: danger
+    next: '343'
+    on_enter:
+    - learn_code: sheriff
+  '130':
+    title: Глава 130
+    mood: danger
+    next: '343'
+  '131':
+    title: Глава 131
+    mood: tense
+    variants:
+      А: '376'
+      Б: '320'
+  '132':
+    title: Глава 132
+    mood: danger
+    next: '180'
+  '133':
+    title: Глава 133
+    mood: calm
+    next: '107'
+  '134':
+    title: Глава 134
+    mood: danger
+    next: '100'
+  '135':
+    title: Глава 135
+    mood: danger
+    next: '229'
+  '136':
+    title: Глава 136
+    mood: tense
+    next: '248'
+    on_enter:
+    - learn_code: power_armor_upgrade
+  '137':
+    title: Глава 137
+    mood: grief
+    variants:
+      А: '283'
+      Б: '229'
+  '138':
+    title: Глава 138
+    mood: grief
+    next: '320'
+  '139':
+    title: Глава 139
+    mood: danger
+    next: '254'
+    on_enter:
+    - learn_code: grenade
+  '140':
+    title: Глава 140
+    mood: danger
+    next: '330'
+    on_enter:
+    - take:
+        assault_rifle: 5
+        grenade_frag: 6
+        rope: 3
+  '141':
+    title: Глава 141
+    mood: calm
+    next: '5'
+    on_enter:
+    - learn_code: jimmy_j
+  '142':
+    title: Глава 142
+    mood: danger
+    next: '49'
+  '143':
+    title: Глава 143
+    mood: mystery
+    next: '56'
+  '144':
+    title: Глава 144
+    mood: calm
+    variants:
+      А: '96'
+      Б: '49'
+      В: '158'
+      Г: '491'
+      Д: '294'
+  '145':
+    title: Глава 145
+    mood: grief
+    next: '25'
+  '146':
+    title: Глава 146
+    mood: calm
+    next: '3'
+  '147':
+    title: Глава 147
+    mood: victory
+    next: epilogue
+  '148':
+    title: Глава 148
+    mood: tense
+    variants:
+      А: '266'
+      Б: '374'
+  '149':
+    title: Глава 149
+    mood: calm
+    next: '171'
+  '150':
+    title: Глава 150
+    mood: danger
+    next: '25'
+  '151':
+    title: Глава 151
+    mood: danger
+    next: '294'
+  '152':
+    title: Глава 152
+    mood: calm
+    next: '92'
+  '153':
+    title: Глава 153
+    mood: danger
+    image: assets/illustrations/ill-07e10d0bcb.png
+    next: '10'
+  '154':
+    title: Глава 154
+    mood: tense
+    variants:
+      А: '64'
+      Б: '29'
+  '155':
+    title: Глава 155
+    mood: calm
+    next: '25'
+  '156':
+    title: Глава 156
+    mood: calm
+    next: '3'
+  '157':
+    title: Глава 157
+    mood: danger
+    next: '20'
+  '158':
+    title: Глава 158
+    mood: calm
+    next: '144'
+  '159':
+    title: Глава 159
+    mood: tense
+    variants:
+      А: '373'
+      Б: '251'
+  '160':
+    title: Глава 160
+    mood: victory
+    image: assets/illustrations/ill-7ab88372b0.png
+    next: '44'
+  '161':
+    title: Глава 161
+    mood: grief
+    image: assets/illustrations/ill-bc5a4ae82b.png
+    next: '97'
+  '162':
+    title: Глава 162
+    mood: grief
+    next: '379'
+  '163':
+    title: Глава 163
+    mood: grief
+    ending: true
+  '164':
+    title: Глава 164
+    mood: calm
+    next: '32'
+  '165':
+    title: Глава 165
+    mood: mystery
+    next: '25'
+  '166':
+    title: Глава 166
+    mood: tense
+    variants:
+      А: '298'
+      Б: '249'
+      В: '5'
+    on_enter:
+    - learn_code: jimmy_j
+  '167':
+    title: Глава 167
+    mood: danger
+    next: '379'
+  '168':
+    title: Глава 168
+    mood: calm
+    next: '333'
+  '169':
+    title: Глава 169
+    mood: tense
+    variants:
+      А: '81'
+      Б: '107'
+  '170':
+    title: Глава 170
+    mood: tense
+    variants:
+      А: '523'
+      Б: '329'
+      В: '75'
+  '171':
+    title: Глава 171
+    mood: mystery
+    variants:
+      А: '9'
+      Б: '314'
+      В: '149'
+      Г: '197'
+    on_enter:
+    - learn_code: slavers_hideout
+  '172':
+    title: Глава 172
+    mood: tense
+    variants:
+      А: '65'
+      Б: '294'
+  '173':
+    title: Глава 173
+    mood: tense
+    next: '282'
+  '174':
+    title: Глава 174
+    mood: tense
+    next: '203'
+  '175':
+    title: Глава 175
+    mood: victory
+    next: '323'
+    on_enter:
+    - set: perk_miser
+    - stat:
+        hp: 1
+        morale: 1
+        experience: 1
+  '176':
+    title: Глава 176
+    mood: calm
+    variants:
+      А: '278'
+      Б: '377'
+  '177':
+    title: Глава 177
+    mood: calm
+    next: '294'
+  '178':
+    title: Глава 178
+    mood: tense
+    next: '154'
+  '179':
+    title: Глава 179
+    mood: danger
+    variants:
+      А: '393'
+      Б: '205'
+  '180':
+    title: Глава 180
+    mood: calm
+    variants:
+      А: '88'
+      Б: '132'
+      В: '312'
+      Г: '20'
+      Д: '100'
+  '181':
+    title: Глава 181
+    mood: victory
+    image: assets/illustrations/ill-b3dd1b304e.png
+    variants:
+      А: '386'
+      Б: '39'
+      В: '48'
+      Г: '302'
+  '182':
+    title: Глава 182
+    mood: tense
+    next: '264'
+  '183':
+    title: Глава 183
+    mood: victory
+    image: assets/illustrations/ill-bc5a4ae82b.png
+    next: '97'
+  '184':
+    title: Глава 184
+    mood: grief
+    next: '230'
+  '185':
+    title: Глава 185
+    mood: danger
+    variants:
+      А: '305'
+      Б: '100'
+    on_enter:
+    - learn_code: area_map
+  '186':
+    title: Глава 186
+    mood: tense
+    variants:
+      А: '293'
+      Б: '359'
+  '187':
+    title: Глава 187
+    mood: tense
+    next: '3'
+  '188':
+    title: Глава 188
+    mood: calm
+    next: '369'
+  '189':
+    title: Глава 189
+    mood: tense
+    next: '96'
+  '190':
+    title: Глава 190
+    mood: calm
+    next: '224'
+  '191':
+    title: Глава 191
+    mood: victory
+    next: epilogue
+  '192':
+    title: Глава 192
+    mood: danger
+    next: '180'
+  '193':
+    title: Глава 193
+    mood: calm
+    next: '81'
+  '194':
+    title: Глава 194
+    mood: calm
+    next: '320'
+  '195':
+    title: Глава 195
+    mood: tense
+    next: '282'
+  '196':
+    title: Глава 196
+    mood: tense
+    next: '294'
+  '197':
+    title: Глава 197
+    mood: calm
+    variants:
+      А: '14'
+      Б: '127'
+      В: '361'
+      Г: '318'
+      Д: '320'
+      Е: '230'
+  '198':
+    title: Глава 198
+    mood: danger
+    next: '97'
+    on_enter:
+    - learn_code: ncr_coords
+  '199':
+    title: Глава 199
+    mood: danger
+    next: '334'
+  '200':
+    title: Глава 200
+    mood: grief
+    ending: true
+  '201':
+    title: Глава 201
+    mood: calm
+    next: '359'
+  '202':
+    title: Глава 202
+    mood: tense
+    next: '10'
+  '203':
+    title: Глава 203
+    mood: danger
+    variants:
+      А: '153'
+      Б: '69'
+  '204':
+    title: Глава 204
+    mood: tense
+    next: '97'
+  '205':
+    title: Глава 205
+    mood: danger
+    next: '199'
+    on_enter:
+    - take:
+        grenade_frag: 5
+        grenade_plasma: 1
+  '206':
+    title: Глава 206
+    mood: tense
+    variants:
+      А: '46'
+      Б: '320'
+  '207':
+    title: Глава 207
+    mood: danger
+    next: '320'
+  '208':
+    title: Глава 208
+    mood: grief
+    ending: true
+  '209':
+    title: Глава 209
+    mood: calm
+    next: '249'
+    on_enter:
+    - learn_code: mission_report
+  '210':
+    title: Глава 210
+    mood: danger
+    next: '185'
+  '211':
+    title: Глава 211
+    mood: danger
+    next: '464'
+  '212':
+    title: Глава 212
+    mood: danger
+    next: '293'
+  '213':
+    title: Глава 213
+    mood: grief
+    next: '97'
+  '214':
+    title: Глава 214
+    mood: victory
+    next: '584'
+  '215':
+    title: Глава 215
+    mood: danger
+    variants:
+      А: '45'
+      Б: '77'
+  '216':
+    title: Глава 216
+    mood: calm
+    next: '313'
+  '217':
+    title: Глава 217
+    mood: tense
+    next: '51'
+  '218':
+    title: Глава 218
+    mood: danger
+    next: '20'
+  '219':
+    title: Глава 219
+    mood: danger
+    next: '10'
+  '220':
+    title: Глава 220
+    mood: mystery
+    variants:
+      А: '494'
+      Б: '545'
+      В: '417'
+      Г: '448'
+      Д: '445'
+  '221':
+    title: Глава 221
+    mood: tense
+    next: '363'
+  '222':
+    title: Глава 222
+    mood: danger
+    image: assets/illustrations/ill-8e2ba4b21b.png
+    next: '259'
+    on_enter:
+    - set: perk_bruce_willis
+    - stat:
+        hp: 1
+        morale: 1
+        experience: 1
+  '223':
+    title: Глава 223
+    mood: tense
+    variants:
+      А: '58'
+      Б: '100'
+      В: '435'
+      Г: '555'
+    on_enter:
+    - learn_code: bunker
+  '224':
+    title: Глава 224
+    mood: calm
+    variants:
+      А: '190'
+      Б: '101'
+      В: '384'
+      Г: '248'
+      Д: '2'
+      Е: '77'
+  '225':
+    title: Глава 225
+    mood: mystery
+    next: '320'
+  '226':
+    title: Глава 226
+    mood: calm
+    variants:
+      А: '123'
+      Б: '42'
+      В: '309'
+      Г: '358'
+  '227':
+    title: Глава 227
+    mood: tense
+    variants:
+      А: '359'
+      Б: '359'
+      В: '3'
+  '228':
+    title: Глава 228
+    mood: danger
+    next: '343'
+  '229':
+    title: Глава 229
+    mood: calm
+    variants:
+      А: '93'
+      Б: '288'
+      В: '230'
+      Г: '385'
+  '230':
+    title: Глава 230
+    mood: calm
+    variants:
+      А: '319'
+      Б: '184'
+      В: '257'
+      Г: '229'
+      Д: '270'
+  '231':
+    title: Глава 231
+    mood: danger
+    next: '330'
+  '232':
+    title: Глава 232
+    mood: grief
+    next: '80'
+  '233':
+    title: Глава 233
+    mood: calm
+    next: '273'
+    on_enter:
+    - stat:
+        money: 300
+  '234':
+    title: Глава 234
+    mood: calm
+    next: '25'
+  '235':
+    title: Глава 235
+    mood: tense
+    next: '320'
+  '236':
+    title: Глава 236
+    mood: tense
+    variants:
+      А: '333'
+      Б: '333'
+  '237':
+    title: Глава 237
+    mood: danger
+    image: assets/illustrations/ill-7ab88372b0.png
+    next: '264'
+  '238':
+    title: Глава 238
+    mood: danger
+    next: '25'
+  '239':
+    title: Глава 239
+    mood: tense
+    next: '407'
+  '240':
+    title: Глава 240
+    mood: grief
+    variants:
+      А: '213'
+      Б: '364'
+      В: '97'
+  '241':
+    title: Глава 241
+    mood: tense
+    next: '359'
+  '242':
+    title: Глава 242
+    mood: victory
+    image: assets/illustrations/ill-7ab88372b0.png
+    next: '44'
+  '243':
+    title: Глава 243
+    mood: calm
+    next: '324'
+  '244':
+    title: Глава 244
+    mood: calm
+    next: '77'
+  '245':
+    title: Глава 245
+    mood: tense
+    variants:
+      А: '100'
+      Б: '188'
+      В: '126'
+      Г: '543'
+  '246':
+    title: Глава 246
+    mood: calm
+    next: '25'
+  '247':
+    title: Глава 247
+    mood: calm
+    next: '61'
+  '248':
+    title: Глава 248
+    mood: tense
+    next: '224'
+  '249':
+    title: Глава 249
+    mood: danger
+    next: '464'
+  '250':
+    title: Глава 250
+    mood: calm
+    next: '25'
+  '251':
+    title: Глава 251
+    mood: grief
+    next: '69'
+  '252':
+    title: Глава 252
+    mood: calm
+    next: '333'
+    on_enter:
+    - learn_code: power_armor_search
+  '253':
+    title: Глава 253
+    mood: tense
+    next: '345'
+  '254':
+    title: Глава 254
+    mood: danger
+    variants:
+      А: '286'
+      Б: '100'
+  '255':
+    title: Глава 255
+    mood: tense
+    next: '69'
+  '256':
+    title: Глава 256
+    mood: danger
+    variants:
+      А: '343'
+      Б: '97'
+  '257':
+    title: Глава 257
+    mood: danger
+    next: '230'
+  '258':
+    title: Глава 258
+    mood: victory
+    image: assets/illustrations/ill-9cc61adb60.png
+    next: '343'
+  '259':
+    title: Глава 259
+    mood: tense
+    next: '73'
+  '260':
+    title: Глава 260
+    mood: mystery
+    next: '320'
+  '261':
+    title: Глава 261
+    mood: grief
+    next: '5'
+  '262':
+    title: Глава 262
+    mood: tense
+    next: '302'
+  '263':
+    title: Глава 263
+    mood: calm
+    next: '107'
+    on_enter:
+    - learn_code: marked_place
+  '264':
+    title: Глава 264
+    mood: tense
+    variants:
+      А: '237'
+      Б: '33'
+      В: '182'
+      Г: '405'
+      Д: '5'
+  '265':
+    title: Глава 265
+    mood: mystery
+    next: '357'
+  '266':
+    title: Глава 266
+    mood: danger
+    variants:
+      А: '516'
+      Б: '214'
+  '267':
+    title: Глава 267
+    mood: tense
+    variants:
+      А: '387'
+      Б: '340'
+      В: '75'
+  '268':
+    title: Глава 268
+    mood: danger
+    next: '212'
+    on_enter:
+    - learn_code: darwin_city
+  '269':
+    title: Глава 269
+    mood: danger
+    next: '379'
+  '270':
+    title: Глава 270
+    mood: tense
+    variants:
+      А: '230'
+      Б: '305'
+  '271':
+    title: Глава 271
+    mood: danger
+    variants:
+      А: '197'
+      Б: '70'
+      В: '197'
+    on_enter:
+    - learn_code: bar_painting
+  '272':
+    title: Глава 272
+    mood: grief
+    ending: true
+  '273':
+    title: Глава 273
+    mood: tense
+    next: '359'
+  '274':
+    title: Глава 274
+    mood: danger
+    next: '519'
+  '275':
+    title: Глава 275
+    mood: tense
+    variants:
+      А: '369'
+      Б: '312'
+  '276':
+    title: Глава 276
+    mood: tense
+    next: '224'
+  '277':
+    title: Глава 277
+    mood: calm
+    variants:
+      А: '229'
+      Б: '135'
+  '278':
+    title: Глава 278
+    mood: grief
+    next: '377'
+    on_enter:
+    - stat:
+        hp: -10
+  '279':
+    title: Глава 279
+    mood: calm
+    next: '20'
+  '280':
+    title: Глава 280
+    mood: calm
+    variants:
+      А: '362'
+      Б: '320'
+  '281':
+    title: Глава 281
+    mood: tense
+    variants:
+      А: '146'
+      Б: '3'
+  '282':
+    title: Глава 282
+    mood: danger
+    next: '226'
+  '283':
+    title: Глава 283
+    mood: danger
+    variants:
+      А: '399'
+      Б: '140'
+  '284':
+    title: Глава 284
+    mood: tense
+    variants:
+      А: '396'
+      Б: '396'
+  '285':
+    title: Глава 285
+    mood: danger
+    next: '331'
+    on_enter:
+    - learn_code: vault_city_map
+  '286':
+    title: Глава 286
+    mood: tense
+    next: '100'
+    on_enter:
+    - learn_code: propaganda
+  '287':
+    title: Глава 287
+    mood: calm
+    next: '457'
+  '288':
+    title: Глава 288
+    mood: danger
+    next: '229'
+  '289':
+    title: Глава 289
+    mood: danger
+    next: '343'
+  '290':
+    title: Глава 290
+    mood: danger
+    next: '343'
+    on_enter:
+    - learn_code: bar_fight
+  '291':
+    title: Глава 291
+    mood: calm
+    next: '381'
+  '292':
+    title: Глава 292
+    mood: victory
+    image: assets/illustrations/ill-1beef7d960.png
+    next: '309'
+  '293':
+    title: Глава 293
+    mood: calm
+    variants:
+      А: '303'
+      Б: '527'
+      В: '212'
+      Г: '514'
+      Д: '359'
+  '294':
+    title: Глава 294
+    mood: calm
+    variants:
+      А: '24'
+      Б: '253'
+      В: '177'
+      Г: '114'
+      Д: '105'
+      Е: '172'
+      Ж: '196'
+      З: '144'
+      И: '462'
+  '295':
+    title: Глава 295
+    mood: grief
+    ending: true
+  '296':
+    title: Глава 296
+    mood: tense
+    variants:
+      А: '452'
+      Б: '482'
+      В: '358'
+  '297':
+    title: Глава 297
+    mood: danger
+    next: '333'
+  '298':
+    title: Глава 298
+    mood: calm
+    variants:
+      А: '567'
+      Б: '5'
+  '299':
+    title: Глава 299
+    mood: danger
+    next: '343'
+    on_enter:
+    - learn_code: mayor
+  '300':
+    title: Глава 300
+    mood: tense
+    variants:
+      А: '360'
+      Б: '216'
+      В: '313'
+  '301':
+    title: Глава 301
+    mood: tense
+    next: '3'
+  '302':
+    title: Глава 302
+    mood: grief
+    variants:
+      А: '262'
+      Б: '386'
+      В: '181'
+      Г: '39'
+      Д: '358'
+  '303':
+    title: Глава 303
+    mood: tense
+    next: '293'
+  '304':
+    title: Глава 304
+    mood: tense
+    variants:
+      А: '85'
+      Б: '69'
+  '305':
+    title: Глава 305
+    mood: tense
+    variants:
+      А: '230'
+      Б: '137'
+      В: '120'
+  '306':
+    title: Глава 306
+    mood: danger
+    next: '77'
+    on_enter:
+    - learn_code: report_work
+  '307':
+    title: Глава 307
+    mood: grief
+    next: '313'
+  '308':
+    title: Глава 308
+    mood: danger
+    next: '134'
+  '309':
+    title: Глава 309
+    mood: tense
+    variants:
+      А: '259'
+      Б: '28'
+      В: '331'
+      Г: '226'
+  '310':
+    title: Глава 310
+    mood: calm
+    next: '359'
+  '311':
+    title: Глава 311
+    mood: calm
+    next: '357'
+  '312':
+    title: Глава 312
+    mood: tense
+    next: '180'
+  '313':
+    title: Глава 313
+    mood: grief
+    ending: true
+  '314':
+    title: Глава 314
+    mood: danger
+    image: assets/illustrations/ill-d4521f8be0.png
+    next: '171'
+  '315':
+    title: Глава 315
+    mood: danger
+    next: '229'
+    on_enter:
+    - set: perk_deathclaw_enemy
+    - stat:
+        hp: 1
+        morale: 1
+        experience: 1
+  '316':
+    title: Глава 316
+    mood: victory
+    image: assets/illustrations/ill-5228275b86.png
+    next: '22'
+    on_enter:
+    - set: perk_den_honorary
+    - stat:
+        hp: 1
+        morale: 1
+        experience: 1
+  '317':
+    title: Глава 317
+    mood: danger
+    next: '357'
+  '318':
+    title: Глава 318
+    mood: danger
+    variants:
+      А: '389'
+      Б: '78'
+      В: '197'
+  '319':
+    title: Глава 319
+    mood: tense
+    next: '230'
+  '320':
+    title: Глава 320
+    mood: calm
+    variants:
+      А: '235'
+      Б: '138'
+      В: '59'
+      Г: '260'
+      Д: '131'
+      Е: '526'
+      Ж: '575'
+      З: '35'
+      И: '194'
+      Й: '108'
+      К: '197'
+  '321':
+    title: Глава 321
+    mood: calm
+    next: '367'
+  '322':
+    title: Глава 322
+    mood: danger
+    next: '379'
+  '323':
+    title: Глава 323
+    mood: calm
+    variants:
+      А: '230'
+      Б: '533'
+      В: '223'
+  '324':
+    title: Глава 324
+    mood: calm
+    variants:
+      А: '368'
+      Б: '18'
+      В: '243'
+      Г: '343'
+  '325':
+    title: Глава 325
+    mood: tense
+    next: '294'
+  '326':
+    title: Глава 326
+    mood: danger
+    next: '20'
+    on_enter:
+    - learn_code: slaves_address
+  '327':
+    title: Глава 327
+    mood: calm
+    next: '125'
+  '328':
+    title: Глава 328
+    mood: victory
+    image: assets/illustrations/ill-f908cf1015.png
+    next: '144'
+    on_enter:
+    - set: perk_grave_digger
+    - stat:
+        hp: 1
+        morale: 1
+        experience: 1
+  '329':
+    title: Глава 329
+    mood: calm
+    variants:
+      А: '387'
+      Б: '170'
+  '330':
+    title: Глава 330
+    mood: calm
+    next: '229'
+  '331':
+    title: Глава 331
+    mood: grief
+    next: '226'
+  '332':
+    title: Глава 332
+    mood: calm
+    next: '3'
+  '333':
+    title: Глава 333
+    mood: calm
+    variants:
+      А: '236'
+      Б: '34'
+      В: '252'
+      Г: '77'
+  '334':
+    title: Глава 334
+    mood: mystery
+    variants:
+      А: '95'
+      Б: '118'
+      В: '38'
+      Г: '366'
+  '335':
+    title: Глава 335
+    mood: danger
+    next: '92'
+  '336':
+    title: Глава 336
+    mood: tense
+    next: '10'
+  '337':
+    title: Глава 337
+    mood: tense
+    variants:
+      А: '129'
+      Б: '67'
+      В: '492'
+      Г: '343'
+  '338':
+    title: Глава 338
+    mood: victory
+    image: assets/illustrations/ill-81e0659a4a.png
+    next: '185'
+    on_enter:
+    - set: perk_tough_guy
+    - stat:
+        hp: 1
+        morale: 1
+        experience: 1
+  '339':
+    title: Глава 339
+    mood: danger
+    next: '221'
+  '340':
+    title: Глава 340
+    mood: tense
+    next: '267'
+  '341':
+    title: Глава 341
+    mood: victory
+    next: '224'
+    on_enter:
+    - set: perk_ahs_6
+    - stat:
+        hp: 1
+        morale: 1
+        experience: 1
+  '342':
+    title: Глава 342
+    mood: calm
+    variants:
+      А: '84'
+      Б: '20'
+    on_enter:
+    - learn_code: slaves_address
+  '343':
+    title: Глава 343
+    mood: calm
+    variants:
+      А: '97'
+      Б: '256'
+      В: '324'
+      Г: '290'
+      Д: '378'
+      Е: '207'
+      Ж: '560'
+  '344':
+    title: Глава 344
+    mood: victory
+    next: '224'
+  '345':
+    title: Глава 345
+    mood: tense
+    variants:
+      А: '328'
+      Б: '294'
+  '346':
+    title: Глава 346
+    mood: danger
+    next: '253'
+  '347':
+    title: Глава 347
+    mood: calm
+    variants:
+      А: '517'
+      Б: '563'
+      В: '412'
+      Г: '270'
+  '348':
+    title: Глава 348
+    mood: tense
+    next: '75'
+  '349':
+    title: Глава 349
+    mood: tense
+    next: '32'
+  '350':
+    title: Глава 350
+    mood: danger
+    next: '120'
+  '351':
+    title: Глава 351
+    mood: danger
+    next: '180'
+  '352':
+    title: Глава 352
+    mood: mystery
+    variants:
+      А: '13'
+      Б: '377'
+  '353':
+    title: Глава 353
+    mood: tense
+    next: '545'
+  '354':
+    title: Глава 354
+    mood: danger
+    next: '3'
+    on_enter:
+    - stat:
+        hp: -3
+  '355':
+    title: Глава 355
+    mood: calm
+    next: '107'
+  '356':
+    title: Глава 356
+    mood: tense
+    next: '10'
+  '357':
+    title: Глава 357
+    mood: mystery
+    next: '92'
+    on_enter:
+    - learn_code: gecko_coords
+  '358':
+    title: Глава 358
+    mood: calm
+    variants:
+      А: '5'
+      Б: '296'
+      В: '464'
+      Г: '16'
+      Д: '302'
+      Е: '377'
+      Ж: '226'
+  '359':
+    title: Глава 359
+    mood: mystery
+    variants:
+      А: '92'
+      Б: '273'
+      В: '53'
+      Г: '367'
+      Д: '241'
+      Е: '186'
+      Ж: '119'
+      З: '15'
+      И: '71'
+      Й: '310'
+      К: '201'
+      Л: '3'
+  '360':
+    title: Глава 360
+    mood: danger
+    variants:
+      А: '147'
+      Б: '163'
+  '361':
+    title: Глава 361
+    mood: tense
+    variants:
+      А: '271'
+      Б: '197'
+  '362':
+    title: Глава 362
+    mood: calm
+    next: '320'
+    on_enter:
+    - learn_code: clinic_right
+  '363':
+    title: Глава 363
+    mood: calm
+    next: '369'
+  '364':
+    title: Глава 364
+    mood: calm
+    next: '240'
+  '365':
+    title: Глава 365
+    mood: danger
+    image: assets/illustrations/ill-e3a4ab4430.png
+    variants:
+      А: '320'
+      Б: '197'
+  '366':
+    title: Глава 366
+    mood: calm
+    variants:
+      А: '300'
+      Б: '313'
+  '367':
+    title: Глава 367
+    mood: danger
+    next: '359'
+  '368':
+    title: Глава 368
+    mood: tense
+    next: '324'
+  '369':
+    title: Глава 369
+    mood: tense
+    next: '74'
+  '370':
+    title: Глава 370
+    mood: danger
+    next: '358'
+  '371':
+    title: Глава 371
+    mood: calm
+    next: '107'
+  '372':
+    title: Глава 372
+    mood: mystery
+    next: '61'
+  '373':
+    title: Глава 373
+    mood: calm
+    next: '69'
+    on_enter:
+    - learn_code: inner_bar
+  '374':
+    title: Глава 374
+    mood: tense
+    next: '584'
+  '375':
+    title: Глава 375
+    mood: victory
+    variants:
+      А: '135'
+      Б: '229'
+  '376':
+    title: Глава 376
+    mood: calm
+    variants:
+      А: '320'
+      Б: '17'
+    on_enter:
+    - learn_code: shark_club
+  '377':
+    title: Глава 377
+    mood: tense
+    variants:
+      А: '8'
+      Б: '451'
+      В: '352'
+      Г: '358'
+  '378':
+    title: Глава 378
+    mood: tense
+    next: '343'
+  '379':
+    title: Глава 379
+    mood: grief
+    variants:
+      А: '62'
+      Б: '391'
+      В: '269'
+      Г: '162'
+      Д: '27'
+      Е: '89'
+      Ж: '322'
+      З: '77'
+  '380':
+    title: Глава 380
+    mood: danger
+    next: '352'
+    on_enter:
+    - learn_code: bar_lloyd
+  '381':
+    title: Глава 381
+    mood: tense
+    variants:
+      А: '57'
+      Б: '313'
+  '382':
+    title: Глава 382
+    mood: victory
+    next: epilogue
+  '383':
+    title: Глава 383
+    mood: danger
+    next: '197'
+  '384':
+    title: Глава 384
+    mood: danger
+    next: '224'
+  '385':
+    title: Глава 385
+    mood: danger
+    variants:
+      А: '229'
+      Б: '277'
+  '386':
+    title: Глава 386
+    mood: victory
+    image: assets/illustrations/ill-1e4913f907.png
+    variants:
+      А: '39'
+      Б: '181'
+      В: '48'
+      Г: '302'
+  '387':
+    title: Глава 387
+    mood: tense
+    variants:
+      А: '232'
+      Б: '178'
+      В: '267'
+      Г: '329'
+  '388':
+    title: Глава 388
+    mood: grief
+    ending: true
+  '389':
+    title: Глава 389
+    mood: tense
+    next: '197'
+    on_enter:
+    - take:
+        combat_shotgun: 1
+        pancor_jackhammer: 1
+        fn_fal: 1
+  '390':
+    title: Глава 390
+    mood: danger
+    next: '293'
+    on_enter:
+    - learn_code: material
+  '391':
+    title: Глава 391
+    mood: tense
+    next: '379'
+  '392':
+    title: Глава 392
+    mood: tense
+    variants:
+      А: '40'
+      Б: '32'
+  '393':
+    title: Глава 393
+    mood: danger
+    next: '199'
+  '394':
+    title: Глава 394
+    mood: danger
+    next: '359'
+  '395':
+    title: Глава 395
+    mood: danger
+    next: '358'
+  '396':
+    title: Глава 396
+    mood: danger
+    next: '77'
+  '397':
+    title: Глава 397
+    mood: tense
+    next: '97'
+    on_enter:
+    - stat:
+        hp: -3
+  '398':
+    title: Глава 398
+    mood: grief
+    ending: true
+  '399':
+    title: Глава 399
+    mood: danger
+    variants:
+      А: '231'
+      Б: '54'
+      В: '140'
+  '400':
+    title: Глава 400
+    mood: grief
+    ending: true
+  '401':
+    title: Глава 401
+    mood: danger
+    variants:
+      А: '559'
+      Б: '467'
+  '402':
+    title: Глава 402
+    mood: danger
+    next: '319'
+  '403':
+    title: Глава 403
+    mood: danger
+    next: '473'
+    on_enter:
+    - learn_code: mission_report
+  '404':
+    title: Глава 404
+    mood: calm
+    next: '120'
+  '405':
+    title: Глава 405
+    mood: calm
+    next: '264'
+    on_enter:
+    - learn_code: vault_city_map
+    - learn_code: northeast
+  '406':
+    title: Глава 406
+    mood: tense
+    next: '5'
+  '407':
+    title: Глава 407
+    mood: calm
+    variants:
+      А: '533'
+      Б: '450'
+  '408':
+    title: Глава 408
+    mood: tense
+    next: '343'
+    on_enter:
+    - learn_code: marked_place
+  '409':
+    title: Глава 409
+    mood: grief
+    ending: true
+  '410':
+    title: Глава 410
+    mood: mystery
+    variants:
+      А: '593'
+      Б: '483'
+      В: '465'
+      Г: '562'
+      Д: '473'
+      Е: '499'
+      Ж: '511'
+      З: '548'
+  '411':
+    title: Глава 411
+    mood: tense
+    next: '588'
+  '412':
+    title: Глава 412
+    mood: mystery
+    variants:
+      А: '478'
+      Б: '414'
+      В: '461'
+      Г: '546'
+      Д: '347'
+      Е: '517'
+      Ж: '563'
+  '413':
+    title: Глава 413
+    mood: tense
+    next: '511'
+  '414':
+    title: Глава 414
+    mood: danger
+    next: '412'
+  '415':
+    title: Глава 415
+    mood: danger
+    next: '10'
+  '416':
+    title: Глава 416
+    mood: tense
+    variants:
+      А: '536'
+      Б: '463'
+      В: '502'
+  '417':
+    title: Глава 417
+    mood: calm
+    variants:
+      А: '530'
+      Б: '518'
+      В: '559'
+      Г: '220'
+  '418':
+    title: Глава 418
+    mood: tense
+    next: '5'
+  '419':
+    title: Глава 419
+    mood: tense
+    next: '320'
+  '420':
+    title: Глава 420
+    mood: calm
+    next: '220'
+    on_enter:
+    - learn_code: attention
+  '421':
+    title: Глава 421
+    mood: danger
+    next: '563'
+  '422':
+    title: Глава 422
+    mood: tense
+    next: '5'
+    on_enter:
+    - learn_code: new_reno_map
+  '423':
+    title: Глава 423
+    mood: tense
+    next: '533'
+  '424':
+    title: Глава 424
+    mood: grief
+    next: '559'
+  '425':
+    title: Глава 425
+    mood: tense
+    variants:
+      А: '270'
+      Б: '5'
+  '426':
+    title: Глава 426
+    mood: danger
+    next: '597'
+  '427':
+    title: Глава 427
+    mood: calm
+    next: '540'
+  '428':
+    title: Глава 428
+    mood: danger
+    next: '517'
+  '429':
+    title: Глава 429
+    mood: calm
+    variants:
+      А: '440'
+      Б: '578'
+  '430':
+    title: Глава 430
+    mood: grief
+    ending: true
+  '431':
+    title: Глава 431
+    mood: grief
+    ending: true
+  '432':
+    title: Глава 432
+    mood: calm
+    variants:
+      А: '525'
+      Б: '293'
+  '433':
+    title: Глава 433
+    mood: calm
+    variants:
+      А: '469'
+      Б: '578'
+      В: '503'
+      Г: '270'
+  '434':
+    title: Глава 434
+    mood: calm
+    next: '412'
+    on_enter:
+    - learn_code: main_street_bomb
+  '435':
+    title: Глава 435
+    mood: mystery
+    variants:
+      А: '444'
+      Б: '120'
+    on_enter:
+    - learn_code: holodisk
+  '436':
+    title: Глава 436
+    mood: calm
+    variants:
+      А: '180'
+      Б: '77'
+    on_enter:
+    - learn_code: city_search
+    - learn_code: san_francisco
+  '437':
+    title: Глава 437
+    mood: tense
+    next: '516'
+  '438':
+    title: Глава 438
+    mood: tense
+    variants:
+      А: '487'
+      Б: '473'
+  '439':
+    title: Глава 439
+    mood: tense
+    next: '100'
+  '440':
+    title: Глава 440
+    mood: danger
+    variants:
+      А: '577'
+      Б: '587'
+  '441':
+    title: Глава 441
+    mood: tense
+    next: '553'
+  '442':
+    title: Глава 442
+    mood: danger
+    next: '517'
+  '443':
+    title: Глава 443
+    mood: danger
+    next: '473'
+    on_enter:
+    - learn_code: ring
+  '444':
+    title: Глава 444
+    mood: danger
+    next: '68'
+  '445':
+    title: Глава 445
+    mood: tense
+    variants:
+      А: '270'
+      Б: '220'
+  '446':
+    title: Глава 446
+    mood: calm
+    next: '517'
+  '447':
+    title: Глава 447
+    mood: tense
+    next: '197'
+    on_enter:
+    - learn_code: ncr_coords
+  '448':
+    title: Глава 448
+    mood: victory
+    next: '220'
+  '449':
+    title: Глава 449
+    mood: calm
+    next: '517'
+  '450':
+    title: Глава 450
+    mood: tense
+    variants:
+      А: '180'
+      Б: '348'
+  '451':
+    title: Глава 451
+    mood: danger
+    next: '377'
+  '452':
+    title: Глава 452
+    mood: danger
+    next: '296'
+  '453':
+    title: Глава 453
+    mood: danger
+    next: '253'
+  '454':
+    title: Глава 454
+    mood: danger
+    next: '3'
+  '455':
+    title: Глава 455
+    mood: danger
+    next: '581'
+  '456':
+    title: Глава 456
+    mood: danger
+    next: '588'
+  '457':
+    title: Глава 457
+    mood: victory
+    next: '92'
+    on_enter:
+    - set: perk_vault_city_citizen
+    - stat:
+        hp: 1
+        morale: 1
+        experience: 1
+    - learn_code: tell
+  '458':
+    title: Глава 458
+    mood: victory
+    next: '563'
+  '459':
+    title: Глава 459
+    mood: victory
+    variants:
+      А: '487'
+      Б: '494'
+  '460':
+    title: Глава 460
+    mood: grief
+    next: '417'
+  '461':
+    title: Глава 461
+    mood: danger
+    next: '412'
+  '462':
+    title: Глава 462
+    mood: tense
+    variants:
+      А: '270'
+      Б: '294'
+  '463':
+    title: Глава 463
+    mood: tense
+    next: '521'
+  '464':
+    title: Глава 464
+    mood: calm
+    variants:
+      А: '249'
+      Б: '47'
+      В: '211'
+      Г: '122'
+      Д: '358'
+  '465':
+    title: Глава 465
+    mood: danger
+    variants:
+      А: '480'
+      Б: '447'
+      В: '422'
+      Г: '408'
+      Д: '410'
+  '466':
+    title: Глава 466
+    mood: victory
+    image: assets/illustrations/ill-71c5e127b9.png
+    next: '294'
+    on_enter:
+    - set: perk_lara_gang
+    - stat:
+        hp: 1
+        morale: 1
+        experience: 1
+  '467':
+    title: Глава 467
+    mood: grief
+    variants:
+      А: '558'
+      Б: '591'
+    on_enter:
+    - stat:
+        morale: -10
+  '468':
+    title: Глава 468
+    mood: danger
+    next: '382'
+  '469':
+    title: Глава 469
+    mood: calm
+    next: '433'
+    on_enter:
+    - learn_code: klamath_map
+  '470':
+    title: Глава 470
+    mood: tense
+    next: '412'
+  '471':
+    title: Глава 471
+    mood: grief
+    next: '320'
+  '472':
+    title: Глава 472
+    mood: grief
+    ending: true
+  '473':
+    title: Глава 473
+    mood: tense
+    variants:
+      А: '580'
+      Б: '443'
+      В: '410'
+  '474':
+    title: Глава 474
+    mood: danger
+    next: '547'
+  '475':
+    title: Глава 475
+    mood: danger
+    next: '517'
+  '476':
+    title: Глава 476
+    mood: calm
+    next: '3'
+  '477':
+    title: Глава 477
+    mood: tense
+    next: '494'
+    on_enter:
+    - learn_code: ncr_coords
+    - learn_code: san_francisco
+  '478':
+    title: Глава 478
+    mood: tense
+    next: '434'
+  '479':
+    title: Глава 479
+    mood: danger
+    next: '517'
+  '480':
+    title: Глава 480
+    mood: tense
+    next: '3'
+    on_enter:
+    - learn_code: vault_city_map
+  '481':
+    title: Глава 481
+    mood: tense
+    next: '411'
+  '482':
+    title: Глава 482
+    mood: victory
+    image: assets/illustrations/ill-f908cf1015.png
+    next: '296'
+  '483':
+    title: Глава 483
+    mood: tense
+    next: '410'
+  '484':
+    title: Глава 484
+    mood: danger
+    next: '540'
+  '485':
+    title: Глава 485
+    mood: grief
+    ending: true
+  '486':
+    title: Глава 486
+    mood: danger
+    next: '357'
+    on_enter:
+    - learn_code: ring
+  '487':
+    title: Глава 487
+    mood: grief
+    variants:
+      А: '533'
+      Б: '334'
+  '488':
+    title: Глава 488
+    mood: victory
+    image: assets/illustrations/ill-226277219a.png
+    next: '77'
+  '489':
+    title: Глава 489
+    mood: danger
+    image: assets/illustrations/ill-d4521f8be0.png
+    next: '22'
+  '490':
+    title: Глава 490
+    mood: danger
+    next: '547'
+  '491':
+    title: Глава 491
+    mood: tense
+    next: '22'
+  '492':
+    title: Глава 492
+    mood: danger
+    image: assets/illustrations/ill-aaa9401927.png
+    next: '343'
+    on_enter:
+    - learn_code: sheriff
+  '493':
+    title: Глава 493
+    mood: danger
+    variants:
+      А: '533'
+      Б: '436'
+  '494':
+    title: Глава 494
+    mood: tense
+    variants:
+      А: '572'
+      Б: '477'
+      В: '220'
+  '495':
+    title: Глава 495
+    mood: grief
+    next: '77'
+  '496':
+    title: Глава 496
+    mood: calm
+    next: '359'
+  '497':
+    title: Глава 497
+    mood: danger
+    variants:
+      А: '471'
+      Б: '320'
+  '498':
+    title: Глава 498
+    mood: tense
+    next: '343'
+  '499':
+    title: Глава 499
+    mood: mystery
+    next: '410'
+  '500':
+    title: Глава 500
+    mood: danger
+    next: '450'
+  '501':
+    title: Глава 501
+    mood: grief
+    ending: true
+  '502':
+    title: Глава 502
+    mood: danger
+    next: '588'
+  '503':
+    title: Глава 503
+    mood: tense
+    next: '433'
+  '504':
+    title: Глава 504
+    mood: tense
+    next: '563'
+  '505':
+    title: Глава 505
+    mood: grief
+    next: '588'
+  '506':
+    title: Глава 506
+    mood: tense
+    next: '596'
+    on_enter:
+    - stat:
+        morale: -20
+  '507':
+    title: Глава 507
+    mood: calm
+    next: '92'
+  '508':
+    title: Глава 508
+    mood: mystery
+    next: '417'
+    on_enter:
+    - stat:
+        money: 750
+  '509':
+    title: Глава 509
+    mood: grief
+    ending: true
+  '510':
+    title: Глава 510
+    mood: calm
+    next: '433'
+  '511':
+    title: Глава 511
+    mood: calm
+    variants:
+      А: '413'
+      Б: '410'
+  '512':
+    title: Глава 512
+    mood: danger
+    variants:
+      А: '528'
+      Б: '359'
+  '513':
+    title: Глава 513
+    mood: grief
+    ending: true
+  '514':
+    title: Глава 514
+    mood: calm
+    next: '293'
+  '515':
+    title: Глава 515
+    mood: grief
+    ending: true
+  '516':
+    title: Глава 516
+    mood: danger
+    next: '584'
+  '517':
+    title: Глава 517
+    mood: danger
+    variants:
+      А: '449'
+      Б: '599'
+      В: '531'
+      Г: '428'
+      Д: '347'
+      Е: '412'
+      Ж: '563'
+  '518':
+    title: Глава 518
+    mood: tense
+    next: '417'
+  '519':
+    title: Глава 519
+    mood: tense
+    variants:
+      А: '533'
+      Б: '120'
+      В: '156'
+    on_enter:
+    - learn_code: vault_city_map
+    - learn_code: material
+  '520':
+    title: Глава 520
+    mood: danger
+    next: '473'
+    on_enter:
+    - learn_code: marked_place
+    - learn_code: vault_city_map
+    - learn_code: san_francisco
+  '521':
+    title: Глава 521
+    mood: danger
+    variants:
+      А: '455'
+      Б: '481'
+      В: '573'
+  '522':
+    title: Глава 522
+    mood: danger
+    next: '3'
+  '523':
+    title: Глава 523
+    mood: danger
+    next: '551'
+  '524':
+    title: Глава 524
+    mood: danger
+    image: assets/illustrations/ill-fb6c39e0ee.png
+    next: '559'
+    on_enter:
+    - set: perk_deratizer
+    - stat:
+        hp: 1
+        morale: 1
+        experience: 1
+  '525':
+    title: Глава 525
+    mood: danger
+    image: assets/illustrations/ill-2ae96f592e.png
+    next: '293'
+    on_enter:
+    - set: perk_field_doctor
+    - stat:
+        hp: 1
+        morale: 1
+        experience: 1
+    - take:
+        stimpak: 2
+    - learn_code: inner_bar
+  '526':
+    title: Глава 526
+    mood: calm
+    next: '320'
+  '527':
+    title: Глава 527
+    mood: tense
+    next: '293'
+    on_enter:
+    - stat:
+        hp: -5
+  '528':
+    title: Глава 528
+    mood: danger
+    next: '3'
+    on_enter:
+    - learn_code: reaction
+  '529':
+    title: Глава 529
+    mood: tense
+    next: '220'
+  '530':
+    title: Глава 530
+    mood: danger
+    next: '417'
+  '531':
+    title: Глава 531
+    mood: victory
+    image: assets/illustrations/ill-5222597bc3.png
+    images:
+    - assets/illustrations/ill-7d4c275f2f.png
+    next: '517'
+  '532':
+    title: Глава 532
+    mood: tense
+    next: '294'
+  '533':
+    title: Глава 533
+    mood: tense
+    image: assets/illustrations/ill-70be0d6064.png
+    variants:
+      А: '441'
+      Б: '423'
+  '534':
+    title: Глава 534
+    mood: grief
+    ending: true
+  '535':
+    title: Глава 535
+    mood: tense
+    variants:
+      А: '585'
+      Б: '517'
+  '536':
+    title: Глава 536
+    mood: danger
+    next: '588'
+  '537':
+    title: Глава 537
+    mood: victory
+    image: assets/illustrations/ill-79c53bc5b3.png
+    next: '473'
+    on_enter:
+    - set: perk_armwrestling_champion
+    - stat:
+        hp: 1
+        morale: 1
+        experience: 1
+  '538':
+    title: Глава 538
+    mood: grief
+    ending: true
+  '539':
+    title: Глава 539
+    mood: grief
+    ending: true
+  '540':
+    title: Глава 540
+    mood: calm
+    variants:
+      А: '533'
+      Б: '574'
+  '541':
+    title: Глава 541
+    mood: grief
+    ending: true
+  '542':
+    title: Глава 542
+    mood: calm
+    next: '465'
+  '543':
+    title: Глава 543
+    mood: tense
+    variants:
+      А: '369'
+      Б: '245'
+  '544':
+    title: Глава 544
+    mood: victory
+    image: assets/illustrations/ill-f908cf1015.png
+    next: '482'
+  '545':
+    title: Глава 545
+    mood: tense
+    variants:
+      А: '220'
+      Б: '353'
+  '546':
+    title: Глава 546
+    mood: danger
+    next: '412'
+    on_enter:
+    - learn_code: interest
+  '547':
+    title: Глава 547
+    mood: tense
+    next: '557'
+  '548':
+    title: Глава 548
+    mood: tense
+    variants:
+      А: '270'
+      Б: '410'
+  '549':
+    title: Глава 549
+    mood: calm
+    next: '10'
+    on_enter:
+    - take:
+        stimpak: 5
+        jet: 1
+  '550':
+    title: Глава 550
+    mood: grief
+    ending: true
+  '551':
+    title: Глава 551
+    mood: grief
+    next: '426'
+  '552':
+    title: Глава 552
+    mood: tense
+    variants:
+      А: '435'
+      Б: '120'
+  '553':
+    title: Глава 553
+    mood: grief
+    ending: true
+  '554':
+    title: Глава 554
+    mood: danger
+    next: '477'
+  '555':
+    title: Глава 555
+    mood: grief
+    next: '180'
+    on_enter:
+    - learn_code: topic
+  '556':
+    title: Глава 556
+    mood: danger
+    image: assets/illustrations/ill-93ce99946d.png
+    next: '210'
+  '557':
+    title: Глава 557
+    mood: danger
+    variants:
+      А: '463'
+      Б: '416'
+  '558':
+    title: Глава 558
+    mood: tense
+    variants:
+      А: '424'
+      Б: '524'
+  '559':
+    title: Глава 559
+    mood: tense
+    variants:
+      А: '401'
+      Б: '417'
+    on_enter:
+    - learn_code: reactor
+  '560':
+    title: Глава 560
+    mood: tense
+    variants:
+      А: '270'
+      Б: '343'
+  '561':
+    title: Глава 561
+    mood: grief
+    ending: true
+  '562':
+    title: Глава 562
+    mood: danger
+    next: '410'
+  '563':
+    title: Глава 563
+    mood: grief
+    variants:
+      А: '504'
+      Б: '458'
+      В: '421'
+      Г: '582'
+      Д: '569'
+      Е: '347'
+      Ж: '412'
+      З: '517'
+  '564':
+    title: Глава 564
+    mood: danger
+    next: '412'
+  '565':
+    title: Глава 565
+    mood: tense
+    next: '410'
+  '566':
+    title: Глава 566
+    mood: danger
+    image: assets/illustrations/ill-ad2110c478.png
+    variants:
+      А: '77'
+      Б: '77'
+  '567':
+    title: Глава 567
+    mood: danger
+    next: '5'
+    on_enter:
+    - learn_code: drugs
+  '568':
+    title: Глава 568
+    mood: tense
+    variants:
+      А: '66'
+      Б: '332'
+      В: '3'
+  '569':
+    title: Глава 569
+    mood: calm
+    next: '563'
+  '570':
+    title: Глава 570
+    mood: grief
+    ending: true
+  '571':
+    title: Глава 571
+    mood: grief
+    ending: true
+  '572':
+    title: Глава 572
+    mood: tense
+    next: '220'
+  '573':
+    title: Глава 573
+    mood: danger
+    variants:
+      А: '411'
+      Б: '455'
+  '574':
+    title: Глава 574
+    mood: tense
+    next: '120'
+  '575':
+    title: Глава 575
+    mood: victory
+    next: '320'
+  '576':
+    title: Глава 576
+    mood: danger
+    next: '517'
+  '577':
+    title: Глава 577
+    mood: danger
+    next: '410'
+  '578':
+    title: Глава 578
+    mood: calm
+    variants:
+      А: '510'
+      Б: '429'
+      В: '598'
+      Г: '433'
+  '579':
+    title: Глава 579
+    mood: tense
+    variants:
+      А: '3'
+      Б: '230'
+  '580':
+    title: Глава 580
+    mood: tense
+    next: '537'
+  '581':
+    title: Глава 581
+    mood: danger
+    image: assets/illustrations/ill-987cd3fa34.png
+    next: '588'
+  '582':
+    title: Глава 582
+    mood: calm
+    next: '563'
+  '583':
+    title: Глава 583
+    mood: grief
+    ending: true
+  '584':
+    title: Глава 584
+    mood: tense
+    variants:
+      А: '533'
+      Б: '474'
+  '585':
+    title: Глава 585
+    mood: tense
+    variants:
+      А: '517'
+      Б: '479'
+  '586':
+    title: Глава 586
+    mood: calm
+    next: '296'
+    on_enter:
+    - stat:
+        money: 5000
+  '587':
+    title: Глава 587
+    mood: danger
+    next: '577'
+  '588':
+    title: Глава 588
+    mood: grief
+    variants:
+      А: '533'
+      Б: '11'
+  '589':
+    title: Глава 589
+    mood: calm
+    next: '511'
+    on_enter:
+    - stat:
+        money: 2000
+    - take:
+        psycho: 1
+        buffout: 1
+  '590':
+    title: Глава 590
+    mood: danger
+    next: '433'
+  '591':
+    title: Глава 591
+    mood: victory
+    next: '506'
+  '592':
+    title: Глава 592
+    mood: tense
+    next: '597'
+  '593':
+    title: Глава 593
+    mood: calm
+    next: '410'
+  '594':
+    title: Глава 594
+    mood: tense
+    next: '192'
+  '595':
+    title: Глава 595
+    mood: victory
+    image: assets/illustrations/ill-862fd71abd.png
+    next: '320'
+    on_enter:
+    - set: perk_watchful_order
+    - stat:
+        hp: 1
+        morale: 1
+        experience: 1
+  '596':
+    title: Глава 596
+    mood: grief
+    next: '417'
+    on_enter:
+    - learn_code: klamath_map
+    - learn_code: klamath_east
+  '597':
+    title: Глава 597
+    mood: mystery
+    variants:
+      А: '533'
+      Б: '334'
+  '598':
+    title: Глава 598
+    mood: calm
+    next: '433'
+    on_enter:
+    - take:
+        grenade_frag: 1
+        desert_eagle: 1
+  '599':
+    title: Глава 599
+    mood: calm
+    next: '517'
+  epilogue:
+    title: Эпилог
+    mood: grief
+    ending: true

@@ -13,6 +13,8 @@ export function newState(game: Game): GameState {
     scene: game.start,
     inventory: { ...(game.startItems ?? {}) },
     flags: [],
+    knownCodes: [],
+    gamblesDone: [],
     stats,
     initialStats: { ...stats },
     visited: [game.start],
@@ -121,6 +123,32 @@ function addItems(inv: Record<string, number>, value: SceneEffect['take']) {
   }
 }
 
+/** средний урон формулы NdM+B — для выбора «лучшего» оружия */
+function damageScore(formula: string | undefined): number {
+  if (!formula) return 0;
+  const match = /^(\d+)d(\d+)([+-]\d+)?$/i.exec(formula.trim());
+  if (!match) return 0;
+  const dice = Math.max(1, Number(match[1]));
+  const faces = Math.max(2, Number(match[2]));
+  return dice * ((faces + 1) / 2) + Number(match[3] ?? 0);
+}
+
+function dropBestWeapon(inv: Record<string, number>, items: Game['items']) {
+  let best: string | null = null;
+  let bestScore = -1;
+  for (const [id, count] of Object.entries(inv)) {
+    if (count <= 0) continue;
+    const item = items?.[id];
+    if (!item?.damage || item.consumable) continue;
+    const score = damageScore(item.damage);
+    if (score > bestScore) {
+      bestScore = score;
+      best = id;
+    }
+  }
+  if (best) delete inv[best];
+}
+
 function dropItems(inv: Record<string, number>, value: SceneEffect['drop']) {
   if (!value) return;
   if (typeof value === 'string') delete inv[value];
@@ -133,6 +161,26 @@ function addFlags(flags: string[], value: string | string[] | undefined): string
   const ids = typeof value === 'string' ? [value] : value;
   for (const id of ids) if (id) next.add(String(id));
   return [...next];
+}
+
+/** разыгрывает изменения статусов вида { stamina: "-2d6" } */
+function applyRollStatDeltas(
+  game: Game,
+  stats: Record<string, number>,
+  values: Record<string, string>,
+): Record<string, number> {
+  let next = stats;
+  for (const [id, formula] of Object.entries(values)) {
+    const match = /^([+-]?)(\d+)d(\d+)$/i.exec(formula.trim());
+    if (!match) continue;
+    const sign = match[1] === '-' ? -1 : 1;
+    const dice = Math.max(1, Number(match[2]));
+    const faces = Math.max(2, Number(match[3]));
+    let sum = 0;
+    for (let i = 0; i < dice; i += 1) sum += 1 + Math.floor(Math.random() * faces);
+    next = applyStatDeltas(game, next, { [id]: sign * sum });
+  }
+  return next;
 }
 
 /** применяет изменения характеристик с учётом min/max из stats.yaml */
@@ -162,14 +210,37 @@ function applyOnEnter(game: Game, state: GameState, scene?: Scene): GameState {
   const inventory = { ...state.inventory };
   let stats = state.stats;
   let flags = state.flags;
+  let knownCodes = [...(state.knownCodes ?? [])];
+  let goTo: string | null = null;
+  const repeatVisit = state.visited.filter((key) => key === scene.key).length > 1;
   for (const effect of scene.onEnter) {
     if (effect.if && !evalCond(effect.if, state)) continue;
-    addItems(inventory, effect.take);
+    // Предметы выдаются только при первом входе: «если ещё не делали этого».
+    // Повторные stat/set/use остаются эффектами сцены.
+    if (!repeatVisit) addItems(inventory, effect.take);
     dropItems(inventory, effect.drop);
+    if (effect.dropBestWeapon) dropBestWeapon(inventory, game.items);
+    if (effect.use) useItem(inventory, effect.use, game.items?.[effect.use]);
     flags = addFlags(flags, effect.set);
+    if (effect.learn_code && !knownCodes.includes(effect.learn_code)) {
+      knownCodes = [...knownCodes, effect.learn_code];
+    }
     if (effect.stat) stats = applyStatDeltas(game, stats, effect.stat);
+    if (effect.statRoll) stats = applyRollStatDeltas(game, stats, effect.statRoll);
+    if (effect.goto && game.scenes[effect.goto]) {
+      goTo = effect.goto;
+      break;
+    }
   }
-  return { ...state, inventory, stats, flags };
+  const moved = { ...state, inventory, stats, flags, knownCodes };
+  if (goTo) {
+    return applyOnEnter(game, {
+      ...moved,
+      scene: goTo,
+      visited: [...moved.visited, goTo],
+    }, game.scenes[goTo]);
+  }
+  return moved;
 }
 
 function useItem(inv: Record<string, number>, id: string, def?: ItemDef) {
@@ -186,7 +257,11 @@ function applyMods(game: Game, state: GameState, choice: Choice): GameState {
   if (choice.drop) delete inventory[choice.drop];
   const flags = addFlags(state.flags, choice.set);
   const stats = choice.stat ? applyStatDeltas(game, state.stats, choice.stat) : state.stats;
-  return { ...state, inventory, stats, flags };
+  const knownCodes =
+    choice.learn_code && !(state.knownCodes ?? []).includes(choice.learn_code)
+      ? [...(state.knownCodes ?? []), choice.learn_code]
+      : state.knownCodes;
+  return { ...state, inventory, stats, flags, knownCodes };
 }
 
 /* ── ходы ────────────────────────────────────────────────── */
@@ -204,6 +279,17 @@ export function blockedChoices(game: Game, state: GameState): Choice[] {
 export function choose(game: Game, state: GameState, choice: Choice): GameState {
   const moved = applyMods(game, state, choice);
   return goToScene(game, moved, choice.goto);
+}
+
+/** применяет известный код: target = (base ?? текущая сцена) + offset */
+export function useCode(game: Game, state: GameState, id: string): GameState | null {
+  const code = game.codes?.[id];
+  if (!code) return null;
+  const base = code.base ?? state.scene;
+  if (!/^\d+$/.test(base)) return null;
+  const target = String(Number(base) + code.offset);
+  if (!game.scenes[target]) return null;
+  return goToScene(game, state, target);
 }
 
 export function goToScene(game: Game, state: GameState, key: string): GameState {

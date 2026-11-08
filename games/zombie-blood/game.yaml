@@ -6,7 +6,7 @@ format: quest/1
 id: zombie-blood
 title: Кровь зомби
 type: fighting-fantasy
-status: complete
+status: beta
 author: Ян Ливингстон
 illustrator: Кевин Кроссли
 translator: Андр
@@ -180,7 +180,6 @@ scenes:
   "25":
     title: Параграф 25
     mood: calm
-    image: assets/images/25-1.jpg
     variants:
       А: "301"
       Б: "160"
@@ -222,7 +221,10 @@ scenes:
   "32":
     title: Параграф 32
     mood: calm
-    next: "385"
+    variants:
+      А: "9"
+      Б: "111"
+      В: "385"
   "33":
     title: Параграф 33
     mood: calm
@@ -297,7 +299,7 @@ scenes:
     mood: danger
     image: assets/images/44-1.jpg
     on_enter:
-      - take: [pistol]
+      - take: {pistol: 1, ammo: 1}
     variants:
       А: "217"
       Б: "96"
@@ -402,6 +404,8 @@ scenes:
   "61":
     title: Параграф 61
     mood: danger
+    on_enter:
+      - take: [note121]
     next: "155"
   "62":
     title: Параграф 62
@@ -493,6 +497,8 @@ scenes:
   "77":
     title: Параграф 77
     mood: calm
+    on_enter:
+      - take: [code161]
     variants:
       А: "323"
       Б: "158"
@@ -549,7 +555,9 @@ scenes:
   "86":
     title: Параграф 86
     mood: calm
-    next: "160"
+    variants:
+      А: "181"
+      Б: "160"
   "87":
     title: Параграф 87
     mood: grief
@@ -587,7 +595,7 @@ scenes:
     title: Параграф 92
     mood: calm
     on_enter:
-      - take: [pistol]
+      - take: {pistol: 1, ammo: 1}
     variants:
       А: "279"
       Б: "222"
@@ -631,6 +639,8 @@ scenes:
   "99":
     title: Параграф 99
     mood: calm
+    on_enter:
+      - statRoll: {stamina: "-2d6"}
     next: "359"
   "100":
     title: Параграф 100
@@ -662,13 +672,15 @@ scenes:
     title: Параграф 105
     mood: calm
     on_enter:
-      - take: [submachine]
+      - take: {submachine: 1, ammo: 1}
     variants:
       А: "272"
       Б: "252"
   "106":
     title: Параграф 106
     mood: calm
+    on_enter:
+      - dropBestWeapon: true
     variants:
       А: "267"
       Б: "25"
@@ -1341,9 +1353,18 @@ scenes:
   "218":
     title: Параграф 218
     mood: calm
+    on_enter:
+      - if: has_item medkit
+        use: medkit
+      - if: not has_item medkit
+        goto: "218_death"
     variants:
       А: "26"
       Б: "276"
+  "218_death":
+    title: Смерть от кровопотери
+    mood: grief
+    ending: true
   "219":
     title: Параграф 219
     mood: grief
@@ -1365,7 +1386,7 @@ scenes:
     on_enter:
       - take: {medkit: 1}
       - if: not has_item pistol
-        take: {pistol: 1}
+        take: {pistol: 1, ammo: 1}
     variants:
       А: "303"
       Б: "258"
@@ -1600,6 +1621,7 @@ scenes:
     mood: calm
     on_enter:
       - stat: {money: +4}
+      - take: [note333]
     next: "220"
   "264":
     title: Параграф 264
@@ -1712,7 +1734,9 @@ scenes:
     mood: calm
     on_enter:
       - take: [brass_key]
-    next: "14"
+    variants:
+      А: "161"
+      Б: "14"
   "284":
     title: Параграф 284
     mood: calm
@@ -1781,6 +1805,8 @@ scenes:
   "295":
     title: Параграф 295
     mood: calm
+    on_enter:
+      - stat: {stamina: +2}
     next: "198"
   "296":
     title: Параграф 296
@@ -1792,6 +1818,7 @@ scenes:
     variants:
       А: "362"
       Б: "129"
+      В: "111"
   "298":
     title: Параграф 298
     mood: calm
@@ -1839,6 +1866,8 @@ scenes:
   "306":
     title: Параграф 306
     mood: calm
+    on_enter:
+      - stat: {stamina: +2}
     next: "12"
   "307":
     title: Параграф 307
@@ -1938,7 +1967,10 @@ scenes:
   "323":
     title: Параграф 323
     mood: calm
-    next: "201"
+    variants:
+      А: "121"
+      Б: "333"
+      В: "201"
   "324":
     title: Параграф 324
     mood: tense
@@ -2211,6 +2243,8 @@ scenes:
   "368":
     title: Параграф 368
     mood: danger
+    on_enter:
+      - statRoll: {stamina: "-2d6"}
     next: "359"
   "369":
     title: Параграф 369
@@ -2223,6 +2257,8 @@ scenes:
   "371":
     title: Параграф 371
     mood: danger
+    on_enter:
+      - stat: {stamina: -1}
     next: "83"
   "372":
     title: Параграф 372

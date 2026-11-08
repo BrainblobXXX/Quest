@@ -2,9 +2,10 @@ format: quest/1
 id: how-to-survive-on-2500
 title: Как прожить месяц на 2500 рублей...
 type: hybrid
-status: complete
+status: beta
 author: Арина Гуляева
 genre: симулятор выживания
+annotation: Студентка получает стипендию 2500 рублей и пытается дожить до следующей — с бытовыми выборами, тратами и разными финалами.
 language: ru
 source: "Арина Гуляева - Как прожить месяц  на 2500 рублей....pdf, https://quest-book.ru"
 cover: assets/cover.png

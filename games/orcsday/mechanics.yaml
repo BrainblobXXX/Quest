@@ -1,0 +1,248 @@
+checks:
+- scene: '8'
+  stat: guts
+  compare: '>= orkishness'
+  success: '26'
+  failure: '75'
+- scene: '10'
+  stat: muscles
+  compare: '>= 10'
+  success: s10_win
+  failure: '68'
+- scene: '16'
+  stat: brains
+  compare: '>= 10'
+  success: '11'
+  failure: '68'
+- scene: '19'
+  stat: brains
+  compare: '>= orkishness + 5'
+  success: '54'
+  failure: result
+- scene: '24'
+  stat: brains
+  compare: '>= 9'
+  success: '94'
+  failure: '41'
+- scene: s30_check
+  stat: guts
+  compare: '>= orkishness + 5'
+  success: '66'
+  failure: result
+- scene: '34'
+  stat: luck
+  compare: '>= 9'
+  success: '5'
+  failure: '99'
+- scene: '37'
+  stat: guts
+  compare: '>= orkishness + 5'
+  success: '95'
+  failure: '69'
+- scene: '39'
+  stat: luck
+  compare: '>= 10'
+  success: '80'
+  failure: '45'
+- scene: '44'
+  stat: luck
+  compare: '>= 9'
+  success: '14'
+  failure: '88'
+- scene: '46'
+  stat: luck
+  compare: '>= 10'
+  success: '4'
+  failure: '60'
+- scene: '47'
+  stat: luck
+  compare: '>= 10'
+  success: '80'
+  failure: '20'
+- scene: '48'
+  stat: guts
+  compare: '>= orkishness + 6'
+  success: '95'
+  failure: '37'
+- scene: '54'
+  stat: luck
+  compare: '>= orkishness + 5'
+  success: '66'
+  failure: '96'
+- scene: '55'
+  stat: guts
+  compare: '>= orkishness + 5'
+  success: '33'
+  failure: '69'
+- scene: '59'
+  stat: luck
+  compare: '>= 10'
+  success: '80'
+  failure: '70'
+- scene: '62'
+  stat: brains
+  compare: '>= orkishness + 4'
+  success: '82'
+  failure: '53'
+- scene: '73'
+  stat: orkishness
+  compare: '>= 12'
+  success: '31'
+  failure: s73_fight
+- scene: '75'
+  stat: guts
+  compare: '>= orkishness + 5'
+  success: '26'
+  failure: '69'
+- scene: '81'
+  stat: brains
+  compare: '>= 10'
+  success: '80'
+  failure: '6'
+- scene: '87'
+  stat: guts
+  compare: '>= orkishness + brains'
+  success: '34'
+  failure: '52'
+- scene: '90'
+  stat: luck
+  compare: '>= orkishness + 5'
+  success: '27'
+  failure: '46'
+combat:
+- scene: '13'
+  enemy:
+    name: Зомби-тролль
+    count: 1
+    attack: 10
+    defense: 9
+    health: 5
+  win: '83'
+- scene: '38'
+  enemy:
+    name: Мортимер Нечихающий
+    count: 1
+    attack: 9
+    defense: 9
+    health: 5
+  win: '7'
+  stopAtOne: true
+- scene: '40'
+  enemy:
+    name: Орки
+    count: 1
+    attack: 9
+    defense: 9
+    health: 6
+  win: '85'
+  lose: '17'
+- scene: '41'
+  enemy:
+    name: Другие орки
+    count: 1
+    attack: 8
+    defense: 5
+    health: 5
+  win: '12'
+  lose: '29'
+- scene: '53'
+  enemy:
+    name: Единственный Орк
+    count: 1
+    attack: 7
+    defense: 6
+    health: 3
+  win: '89'
+- scene: '57'
+  enemy:
+    name: Зомби-тролль
+    count: 1
+    attack: 10
+    defense: 9
+    health: 6
+  win: '76'
+- scene: '68'
+  enemy:
+    name: Три орка
+    count: 1
+    attack: 8
+    defense: 8
+    health: 4
+  win: s68_win
+- scene: '74'
+  enemy:
+    name: Зомби-тролль
+    count: 1
+    attack: 10
+    defense: 9
+    health: 6
+  win: '93'
+  lose: result
+- scene: '86'
+  enemy:
+    name: Зомби-тролль
+    count: 1
+    attack: 8
+    defense: 7
+    health: 6
+  win: '83'
+- scene: '89'
+  enemy:
+    name: Галрос Бессмертный
+    count: 1
+    attack: 10
+    defense: 11
+    health: 8
+  win: result
+  lose: result
+- scene: '91'
+  enemy:
+    name: Мортимер Нечихающий
+    count: 1
+    attack: 10
+    defense: 10
+    health: 6
+  win: '63'
+  lose: '35'
+- scene: '93'
+  enemy:
+    name: Галрос Бессмертный
+    count: 1
+    attack: 10
+    defense: 11
+    health: 8
+  win: '100'
+  lose: result
+- scene: '96'
+  enemy:
+    name: Приключенцы
+    count: 1
+    attack: 10
+    defense: 8
+    health: 5
+  win: '85'
+  lose: '9'
+- scene: s73_fight
+  enemy:
+    name: Другие орки
+    count: 1
+    attack: 8
+    defense: 5
+    health: 5
+  win: '12'
+  lose: result
+gambles:
+- scene: '97'
+  stat: luck
+  stake:
+    min: 1
+    max: 5
+  win: 15
+  push: 12
+- scene: '24'
+  stat: luck
+  stake:
+    min: 1
+    max: 5
+  win: 15
+  push: 10

@@ -1,0 +1,1047 @@
+format: quest/1
+id: rock-of-terror
+title: Скала ужаса
+type: hybrid
+status: beta
+author: Disel
+genre: мистика · ужасы
+annotation: "В 15–16 веках Европа была объята священным пламенем инквизиции. Десятки тысяч невинных мужчин, женщин и детей были казнены по обвинению в колдовстве и сговоре с дьяволом. Эта история произошла в 1536 году в местечке Догиндорф, и её записали странствующие монахи Раймунд и Палуданус."
+language: ru
+year: 2009
+edition: Конкурс «Мини книги-игры 2009», форум MyQuest
+source: Скала ужаса.pdf
+cover: assets/cover.png
+start: intro
+story: story.md
+items: items.yaml
+stats: stats.yaml
+flags: flags.yaml
+codes: codes.yaml
+start_items:
+  bible: 1
+  candles: 1
+  axe: 1
+  flint: 1
+moods:
+  calm: null
+  tense: null
+  danger: null
+  victory: null
+  mystery: null
+  grief: null
+scenes:
+  "intro":
+    title: "Пролог"
+    mood: mystery
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "1"
+  "1":
+    title: "Глава 1"
+    mood: tense
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "51"
+      Б: "66"
+  "2":
+    title: "Глава 2"
+    mood: danger
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    ending: true
+  "3":
+    title: "Глава 3"
+    mood: tense
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "3_plateau"
+  "3_plateau":
+    title: "Плато"
+    mood: tense
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+      - if: "stat time > 660"
+        goto: "52"
+      - stat: {time: 60}
+      - if: "flag lame"
+        stat: {time: 60}
+    next: "79"
+  "4":
+    title: "Глава 4"
+    mood: tense
+    on_enter:
+      - stat: {time: 60}
+      - if: "flag lame"
+        stat: {time: 60}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "97"
+  "5":
+    title: "Глава 5"
+    mood: tense
+    on_enter:
+      - stat: {time: 30}
+      - if: "flag lame"
+        stat: {time: 30}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "34"
+      Б: "84"
+  "6":
+    title: "Глава 6"
+    mood: calm
+    on_enter:
+      - stat: {time: 30}
+      - if: "flag lame"
+        stat: {time: 30}
+      - if: "stat time >= 720"
+        goto: "timeout"
+      - learn_code: anna
+      - learn_code: old_woman
+    next: "43"
+  "7":
+    title: "Глава 7"
+    mood: mystery
+    on_enter:
+      - stat: {time: 30}
+      - if: "flag lame"
+        stat: {time: 30}
+      - if: "stat time >= 720"
+        goto: "timeout"
+      - take: crucifix
+      - learn_code: crucifix
+    next: "64"
+  "8":
+    title: "Глава 8"
+    mood: tense
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "88"
+      Б: "24"
+  "9":
+    title: "Глава 9"
+    mood: calm
+    on_enter:
+      - stat: {time: 300}
+      - if: "flag lame"
+        stat: {time: 300}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "44"
+  "10":
+    title: "Глава 10"
+    mood: calm
+    on_enter:
+      - stat: {time: 30}
+      - if: "flag lame"
+        stat: {time: 30}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "45"
+      Б: "58"
+      В: "59"
+  "11":
+    title: "Глава 11"
+    mood: danger
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    ending: true
+  "12":
+    title: "Глава 12"
+    mood: danger
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "46"
+      Б: "58"
+  "13":
+    title: "Глава 13"
+    mood: danger
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+      - set: lame
+    next: "33"
+  "14":
+    title: "Глава 14"
+    mood: danger
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "78"
+      Б: "29"
+  "15":
+    title: "Глава 15"
+    mood: danger
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "2"
+  "16":
+    title: "Глава 16"
+    mood: mystery
+    on_enter:
+      - stat: {time: 30}
+      - if: "flag lame"
+        stat: {time: 30}
+      - if: "stat time >= 720"
+        goto: "timeout"
+      - take: monk_heart
+    next: "49"
+  "17":
+    title: "Глава 17"
+    mood: mystery
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "98"
+      Б: "11"
+  "18":
+    title: "Глава 18"
+    mood: tense
+    on_enter:
+      - stat: {time: 60}
+      - if: "flag lame"
+        stat: {time: 60}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "97"
+  "19":
+    title: "Глава 19"
+    mood: calm
+    on_enter:
+      - stat: {time: 60}
+      - if: "flag lame"
+        stat: {time: 60}
+      - if: "stat time >= 720"
+        goto: "timeout"
+      - if: "has_item monk_heart and not flag heart_up_19"
+        stat: {heart_power: 1}
+      - if: "not flag heart_up_19"
+        set: heart_up_19
+    next: "44"
+  "20":
+    title: "Глава 20"
+    mood: mystery
+    on_enter:
+      - stat: {time: 30}
+      - if: "flag lame"
+        stat: {time: 30}
+      - if: "stat time >= 720"
+        goto: "timeout"
+      - take: mirror
+      - learn_code: mirror
+    next: "64"
+  "21":
+    title: "Глава 21"
+    mood: grief
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    ending: true
+  "22":
+    title: "Глава 22"
+    mood: mystery
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "16"
+      Б: "49"
+  "23":
+    title: "Глава 23"
+    mood: tense
+    on_enter:
+      - stat: {time: 60}
+      - if: "flag lame"
+        stat: {time: 60}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "77"
+      Б: "4"
+  "24":
+    title: "Глава 24"
+    mood: danger
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    ending: true
+  "25":
+    title: "Глава 25"
+    mood: mystery
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "58"
+  "26":
+    title: "Глава 26"
+    mood: mystery
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "94"
+      Б: "63"
+  "27":
+    title: "Глава 27"
+    mood: tense
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "15"
+      Б: "95"
+  "28":
+    title: "Глава 28"
+    mood: mystery
+    on_enter:
+      - stat: {time: 60}
+      - if: "flag lame"
+        stat: {time: 60}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "85"
+  "29":
+    title: "Глава 29"
+    mood: calm
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "32"
+  "30":
+    title: "Глава 30"
+    mood: danger
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "30_heart"
+  "30_heart":
+    title: "Сердце останавливается"
+    mood: grief
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+      - if: "has_item monk_heart and stat heart_power >= 3"
+        goto: "21"
+    ending: true
+  "31":
+    title: "Глава 31"
+    mood: calm
+    on_enter:
+      - stat: {time: 30}
+      - if: "flag lame"
+        stat: {time: 30}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "56"
+  "32":
+    title: "Глава 32"
+    mood: tense
+    on_enter:
+      - stat: {time: 30}
+      - if: "flag lame"
+        stat: {time: 30}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "13"
+      Б: "33"
+  "33":
+    title: "Глава 33"
+    mood: calm
+    on_enter:
+      - stat: {time: 60}
+      - if: "flag lame"
+        stat: {time: 60}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "8"
+  "34":
+    title: "Глава 34"
+    mood: calm
+    on_enter:
+      - stat: {time: 30}
+      - if: "flag lame"
+        stat: {time: 30}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "57"
+  "35":
+    title: "Глава 35"
+    mood: danger
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    ending: true
+  "36":
+    title: "Глава 36"
+    mood: danger
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    ending: true
+  "37":
+    title: "Глава 37"
+    mood: danger
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "37_heart"
+  "37_heart":
+    title: "Сердце останавливается"
+    mood: grief
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+      - if: "has_item monk_heart and stat heart_power >= 3"
+        goto: "21"
+    ending: true
+  "38":
+    title: "Глава 38"
+    mood: calm
+    on_enter:
+      - stat: {time: 60}
+      - if: "flag lame"
+        stat: {time: 60}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "58"
+  "39":
+    title: "Глава 39"
+    mood: calm
+    on_enter:
+      - stat: {time: 30}
+      - if: "flag lame"
+        stat: {time: 30}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "47"
+      Б: "99"
+      В: "96"
+  "40":
+    title: "Глава 40"
+    mood: danger
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+      - take: book_of_shadows
+    next: "11"
+  "41":
+    title: "Глава 41"
+    mood: mystery
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "87"
+  "42":
+    title: "Глава 42"
+    mood: danger
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "2"
+  "43":
+    title: "Глава 43"
+    mood: calm
+    on_enter:
+      - stat: {time: 60}
+      - if: "flag lame"
+        stat: {time: 60}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "57"
+  "44":
+    title: "Глава 44"
+    mood: tense
+    on_enter:
+      - stat: {time: 30}
+      - if: "flag lame"
+        stat: {time: 30}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "3"
+      Б: "92"
+  "45":
+    title: "Глава 45"
+    mood: calm
+    on_enter:
+      - stat: {time: 60}
+      - if: "flag lame"
+        stat: {time: 60}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "56"
+  "46":
+    title: "Глава 46"
+    mood: grief
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    ending: true
+  "47":
+    title: "Глава 47"
+    mood: calm
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "5"
+  "48":
+    title: "Глава 48"
+    mood: danger
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "61"
+      Б: "43"
+  "49":
+    title: "Глава 49"
+    mood: calm
+    on_enter:
+      - stat: {time: 30}
+      - if: "flag lame"
+        stat: {time: 30}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "80"
+  "50":
+    title: "Глава 50"
+    mood: danger
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "2"
+  "51":
+    title: "Глава 51"
+    mood: calm
+    on_enter:
+      - stat: {time: 60}
+      - if: "flag lame"
+        stat: {time: 60}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "68"
+      Б: "80"
+  "52":
+    title: "Глава 52"
+    mood: tense
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "30"
+  "53":
+    title: "Глава 53"
+    mood: mystery
+    on_enter:
+      - stat: {time: 30}
+      - if: "flag lame"
+        stat: {time: 30}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "91"
+  "54":
+    title: "Глава 54"
+    mood: mystery
+    on_enter:
+      - stat: {time: 30}
+      - if: "flag lame"
+        stat: {time: 30}
+      - if: "stat time >= 720"
+        goto: "timeout"
+      - take: bronze_medallion
+      - learn_code: medallion
+    next: "18"
+  "55":
+    title: "Глава 55"
+    mood: danger
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "55_heart"
+  "55_heart":
+    title: "Сердце останавливается"
+    mood: grief
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+      - if: "has_item monk_heart and stat heart_power >= 3"
+        goto: "21"
+    ending: true
+  "56":
+    title: "Глава 56"
+    mood: calm
+    on_enter:
+      - stat: {time: 60}
+      - if: "flag lame"
+        stat: {time: 60}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "56_knock"
+      Б: "43"
+  "56_knock":
+    title: "Стук в дверь"
+    mood: tense
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+      - if: "stat time > 240"
+        goto: "48"
+    next: "6"
+  "57":
+    title: "Глава 57"
+    mood: tense
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "14"
+  "58":
+    title: "Глава 58"
+    mood: calm
+    on_enter:
+      - stat: {time: 30}
+      - if: "flag lame"
+        stat: {time: 30}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "39"
+      Б: "9"
+  "59":
+    title: "Глава 59"
+    mood: calm
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "90"
+      Б: "38"
+  "60":
+    title: "Глава 60"
+    mood: tense
+    on_enter:
+      - stat: {time: 60}
+      - if: "flag lame"
+        stat: {time: 60}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "44"
+  "61":
+    title: "Глава 61"
+    mood: danger
+    on_enter:
+      - stat: {time: 30}
+      - if: "flag lame"
+        stat: {time: 30}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "43"
+  "62":
+    title: "Глава 62"
+    mood: danger
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "11"
+  "63":
+    title: "Глава 63"
+    mood: calm
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "18"
+  "64":
+    title: "Глава 64"
+    mood: calm
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "10"
+      Б: "58"
+  "65":
+    title: "Глава 65"
+    mood: mystery
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+      - drop: mirror
+      - learn_code: dream_death
+    next: "17"
+  "66":
+    title: "Глава 66"
+    mood: calm
+    on_enter:
+      - stat: {time: 30}
+      - if: "flag lame"
+        stat: {time: 30}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "23"
+      Б: "86"
+  "67":
+    title: "Глава 67"
+    mood: danger
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+      - if: "has_item monk_heart and not flag heart_up_67"
+        stat: {heart_power: 1}
+      - if: "not flag heart_up_67"
+        set: heart_up_67
+    next: "70"
+  "68":
+    title: "Глава 68"
+    mood: mystery
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "49"
+      Б: "22"
+  "69":
+    title: "Глава 69"
+    mood: calm
+    on_enter:
+      - stat: {time: 30}
+      - if: "flag lame"
+        stat: {time: 30}
+      - if: "stat time >= 720"
+        goto: "timeout"
+      - drop: mirror
+    next: "32"
+  "70":
+    title: "Глава 70"
+    mood: tense
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "30"
+  "71":
+    title: "Глава 71"
+    mood: tense
+    on_enter:
+      - stat: {time: 180}
+      - if: "flag lame"
+        stat: {time: 180}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "88"
+      Б: "44"
+  "72":
+    title: "Глава 72"
+    mood: mystery
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "98"
+      Б: "11"
+  "73":
+    title: "Глава 73"
+    mood: danger
+    on_enter:
+      - stat: {time: 30}
+      - if: "flag lame"
+        stat: {time: 30}
+      - if: "stat time >= 720"
+        goto: "timeout"
+      - drop: mirror
+      - learn_code: anna
+    next: "43"
+  "74":
+    title: "Глава 74"
+    mood: danger
+    on_enter:
+      - stat: {time: 60}
+      - if: "flag lame"
+        stat: {time: 60}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "71"
+  "75":
+    title: "Глава 75"
+    mood: danger
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "50"
+      Б: "27"
+  "76":
+    title: "Глава 76"
+    mood: mystery
+    on_enter:
+      - stat: {time: 30}
+      - if: "flag lame"
+        stat: {time: 30}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "41"
+      Б: "31"
+  "77":
+    title: "Глава 77"
+    mood: mystery
+    on_enter:
+      - stat: {time: 30}
+      - if: "flag lame"
+        stat: {time: 30}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "26"
+      Б: "18"
+  "78":
+    title: "Глава 78"
+    mood: danger
+    on_enter:
+      - stat: {time: 60}
+      - if: "flag lame"
+        stat: {time: 60}
+      - if: "stat time >= 720"
+        goto: "timeout"
+      - if: "has_item monk_heart and not flag heart_up_78"
+        stat: {heart_power: 1}
+      - if: "not flag heart_up_78"
+        set: heart_up_78
+    next: "32"
+  "79":
+    title: "Глава 79"
+    mood: danger
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "67"
+      Б: "70"
+  "80":
+    title: "Глава 80"
+    mood: calm
+    on_enter:
+      - stat: {time: 60}
+      - if: "flag lame"
+        stat: {time: 60}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "56"
+      Б: "76"
+  "81":
+    title: "Глава 81"
+    mood: mystery
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "40"
+      Б: "93"
+  "82":
+    title: "Глава 82"
+    mood: danger
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "82_heart"
+  "82_heart":
+    title: "Жертва принесена"
+    mood: grief
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+      - if: "has_item monk_heart and stat heart_power >= 3"
+        goto: "21"
+    ending: true
+  "83":
+    title: "Глава 83"
+    mood: danger
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    ending: true
+  "84":
+    title: "Глава 84"
+    mood: danger
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    ending: true
+  "85":
+    title: "Глава 85"
+    mood: calm
+    on_enter:
+      - stat: {time: 30}
+      - if: "flag lame"
+        stat: {time: 30}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "8"
+  "86":
+    title: "Глава 86"
+    mood: mystery
+    on_enter:
+      - stat: {time: 60}
+      - if: "flag lame"
+        stat: {time: 60}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "58"
+      Б: "41"
+  "87":
+    title: "Глава 87"
+    mood: mystery
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "7"
+      Б: "20"
+  "88":
+    title: "Глава 88"
+    mood: danger
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "75"
+  "89":
+    title: "Глава 89"
+    mood: grief
+    on_enter:
+      - stat: {time: 30}
+      - if: "flag lame"
+        stat: {time: 30}
+      - if: "stat time >= 720"
+        goto: "timeout"
+      - if: "has_item monk_heart and not flag heart_up_89"
+        stat: {heart_power: 1}
+      - if: "not flag heart_up_89"
+        set: heart_up_89
+    next: "71"
+  "90":
+    title: "Глава 90"
+    mood: calm
+    on_enter:
+      - stat: {time: 30}
+      - if: "flag lame"
+        stat: {time: 30}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "56"
+  "91":
+    title: "Глава 91"
+    mood: mystery
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+      - learn_code: wife_name
+    next: "85"
+  "92":
+    title: "Глава 92"
+    mood: calm
+    on_enter:
+      - stat: {time: 60}
+      - if: "flag lame"
+        stat: {time: 60}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "3"
+  "93":
+    title: "Глава 93"
+    mood: mystery
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+      - learn_code: witch_name
+    next: "11"
+  "94":
+    title: "Глава 94"
+    mood: tense
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "83"
+      Б: "54"
+  "95":
+    title: "Глава 95"
+    mood: tense
+    on_enter:
+      - stat: {time: 60}
+      - if: "flag lame"
+        stat: {time: 60}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "44"
+  "96":
+    title: "Глава 96"
+    mood: danger
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    next: "71"
+  "97":
+    title: "Глава 97"
+    mood: tense
+    on_enter:
+      - stat: {time: 60}
+      - if: "flag lame"
+        stat: {time: 60}
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "12"
+      Б: "35"
+  "98":
+    title: "Глава 98"
+    mood: danger
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    variants:
+      А: "62"
+      Б: "81"
+  "99":
+    title: "Глава 99"
+    mood: grief
+    on_enter:
+      - stat: {time: 30}
+      - if: "flag lame"
+        stat: {time: 30}
+      - if: "stat time >= 720"
+        goto: "timeout"
+      - learn_code: atso_place
+    variants:
+      А: "89"
+      Б: "71"
+  "100":
+    title: "Глава 100"
+    mood: victory
+    on_enter:
+      - if: "stat time >= 720"
+        goto: "timeout"
+    ending: true
+  "timeout":
+    title: "Время вышло"
+    mood: grief
+    ending: true

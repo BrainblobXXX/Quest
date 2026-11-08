@@ -1,5 +1,5 @@
 import { parse as parseYaml } from 'yaml';
-import type { Choice, CombatDef, Game, ItemDef, ParseProblem, Scene, SceneEffect, StatDef } from './types';
+import type { CheckDef, Choice, CodeDef, CombatDef, GambleDef, Game, ItemDef, ParseProblem, Scene, SceneEffect, StatDef } from './types';
 
 /**
  * Разбор пакета игры прямо в браузере: story.md + game.yaml → объект Game.
@@ -211,6 +211,7 @@ export function parsePackage(
   statsText?: string | null,
   flagsText?: string | null,
   mechanicsText?: string | null,
+  codesText?: string | null,
 ): ParsedPackage {
   const problems: ParseProblem[] = [];
 
@@ -353,10 +354,109 @@ export function parsePackage(
   }
   flags = [...new Set(flags)];
 
+  let codes: Record<string, CodeDef> = {};
+  if (codesText) {
+    try {
+      const doc = (parseYaml(codesText) ?? {}) as { codes?: unknown };
+      if (doc.codes && typeof doc.codes === 'object' && !Array.isArray(doc.codes)) {
+        for (const [id, raw] of Object.entries(doc.codes as Record<string, unknown>)) {
+          if (!/^[a-z0-9_]+$/.test(id)) {
+            problems.push({ level: 'error', code: 'E_CODE_ID', message: `codes.yaml: id «${id}» не слаг` });
+            continue;
+          }
+          if (!raw || typeof raw !== 'object') {
+            problems.push({ level: 'error', code: 'E_CODE_FORMAT', message: `codes.yaml: код «${id}» должен быть объектом` });
+            continue;
+          }
+          const data = raw as Record<string, unknown>;
+          const offset = Number(data.offset);
+          if (!Number.isInteger(offset) || offset === 0) {
+            problems.push({ level: 'error', code: 'E_CODE_OFFSET', message: `codes.yaml: у кода «${id}» offset не целое или 0` });
+            continue;
+          }
+          const title = String(data.title ?? '').trim();
+          if (!title) {
+            problems.push({ level: 'error', code: 'E_CODE_NO_TITLE', message: `codes.yaml: у кода «${id}» нет title` });
+            continue;
+          }
+          const base = data.base === undefined ? undefined : String(data.base);
+          if (base && !/^\d+$/.test(base)) {
+            problems.push({ level: 'error', code: 'E_CODE_BASE_MISSING', message: `codes.yaml: base «${base}» кода «${id}» должен быть номером сцены` });
+            continue;
+          }
+          codes[id] = { title, offset, base };
+        }
+      } else if (doc.codes !== undefined) {
+        problems.push({ level: 'error', code: 'E_CODES_YAML', message: 'codes.yaml: codes должен быть картой' });
+      }
+    } catch (e) {
+      problems.push({ level: 'error', code: 'E_CODES_YAML', message: `codes.yaml не разбирается: ${(e as Error).message}` });
+    }
+  }
+
+  const checks: Record<string, CheckDef> = {};
+  const gambles: Record<string, GambleDef> = {};
   const combat: Record<string, CombatDef> = {};
   if (mechanicsText) {
     try {
-      const doc = (parseYaml(mechanicsText) ?? {}) as { combat?: unknown };
+      const doc = (parseYaml(mechanicsText) ?? {}) as { combat?: unknown; checks?: unknown; gambles?: unknown };
+      if (Array.isArray(doc.gambles)) {
+        for (const raw of doc.gambles) {
+          if (!raw || typeof raw !== 'object') continue;
+          const item = raw as Record<string, unknown>;
+          const sceneKey = String(item.scene ?? '');
+          const stat = String(item.stat ?? '');
+          const stakeRaw = item.stake as Record<string, unknown> | undefined;
+          const win = Number(item.win);
+          const push = Number(item.push);
+          if (!sceneKey || !stat || !stakeRaw || !Number.isFinite(win) || !Number.isFinite(push) || win <= push) {
+            problems.push({ level: 'warn', code: 'W_GAMBLE_INVALID', message: 'mechanics.yaml: некорректная ставка' });
+            continue;
+          }
+          if (!stats[stat]) {
+            problems.push({ level: 'error', code: 'E_GAMBLE_STAT', message: `gambles: неизвестная характеристика «${stat}»`, scene: sceneKey });
+          }
+          const min = Number(stakeRaw.min);
+          const max = Number(stakeRaw.max);
+          if (!Number.isInteger(min) || !Number.isInteger(max) || min < 1 || max < min) {
+            problems.push({ level: 'error', code: 'E_GAMBLE_STAKE', message: `gambles §${sceneKey}: некорректные границы ставки`, scene: sceneKey });
+            continue;
+          }
+          gambles[sceneKey] = { scene: sceneKey, stat, stake: { min, max }, win, push };
+        }
+      }
+      if (Array.isArray(doc.checks)) {
+        for (const raw of doc.checks) {
+          if (!raw || typeof raw !== 'object') continue;
+          const item = raw as Record<string, unknown>;
+          const sceneKey = String(item.scene ?? '');
+          if (!sceneKey || !item.success || !item.failure) {
+            problems.push({ level: 'warn', code: 'W_CHECK_INVALID', message: 'mechanics.yaml: у проверки нет scene/success/failure' });
+            continue;
+          }
+          const stat = item.stat ? String(item.stat) : undefined;
+          const skill = item.skill ? String(item.skill) : undefined;
+          if (!stat && !skill) {
+            problems.push({ level: 'warn', code: 'W_CHECK_INVALID', message: `mechanics.yaml: у проверки §${sceneKey} нет stat/skill`, scene: sceneKey });
+            continue;
+          }
+          if (stat && !stats[stat]) {
+            problems.push({ level: 'error', code: 'E_CHECK_STAT', message: `mechanics.yaml: проверка §${sceneKey} ссылается на неизвестный стат «${stat}»`, scene: sceneKey });
+          }
+          if (skill && !stats[skill]) {
+            problems.push({ level: 'error', code: 'E_CHECK_SKILL', message: `mechanics.yaml: проверка §${sceneKey} ссылается на неизвестный навык «${skill}»`, scene: sceneKey });
+          }
+          checks[sceneKey] = {
+            scene: sceneKey,
+            stat,
+            skill,
+            compare: item.compare === undefined ? undefined : String(item.compare),
+            difficulty: item.difficulty === undefined ? undefined : Number(item.difficulty),
+            success: String(item.success),
+            failure: String(item.failure),
+          };
+        }
+      }
       if (Array.isArray(doc.combat)) {
         for (const raw of doc.combat) {
           if (!raw || typeof raw !== 'object') continue;
@@ -396,26 +496,35 @@ export function parsePackage(
                 return weapon === 'automatic' ? 'submachine' : weapon;
               })
             : undefined;
-          combat[sceneKey] = {
-            scene: sceneKey,
-            enemy: {
-              name: String(enemyRaw.name ?? 'Противник'),
-              count: count !== undefined && Number.isFinite(count) && count >= 1 ? Math.floor(count) : undefined,
-              attack: Math.max(0, Number(enemyRaw.attack ?? 1) || 0),
-              health: Math.max(1, Number(enemyRaw.health ?? 1) || 1),
-            },
-            weapon: weapons,
-            win,
-            lose: item.lose ? String(item.lose) : undefined,
-            note: item.note ? String(item.note) : undefined,
-            preDamage: item.preDamage ? String(item.preDamage) : undefined,
-            preDamageFrom: Array.isArray(item.preDamageFrom)
-              ? item.preDamageFrom.map(String)
-              : undefined,
-            preStamina: item.preStamina === undefined ? undefined : Number(item.preStamina),
-            threshold: item.threshold === undefined ? undefined : Number(item.threshold),
-            bonusDamage: item.bonusDamage ? String(item.bonusDamage) : undefined,
+          const enemy = {
+            name: String(enemyRaw.name ?? 'Противник'),
+            count: count !== undefined && Number.isFinite(count) && count >= 1 ? Math.floor(count) : undefined,
+            attack: Math.max(0, Number(enemyRaw.attack ?? 1) || 0),
+            defense: enemyRaw.defense === undefined ? undefined : Math.max(0, Number(enemyRaw.defense) || 0),
+            health: Math.max(1, Number(enemyRaw.health ?? 1) || 1),
+            weapon: enemyRaw.weapon ? String(enemyRaw.weapon) : undefined,
           };
+          if (combat[sceneKey]) {
+            combat[sceneKey].enemies = [...(combat[sceneKey].enemies ?? [combat[sceneKey].enemy]), enemy];
+          } else {
+            combat[sceneKey] = {
+              scene: sceneKey,
+              enemy,
+              enemies: [enemy],
+              weapon: weapons,
+              win,
+              lose: item.lose ? String(item.lose) : undefined,
+              note: item.note ? String(item.note) : undefined,
+              preDamage: item.preDamage ? String(item.preDamage) : undefined,
+              preDamageFrom: Array.isArray(item.preDamageFrom)
+                ? item.preDamageFrom.map(String)
+                : undefined,
+              preStamina: item.preStamina === undefined ? undefined : Number(item.preStamina),
+              threshold: item.threshold === undefined ? undefined : Number(item.threshold),
+              bonusDamage: item.bonusDamage ? String(item.bonusDamage) : undefined,
+              stopAtOne: item.stopAtOne === true,
+            };
+          }
         }
       }
     } catch (e) {
@@ -461,6 +570,8 @@ export function parsePackage(
     }
     if (m.ending) out.ending = true;
     if (m.next) out.next = m.next as Scene['next'];
+    if (m.shopTitle) out.shopTitle = String(m.shopTitle);
+    if (m.shopCurrency) out.shopCurrency = String(m.shopCurrency);
     if (Array.isArray(m.shop)) {
       out.shop = m.shop
         .filter((offer): offer is Record<string, unknown> => Boolean(offer) && typeof offer === 'object')
@@ -488,6 +599,22 @@ export function parsePackage(
               });
             }
           }
+        }
+        if (effect.learn_code && !codes[String(effect.learn_code)]) {
+          problems.push({
+            level: 'error',
+            code: 'E_CODE_UNKNOWN',
+            message: `on_enter.learn_code ссылается на неизвестный код «${String(effect.learn_code)}»`,
+            scene: key,
+          });
+        }
+        if (effect.use && !items[effect.use]) {
+          problems.push({
+            level: 'error',
+            code: 'E_EFFECT_UNKNOWN_ID',
+            message: `on_enter.use ссылается на необъявленный предмет «${effect.use}»`,
+            scene: key,
+          });
         }
         for (const flagId of effectItemIds(effect.set)) {
           if (!flags.includes(flagId)) {
@@ -519,6 +646,26 @@ export function parsePackage(
               message: `on_enter.if ссылается на необъявленный флаг «${flagId}»`,
               scene: key,
             });
+          }
+        }
+        if (effect.statRoll) {
+          for (const [statId, formula] of Object.entries(effect.statRoll)) {
+            if (!stats[statId]) {
+              problems.push({
+                level: 'error',
+                code: 'E_STAT_UNKNOWN',
+                message: `on_enter.statRoll ссылается на неизвестную характеристику «${statId}»`,
+                scene: key,
+              });
+            }
+            if (!/^[+-]?\d+d\d+$/i.test(String(formula).trim())) {
+              problems.push({
+                level: 'error',
+                code: 'E_STAT_VALUE',
+                message: `on_enter.statRoll «${statId}»: ожидается формула NdM`,
+                scene: key,
+              });
+            }
           }
         }
         if (effect.stat) {
@@ -687,11 +834,55 @@ export function parsePackage(
       }
     }
 
-    if (!targets.length && !out.ending) {
+    if (!targets.length && !out.ending && !checks[key] && !combat[key]) {
       problems.push({ level: 'error', code: 'E_SCENE_DEAD_END', message: 'тупик: нет next, выборов и ending', scene: key });
     }
 
+    if (combat[key]) {
+      const stripTail = (value: string) =>
+        value
+          .replace(/\s*Если\s+(?:выиграете(?:\s+бой)?|победите)\.?\s*$/i, '')
+          .trim();
+      out.text = stripTail(out.text);
+      if (out.rich?.length) {
+        const last = out.rich.length - 1;
+        out.rich = out.rich.map((segment, index) =>
+          index === last ? { ...segment, text: stripTail(segment.text) } : segment,
+        );
+      }
+    }
+
     scenes[key] = out;
+  }
+
+  for (const [sceneKey, gamble] of Object.entries(gambles)) {
+    if (!scenes[sceneKey]) {
+      problems.push({ level: 'warn', code: 'W_GAMBLE_SCENE', message: `mechanics.yaml: ставка ссылается на несуществующую сцену §${sceneKey}`, scene: sceneKey });
+    }
+  }
+
+  for (const [sceneKey, scene] of Object.entries(scenes)) {
+    for (const effect of scene.onEnter ?? []) {
+      if (effect.goto && !scenes[effect.goto]) {
+        problems.push({
+          level: 'error',
+          code: 'E_EFFECT_TARGET',
+          message: `on_enter.goto ссылается на несуществующую сцену «${effect.goto}»`,
+          scene: sceneKey,
+        });
+      }
+    }
+  }
+
+  for (const [sceneKey, check] of Object.entries(checks)) {
+    if (!scenes[sceneKey]) {
+      problems.push({ level: 'warn', code: 'W_CHECK_SCENE', message: `mechanics.yaml: проверка ссылается на несуществующую сцену §${sceneKey}`, scene: sceneKey });
+    }
+    for (const [branch, target] of [['success', check.success], ['failure', check.failure]] as const) {
+      if (!scenes[target]) {
+        problems.push({ level: 'error', code: 'E_CHECK_TARGET', message: `mechanics.yaml: ${branch} проверки §${sceneKey} ведёт в несуществующую сцену «${target}»`, scene: sceneKey });
+      }
+    }
   }
 
   for (const [sceneKey, definition] of Object.entries(combat)) {
@@ -766,6 +957,7 @@ export function parsePackage(
     format: String(manifest.format ?? ''),
     id: String(manifest.id ?? id),
     title: String(manifest.title ?? id),
+    type: manifest.type ? String(manifest.type) : undefined,
     author: manifest.author ? String(manifest.author) : undefined,
     language: manifest.language ? String(manifest.language) : undefined,
     start,
@@ -774,6 +966,9 @@ export function parsePackage(
     stats,
     flags,
     combat,
+    codes,
+    checks,
+    gambles,
     moods,
     defaultMood,
     rev: hash(storyText),

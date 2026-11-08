@@ -41,6 +41,7 @@ export async function GET() {
         genre?: string;
         type?: string;
         annotation?: string;
+        status?: string;
       } | null;
       const story = await stat(join(gameDir, 'story.md'));
       const text = (value: unknown) => (typeof value === 'string' && value.trim() ? value.trim() : undefined);
@@ -50,6 +51,7 @@ export async function GET() {
         author: text(manifest?.author),
         genre: text(manifest?.genre),
         type: text(manifest?.type),
+        status: text(manifest?.status),
         annotation: text(manifest?.annotation),
         updatedAt: story.mtime.toISOString(),
       });

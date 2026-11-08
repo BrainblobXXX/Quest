@@ -8,6 +8,10 @@ export type ItemDef = {
   damage?: string;
   /** id предмета-патронов, если оружие огнестрельное */
   ammo?: string;
+  /** рейтинг оружия (контестный бой: 2d6 + стат + рейтинг) */
+  weapon_rating?: number;
+  /** рейтинг брони (контестный бой) */
+  armor_rating?: number;
   /** id характеристики, которую восстанавливает предмет */
   restore?: string;
 };
@@ -19,6 +23,8 @@ export type StatDef = {
   max?: number;
   /** стартовый бросок, который прибавляется к initial (например, `2d6`) */
   roll?: string;
+  /** false — технический статус, не показывать в интерфейсе */
+  show?: boolean;
 };
 
 export type Choice = {
@@ -34,6 +40,8 @@ export type Choice = {
   set?: string | string[];
   /** изменение характеристик при выборе: {money: -200} */
   stat?: Record<string, number>;
+  /** изучить код при выборе */
+  learn_code?: string;
 };
 
 export type RollOutcome = { min?: number; goto: string };
@@ -49,9 +57,50 @@ export type SceneEffect = {
   /** условие применения эффекта (например, `not has_item pistol`) */
   if?: string;
   take?: string | string[] | Record<string, number>;
+  /** применить (списать) предмет при входе в сцену */
+  use?: string;
+  /** изменить статус на случайный бросок: { stamina: "-2d6" } */
+  statRoll?: Record<string, string>;
+  /** уничтожить лучшее оружие игрока (по среднему урону) */
+  dropBestWeapon?: boolean;
+  /** изучить код из codes.yaml */
+  learn_code?: string;
+  /** условный переход в другую сцену (например, смерть без предмета) */
+  goto?: string;
   drop?: string | string[];
   set?: string | string[];
   stat?: Record<string, number>;
+};
+
+export type CheckDef = {
+  scene: string;
+  /** проверка характеристики (2d6 + stat) */
+  stat?: string;
+  /** проверка навыка/сложности (Fallout) */
+  skill?: string;
+  /** выражение для stat-проверки: ">= 10", ">= orkishness + 5" */
+  compare?: string;
+  difficulty?: number;
+  success: string;
+  failure: string;
+};
+
+export type GambleDef = {
+  scene: string;
+  stat: string;
+  stake: { min: number; max: number };
+  /** 2d6 + stat >= win: ставка возвращается и столько же сверху */
+  win: number;
+  /** >= push: ставка возвращается */
+  push: number;
+};
+
+export type CodeDef = {
+  title: string;
+  /** смещение к номеру текущей сцены или base */
+  offset: number;
+  /** явная база, если книга её называет */
+  base?: string;
 };
 
 export type ShopOffer = {
@@ -74,6 +123,9 @@ export type Scene = {
   onEnter?: SceneEffect[];
   /** покупки в лавке: предмет и цена */
   shop?: ShopOffer[];
+  /** заголовок и валюта конкретной лавки */
+  shopTitle?: string;
+  shopCurrency?: string;
   /** исходный текст сцены из story.md: теги, отсылки, строки «Вариант А» */
   raw?: string;
   /** текст, разбитый по тегам вариантов: из него рисуется подсветка */
@@ -85,12 +137,18 @@ export type CombatEnemy = {
   /** число врагов; без него бой не запускается — данные неполные */
   count?: number;
   attack: number;
+  /** защита — сложность атаки игрока */
+  defense?: number;
   health: number;
+  /** урон оружия врага (Fallout) */
+  weapon?: string;
 };
 
 export type CombatDef = {
   scene: string;
   enemy: CombatEnemy;
+  /** все враги сцены (Fallout: несколько статблоков на одной сцене) */
+  enemies?: CombatEnemy[];
   /** разрешённые id оружия; `automatic` — алиас `submachine` */
   weapon?: string[];
   win: string;
@@ -106,12 +164,15 @@ export type CombatDef = {
   threshold?: number;
   /** дополнительный бросок к урону (пистолет Эми у Конга) */
   bonusDamage?: string;
+  /** бой останавливается, когда у одного из участников остаётся 1 здоровье */
+  stopAtOne?: boolean;
 };
 
 export type Game = {
   format: string;
   id: string;
   title: string;
+  type?: string;
   author?: string;
   language?: string;
   start: string;
@@ -122,6 +183,12 @@ export type Game = {
   flags?: string[];
   /** бои из mechanics.yaml по ключу сцены */
   combat?: Record<string, CombatDef>;
+  /** коды «параграф ± число» */
+  codes?: Record<string, CodeDef>;
+  /** проверки характеристик/навыков */
+  checks?: Record<string, CheckDef>;
+  /** ставки: 2d6 + характеристика */
+  gambles?: Record<string, GambleDef>;
   moods?: Record<string, MoodTracks>;
   defaultMood?: string | null;
   /** отпечаток версии книги: считается в браузере по тексту story.md */
@@ -137,6 +204,10 @@ export type GameState = {
   scene: string;
   inventory: Record<string, number>;
   flags: string[];
+  /** изученные коды (не расходуются) */
+  knownCodes?: string[];
+  /** сцены, где ставка уже сделана */
+  gamblesDone?: string[];
   stats: Record<string, number>;
   /** стартовые значения после бросков (для лечения «до начального уровня») */
   initialStats?: Record<string, number>;
@@ -151,6 +222,8 @@ export type GameIndexEntry = {
   genre?: string;
   /** тип книги для колонки «Тип»: story-book, fighting-fantasy, rpg… */
   type?: string;
+  /** alpha / beta / complete и т.п. */
+  status?: string;
   annotation?: string;
   /** когда в последний раз менялся пакет на диске (ISO) */
   updatedAt?: string;

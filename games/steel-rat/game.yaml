@@ -2,7 +2,7 @@ format: quest/1
 id: steel-rat
 title: Стань стальной крысой!
 type: hybrid
-status: complete
+status: beta
 author: Гарри Гаррисон
 genre: фантастика
 annotation: Роман-игра о новобранце Специального Корпуса, которому поручено найти безумного профессора Гейстескранка на планете-тюрьме Скралдеспенд. Только от игрока зависит, спасет ли он Вселенную.
@@ -21,10 +21,7 @@ moods:
   grief: null
 default_mood: calm
 start_items:
-  sword: 1
-  chainmail: 1
-  helmet: 1
-  dosp_coin: 1
+  dosp_coin: 10
   smoke_grenade: 2
   sleep_grenade: 2
   medkit: 1
@@ -32,6 +29,7 @@ start_items:
   nose_filter: 1
   gold_coin: 1
   silver_coin: 1
+  invisible_belt: 1
 scenes:
   prologue:
     title: Пролог
@@ -138,6 +136,8 @@ scenes:
   "21":
     title: Глава 21
     mood: calm
+    on_enter:
+    - drop: [gold_coin, silver_coin, dosp_coin, sword, knife, bow, arrow, staff, smoke_grenade, sleep_grenade]
     next: "80"
   "22":
     title: Глава 22
@@ -164,6 +164,8 @@ scenes:
     title: Глава 26
     mood: danger
     image: illustrations/river.jpg
+    on_enter:
+    - drop: [gold_coin]
     next: "205"
   "27":
     title: Глава 27
@@ -338,6 +340,8 @@ scenes:
   "59":
     title: Глава 59
     mood: tense
+    on_enter:
+    - drop: [gold_coin, silver_coin, dosp_coin, sword, knife, bow, arrow, staff, smoke_grenade, sleep_grenade]
     next: "80"
   "60":
     title: Глава 60
@@ -601,6 +605,9 @@ scenes:
     mood: danger
     on_enter:
     - take:
+      - sword
+      - chainmail
+      - helmet
       - bow
       - arrow
     next: "125"
@@ -623,8 +630,6 @@ scenes:
   "114":
     title: Глава 114
     mood: tense
-    on_enter:
-    - use: sleep_grenade
     variants:
       А: "137"
       Б: "25"
@@ -825,7 +830,7 @@ scenes:
     title: Глава 147
     mood: tense
     on_enter:
-    - take: gold_coin
+    - take: {gold_coin: 10}
     variants:
       А: "41"
       Б: "319"
@@ -836,6 +841,8 @@ scenes:
   "149":
     title: Глава 149
     mood: danger
+    on_enter:
+    - drop: [gold_coin, silver_coin, dosp_coin, sword, knife, bow, arrow, staff, smoke_grenade, sleep_grenade]
     next: "80"
   "150":
     title: Глава 150
@@ -885,6 +892,8 @@ scenes:
   "159":
     title: Глава 159
     mood: calm
+    on_enter:
+    - drop: [gold_coin, silver_coin, dosp_coin, sword, knife, bow, arrow, staff, smoke_grenade, sleep_grenade]
     next: "80"
   "160":
     title: Глава 160
@@ -959,7 +968,8 @@ scenes:
     mood: danger
     on_enter:
     - use: sleep_grenade
-    - take: invisible_belt
+    - if: not has_item invisible_belt
+      take: invisible_belt
     next: "214"
   "171":
     title: Глава 171
@@ -1819,6 +1829,8 @@ scenes:
   "330":
     title: Глава 330
     mood: danger
+    on_enter:
+    - drop: [gold_coin, silver_coin, dosp_coin, sword, knife, bow, arrow, staff, smoke_grenade, sleep_grenade]
     next: "80"
   "331":
     title: Глава 331

@@ -2,9 +2,10 @@ format: quest/1
 id: summer-vacation
 title: Летние каникулы
 type: storybook
-status: complete
+status: beta
 author: Анастасия Резвых
 genre: романтика
+annotation: Летние каникулы, первая влюблённость и взросление — история с выборами и девятью флагами.
 language: ru
 source: "Asinatra - Летние каникулы.pdf · quest-book.ru · версия текста 1"
 cover: assets/cover.jpg

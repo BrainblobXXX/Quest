@@ -2,7 +2,7 @@ format: quest/1
 id: kupalo-night
 title: "В ночь на Ивана Купалу"
 type: storybook
-status: complete
+status: beta
 author: Hollyberries
 genre: "фольклорное фэнтези"
 language: ru

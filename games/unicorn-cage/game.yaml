@@ -2,9 +2,10 @@ format: quest/1
 id: unicorn-cage
 title: Клетка Единорога
 type: storybook
-status: complete
+status: beta
 author: Таня Карпенко
 genre: тёмная сказка
+annotation: Девочка Пенни оказывается в плену у ведьмы и пытается спасти единорога.
 language: ru
 source: Таня Карпенко - Клетка Единорога.pdf (quest-book.ru)
 cover: assets/cover.png

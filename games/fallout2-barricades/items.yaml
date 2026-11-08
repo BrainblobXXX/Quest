@@ -1,0 +1,183 @@
+items:
+  knife:
+    title: Нож
+    damage: 1d6
+  pistol_14mm:
+    title: Пистолет 14 мм
+    damage: 2d6+10
+  pistol_10mm:
+    title: Пистолет 10 мм
+    damage: 1d6+5
+  smg_10mm:
+    title: ПП 10 мм
+    damage: 2d6+5
+  pistol_223:
+    title: Пистолет .223
+    damage: 6d6-4
+  desert_eagle:
+    title: Пустынный орёл
+    damage: 1d6+6
+  magnum:
+    title: Магнум
+    damage: 1d6+8
+  assault_rifle:
+    title: Штурмовая винтовка
+    damage: 2d6+7
+  hunting_rifle:
+    title: Охотничья винтовка
+    damage: 6d6-4
+  sniper_rifle:
+    title: Снайперская винтовка
+    damage: 6d6-4
+  combat_shotgun:
+    title: Боевой винчестер
+    damage: 5d6
+  pancor_jackhammer:
+    title: Pancor Jackhammer
+    damage: 12d6
+  hk_caws:
+    title: H&K CAWS
+    damage: 8d6
+  hk_g11:
+    title: H&K G11
+    damage: 12d6+3
+  fn_fal:
+    title: FN FAL
+    damage: 4d6+2
+  bozar:
+    title: Бозар
+    damage: 24d6-4
+  minigun:
+    title: Миниган
+    damage: 10d6+7
+  laser_pistol:
+    title: Лазерный пистолет
+    damage: 5d6+5
+  laser_rifle:
+    title: Лазерная винтовка
+    damage: 10d6+6
+  plasma_pistol:
+    title: Плазменный пистолет
+    damage: 8d6-7
+  plasma_rifle:
+    title: Плазменная винтовка
+    damage: 14d6-10
+  gauss_pistol:
+    title: Гауссов пистолет
+    damage: 9d6+4
+  gauss_rifle:
+    title: Гауссово ружьё
+    damage: 18d6+4
+  flamethrower:
+    title: Огнемёт
+    damage: 20d6
+  rocket_launcher:
+    title: Ракетница
+    damage: 5d6+30
+  grenade_frag:
+    title: Осколочная граната
+    countable: true
+    consumable: true
+    damage: 5d6
+  grenade_plasma:
+    title: Плазменная граната
+    countable: true
+    consumable: true
+    damage: 5d6
+  combat_leather_jacket:
+    title: Боевая кожаная куртка
+    armor_rating: 3
+  leather_armor:
+    title: Кожаная броня
+    armor_rating: 6
+  combat_armor:
+    title: Боевая броня
+    armor_rating: 10
+  tesla_armor:
+    title: Броня Тесла
+    armor_rating: 8
+  power_armor:
+    title: Силовая броня
+    armor_rating: 18
+  stimpak:
+    title: Стимпак
+    countable: true
+    consumable: true
+    restore: hp
+  medkit:
+    title: Аптечка
+    consumable: true
+    restore: hp
+  doctor_bag:
+    title: Сумка доктора
+  antidote:
+    title: Антидот
+    consumable: true
+  radaway:
+    title: Рад-эвей
+    consumable: true
+  jet:
+    title: Джет
+    countable: true
+    consumable: true
+  psycho:
+    title: Психо
+    countable: true
+    consumable: true
+  buffout:
+    title: Баффаут
+    countable: true
+    consumable: true
+  beer:
+    title: Пиво
+    countable: true
+    consumable: true
+  gin:
+    title: Джин
+    countable: true
+    consumable: true
+  nuka_cola:
+    title: Нюка-кола
+    countable: true
+    consumable: true
+  rope:
+    title: Верёвка
+    countable: true
+  lockpicks:
+    title: Отмычки
+    countable: true
+  crowbar:
+    title: Лом
+  shovel:
+    title: Лопата
+  toolset:
+    title: Набор инструментов
+  gecko_pelt:
+    title: Шкура гекко
+    countable: true
+  golden_gecko_pelt:
+    title: Шкура золотого гекко
+    countable: true
+  silver_gecko_pelt:
+    title: Шкура серебряного гекко
+    countable: true
+  holodisk_harold:
+    title: Голодиск с историей Гарольда
+  modul:
+    title: Модулятор
+  painting:
+    title: Картина Шекспира
+  day_pass:
+    title: Дневной пропуск
+  yellow_pass:
+    title: Жёлтый уровень доступа
+  white_pass:
+    title: Белый уровень доступа
+  orange_pass:
+    title: Оранжевый уровень доступа
+  mine_shares_ustinovka:
+    title: Акции шахты «Утренняя Звезда»
+    countable: true
+  mine_shares_kokovif:
+    title: Акции шахты «Коковиф»
+    countable: true

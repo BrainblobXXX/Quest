@@ -107,8 +107,9 @@ export default function CombatPanel({
 }) {
   const enemy = combat.enemy;
   const count = Math.max(1, Math.floor(enemy.count ?? 1));
-  const staminaId = 'stamina';
+  const staminaId = game.stats?.stamina ? 'stamina' : game.stats?.hp ? 'hp' : 'stamina';
   const staminaDef = game.stats?.[staminaId];
+  const healthTitle = staminaId === 'hp' ? 'Здоровье' : 'Выносливость';
   const staminaMax = Number(staminaDef?.max ?? 32);
   const staminaInitial = Number(
     state.initialStats?.[staminaId] ?? staminaDef?.initial ?? state.stats[staminaId] ?? 20,
@@ -436,7 +437,7 @@ export default function CombatPanel({
       <div className={`combat-status-line${stamina <= 0 ? ' low' : ''}`}>
         <span>РАУНД: {round}.</span>
         <span>Противник - {enemy.name.toUpperCase()} {alive}/{enemyTotal}.</span>
-        <span>Персонаж - Выносливость {stamina}/{staminaMax}.</span>
+        <span>Персонаж - {healthTitle} {stamina}/{staminaMax}.</span>
         {combat.threshold !== undefined && (
           <span>
             Порог - {combat.threshold}
@@ -528,7 +529,7 @@ export default function CombatPanel({
       {phase === 'victory' && (
         <>
           <div className="combat-note combat-victory-note">
-            ПОБЕДА. Выносливость {stamina} / {staminaMax}.
+            ПОБЕДА. {healthTitle} {stamina} / {staminaMax}.
           </div>
           <div className="choices combat-choices">
             <button type="button" className={`choice${selectedChoice === 0 ? ' selected' : ''}`} onFocus={() => setSelectedChoice(0)} onClick={finish}>

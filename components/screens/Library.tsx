@@ -20,6 +20,14 @@ function typeLabel(type?: string): string {
   return TYPE_LABELS[type.toLowerCase()] ?? type;
 }
 
+function statusLabel(status?: string): string {
+  if (!status) return '—';
+  if (status.toLowerCase() === 'alpha') return 'АЛЬФА-ТЕСТ';
+  if (status.toLowerCase() === 'beta') return 'БЕТА-ТЕСТ';
+  if (status.toLowerCase() === 'complete') return 'ЗАВЕРШЕНА';
+  return status.toUpperCase();
+}
+
 /** «фантастика · книга-игра» → «фантастика»: тип теперь в отдельной колонке */
 function genreLabel(genre?: string): string {
   if (!genre) return '—';
@@ -246,8 +254,22 @@ export default function Library({
                             {g.author || '—'}
                           </div>
                           <div>
+                            <span className="lib-k">Статус</span>
+                            <span className={`lib-status lib-status-${(g.status ?? 'unknown').toLowerCase()}`}>
+                              {statusLabel(g.status)}
+                            </span>
+                          </div>
+                          <div>
                             <span className="lib-k">Прогресс</span>
-                            {progress ? `ГЛАВА ${progress}` : '—'}
+                            {progress
+                              ? /^\d+$/.test(progress)
+                                ? `ГЛАВА ${progress}`
+                                : progress === 'prolog' || progress === 'prologue'
+                                  ? 'ПРОЛОГ'
+                                  : progress === 'rules'
+                                    ? 'ПРАВИЛА'
+                                    : progress.toUpperCase()
+                              : '—'}
                           </div>
                         </div>
 
