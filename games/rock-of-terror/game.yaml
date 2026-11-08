@@ -231,7 +231,6 @@ scenes:
         goto: "timeout"
       - if: "has_item monk_heart and not flag heart_up_19"
         stat: {heart_power: 1}
-      - if: "not flag heart_up_19"
         set: heart_up_19
     next: "44"
   "20":
@@ -706,7 +705,6 @@ scenes:
         goto: "timeout"
       - if: "has_item monk_heart and not flag heart_up_67"
         stat: {heart_power: 1}
-      - if: "not flag heart_up_67"
         set: heart_up_67
     next: "70"
   "68":
@@ -823,7 +821,6 @@ scenes:
         goto: "timeout"
       - if: "has_item monk_heart and not flag heart_up_78"
         stat: {heart_power: 1}
-      - if: "not flag heart_up_78"
         set: heart_up_78
     next: "32"
   "79":
@@ -935,7 +932,6 @@ scenes:
         goto: "timeout"
       - if: "has_item monk_heart and not flag heart_up_89"
         stat: {heart_power: 1}
-      - if: "not flag heart_up_89"
         set: heart_up_89
     next: "71"
   "90":

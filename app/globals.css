@@ -1690,3 +1690,30 @@ body {
   letter-spacing: 1px;
   margin: 4px 0 6px;
 }
+
+.roll-die-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 34px;
+  font-weight: 700;
+  color: var(--amber);
+  text-shadow: 0 0 10px rgba(255, 176, 0, 0.65);
+}
+
+@media (max-height: 620px) {
+  .panel-btn { min-width: 42px; padding: 4px 3px; font-size: 8px; letter-spacing: 0; }
+  .case-nav { gap: 1px; }
+  .case-front { gap: 4px; }
+}
+
+/* низкий ландшафт: длинный список вариантов должен прокручиваться */
+@media (max-height: 560px) and (min-width: 700px) {
+  .choices {
+    max-height: 58%;
+    overflow-y: auto;
+    flex-shrink: 0;
+    scrollbar-width: thin;
+  }
+}

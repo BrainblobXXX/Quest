@@ -21,8 +21,15 @@ const SCENE_DIE_PIPS: Record<number, number[]> = {
   6: [1, 3, 4, 6, 7, 9],
 };
 
-/** грань кубика с точками — как в боевой анимации */
+/** грань кубика: 1–6 точками, значения больше 6 — числом */
 function SceneDie({ value }: { value: number }) {
+  if (value > 6) {
+    return (
+      <span className="roll-die-face roll-die-number" role="img" aria-label={`${value}`}>
+        {value}
+      </span>
+    );
+  }
   const active = SCENE_DIE_PIPS[value] ?? [];
   return (
     <span className="roll-die-face combat-die-face" role="img" aria-label={`${value}`}>
@@ -31,6 +38,12 @@ function SceneDie({ value }: { value: number }) {
       ))}
     </span>
   );
+}
+
+function diceMax(formula: string): number {
+  const match = /^(\d+)d(\d+)$/i.exec(formula.trim());
+  if (!match) return 6;
+  return Math.max(1, Number(match[1]) * Number(match[2]));
 }
 
 /** подсветка исходной разметки story.md: теги вариантов, отсылки, маркеры */
@@ -318,7 +331,8 @@ export default function GameScreen({
     const value = rollDice(dice.roll);
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const spinMs = reduced ? 250 : 1300;
-    const resultMs = reduced ? 500 : 900;
+    // финальный результат держим на 0,5 с дольше: 1,4 с вместо 0,9 с
+    const resultMs = reduced ? 500 : 1400;
     setRollView({ kind: isCoin ? 'coin' : 'dice', value, phase: 'spin' });
     audio.click();
     rollTimers.current.push(
@@ -523,6 +537,13 @@ export default function GameScreen({
       if (/^[1-9]$/.test(e.key)) {
         if (dice) {
           if (e.key === '1') startRoll();
+          return;
+        }
+        if (hasNext && choices.length === 0) {
+          if (e.key === '1') {
+            e.preventDefault();
+            onAdvance();
+          }
           return;
         }
         const choice = choices[Number(e.key) - 1];
@@ -871,7 +892,7 @@ export default function GameScreen({
                   ? 'ОРЁЛ'
                   : 'РЕШКА'
                 : '◉'
-              : <SceneDie value={rollView.phase === 'result' ? rollView.value : 1 + (tick % 6)} />}
+              : <SceneDie value={rollView.phase === 'result' ? rollView.value : 1 + (tick % Math.max(1, dice ? diceMax(dice.roll) : 6))} />}
           </div>
           <div className="roll-caption">
             {rollView.phase === 'result'
