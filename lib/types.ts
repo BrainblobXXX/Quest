@@ -1,3 +1,5 @@
+export const STATE_VERSION = 2;
+
 export type ItemDef = {
   title: string;
   description?: string;
@@ -35,7 +37,9 @@ export type Choice = {
   if?: string;
   take?: string | string[] | Record<string, number>;
   use?: string;
+  useCount?: number;
   drop?: string;
+  dropCount?: number;
   /** установить флаги: строка или список */
   set?: string | string[];
   /** изменение характеристик при выборе: {money: -200} */
@@ -44,7 +48,7 @@ export type Choice = {
   learn_code?: string;
 };
 
-export type RollOutcome = { min?: number; goto: string };
+export type RollOutcome = { min?: number; max?: number; goto: string };
 
 export type MoodTracks = string | string[] | null;
 
@@ -59,6 +63,7 @@ export type SceneEffect = {
   take?: string | string[] | Record<string, number>;
   /** применить (списать) предмет при входе в сцену */
   use?: string;
+  useCount?: number;
   /** изменить статус на случайный бросок: { stamina: "-2d6" } */
   statRoll?: Record<string, string>;
   /** уничтожить лучшее оружие игрока (по среднему урону) */
@@ -68,6 +73,7 @@ export type SceneEffect = {
   /** условный переход в другую сцену (например, смерть без предмета) */
   goto?: string;
   drop?: string | string[];
+  dropCount?: number;
   set?: string | string[];
   stat?: Record<string, number>;
 };
@@ -126,6 +132,12 @@ export type Scene = {
   /** заголовок и валюта конкретной лавки */
   shopTitle?: string;
   shopCurrency?: string;
+  /** id предмета-валюты; без него используется stats.money */
+  shopCurrencyItem?: string;
+  /** счётчик, который показывается под текстом сцены */
+  counter?: { stat: string; max?: number; label?: string };
+  /** сцена открывает панель известных кодов */
+  codebook?: boolean;
   /** исходный текст сцены из story.md: теги, отсылки, строки «Вариант А» */
   raw?: string;
   /** текст, разбитый по тегам вариантов: из него рисуется подсветка */
@@ -175,6 +187,7 @@ export type Game = {
   type?: string;
   author?: string;
   language?: string;
+  cover?: string;
   start: string;
   startItems?: Record<string, number>;
   items?: Record<string, ItemDef>;
@@ -199,6 +212,8 @@ export type Game = {
 export type GameState = {
   game: string;
   format: string;
+  /** версия схемы состояния; старые сейвы мигрируются */
+  version?: number;
   /** версия книги, на которой сделано сохранение */
   rev?: string;
   scene: string;
@@ -224,6 +239,8 @@ export type GameIndexEntry = {
   type?: string;
   /** alpha / beta / complete и т.п. */
   status?: string;
+  /** путь к обложке относительно пакета */
+  cover?: string;
   annotation?: string;
   /** когда в последний раз менялся пакет на диске (ISO) */
   updatedAt?: string;

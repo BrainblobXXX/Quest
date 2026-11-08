@@ -35,23 +35,29 @@ export async function GET() {
   for (const id of entries) {
     const gameDir = join(dir, id);
     try {
-      const manifest = parseYaml(await readFile(join(gameDir, 'game.yaml'), 'utf8')) as {
+      const q2 = join(gameDir, 'quest2.yaml');
+      const q2Exists = await stat(q2).then(() => true).catch(() => false);
+      const manifestPath = q2Exists ? q2 : join(gameDir, 'game.yaml');
+      const manifest = parseYaml(await readFile(manifestPath, 'utf8')) as {
         title?: string;
         author?: string;
         genre?: string;
         type?: string;
+        profile?: string;
         annotation?: string;
         status?: string;
+        cover?: string;
       } | null;
-      const story = await stat(join(gameDir, 'story.md'));
+      const story = await stat(manifestPath);
       const text = (value: unknown) => (typeof value === 'string' && value.trim() ? value.trim() : undefined);
       games.push({
         id,
         title: String(manifest?.title ?? id),
         author: text(manifest?.author),
         genre: text(manifest?.genre),
-        type: text(manifest?.type),
+        type: text(manifest?.profile ?? manifest?.type),
         status: text(manifest?.status),
+        cover: text(manifest?.cover),
         annotation: text(manifest?.annotation),
         updatedAt: story.mtime.toISOString(),
       });

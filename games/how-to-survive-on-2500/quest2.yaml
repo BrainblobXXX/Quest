@@ -1,0 +1,683 @@
+format: quest/2
+id: how-to-survive-on-2500
+title: Как прожить месяц на 2500 рублей...
+profile: hybrid
+status: beta
+author: Арина Гуляева
+genre: симулятор выживания
+annotation: Студентка получает стипендию 2500 рублей и пытается дожить до следующей — с бытовыми выборами, тратами и разными финалами.
+language: ru
+source: Арина Гуляева - Как прожить месяц  на 2500 рублей....pdf, https://quest-book.ru
+cover: assets/cover.png
+moods:
+  calm: null
+  tense: null
+  danger: null
+  victory: null
+  grief: null
+features:
+  - choices
+stats:
+  money:
+    title: Деньги
+    initial: 2500
+    min: 0
+start: "1"
+scenes:
+  "1":
+    title: Глава 1
+    text: Пришла долгожданная стипендия, а значит, можно дальше наслаждаться жизнью.
+    mood: victory
+    image: assets/illustrations/1.png
+    interaction:
+      type: continue
+      to: "9"
+  "2":
+    title: Глава 2
+    text: |-
+      Твои расходы составили всего 500 рублей, а могло быть намного хуже. Неожиданно тебе звонит одногруппник и говорит, что надо скинуться на подарок преподавателю на день рождения
+
+      Отправить 200 рублей в Сбербанке онлайн — [А]
+      Сказать, что уже отправил (зажмотить) — [Б]
+    mood: tense
+    entry:
+      - modify:
+          stat: money
+          delta: -500
+    interaction:
+      type: choices
+      options:
+        - label: Вариант А
+          to: "23"
+          letter: А
+          effects:
+            - modify:
+                stat: money
+                delta: -200
+        - label: Вариант Б
+          to: "33"
+          letter: Б
+  "3":
+    title: Глава 3
+    text: И вот последние деньки...молодец, тебе удалось выжить.
+    mood: victory
+    image: assets/illustrations/3.png
+    ending: true
+  "4":
+    title: Глава 4
+    text: |-
+      И снова пора кушать
+
+      сходить в магазин на 400 рублей — [А]
+      купить шаурму за 200 — [Б]
+    mood: calm
+    image: assets/illustrations/4.png
+    interaction:
+      type: choices
+      options:
+        - label: Вариант А
+          to: "35"
+          letter: А
+          effects:
+            - modify:
+                stat: money
+                delta: -400
+        - label: Вариант Б
+          to: "21"
+          letter: Б
+          effects:
+            - modify:
+                stat: money
+                delta: -200
+  "5":
+    title: Глава 5
+    text: |-
+      И снова пора кушать
+
+      сходить в магазин на 400 рублей — [А]
+      купить шаурму за 200 — [Б]
+    mood: calm
+    image: assets/illustrations/4.png
+    interaction:
+      type: choices
+      options:
+        - label: Вариант А
+          to: "36"
+          letter: А
+          effects:
+            - modify:
+                stat: money
+                delta: -400
+        - label: Вариант Б
+          to: "27"
+          letter: Б
+          effects:
+            - modify:
+                stat: money
+                delta: -200
+  "6":
+    title: Глава 6
+    text: |-
+      Вдруг тебе приходит SMS-ка, что надо скинуться на подарок преподавателю на день рождения
+
+      Отправить 200 рублей в Сбербанке онлайн — [А]
+      Сказать, что уже отправил (зажмотить) — [Б]
+    mood: tense
+    interaction:
+      type: choices
+      options:
+        - label: Вариант А
+          to: "16"
+          letter: А
+          effects:
+            - modify:
+                stat: money
+                delta: -200
+        - label: Вариант Б
+          to: "18"
+          letter: Б
+  "7":
+    title: Глава 7
+    text: Упс...неожиданные расходы (-200 рублей)
+    mood: grief
+    entry:
+      - modify:
+          stat: money
+          delta: -200
+    interaction:
+      type: continue
+      to: "28"
+  "8":
+    title: Глава 8
+    text: Похоже, это не самый лучший твой месяц. Последние деньки тебе пришлось поголодать...
+    mood: danger
+    image: assets/illustrations/8.png
+    ending: true
+  "9":
+    title: Глава 9
+    text: |-
+      Твой желудок начал подавать знаки внимания, похоже пора покушать
+
+      пойти в KFC и поесть по акции на 300 рублей — [А]
+      пойти в магазин и купить продуктов на 500 — [Б]
+    mood: calm
+    image: assets/illustrations/9.png
+    interaction:
+      type: choices
+      options:
+        - label: Вариант А
+          to: "19"
+          letter: А
+          effects:
+            - modify:
+                stat: money
+                delta: -300
+        - label: Вариант Б
+          to: "38"
+          letter: Б
+          effects:
+            - modify:
+                stat: money
+                delta: -500
+  "10":
+    title: Глава 10
+    text: |-
+      И вот ты снова захотел покушать, и снова перед тобой тяжелый выбор. Купить побольше дешевых продуктов на 700 рублей или купить любимых деликатесов на 500 рублей?
+
+      потратить 700 рублей — [А]
+      потратить 500 рублей — [Б]
+    mood: calm
+    interaction:
+      type: choices
+      options:
+        - label: Вариант А
+          to: "30"
+          letter: А
+          effects:
+            - modify:
+                stat: money
+                delta: -700
+        - label: Вариант Б
+          to: "32"
+          letter: Б
+          effects:
+            - modify:
+                stat: money
+                delta: -500
+  "11":
+    title: Глава 11
+    text: |-
+      И снова пора кушать
+
+      сходить в магазин на 400 рублей — [А]
+      купить шаурму за 200 — [Б]
+    mood: calm
+    image: assets/illustrations/4.png
+    interaction:
+      type: choices
+      options:
+        - label: Вариант А
+          to: "26"
+          letter: А
+          effects:
+            - modify:
+                stat: money
+                delta: -400
+        - label: Вариант Б
+          to: "36"
+          letter: Б
+          effects:
+            - modify:
+                stat: money
+                delta: -200
+  "12":
+    title: Глава 12
+    text: И вот последние деньки...молодец, тебе удалось выжить.
+    mood: victory
+    image: assets/illustrations/3.png
+    ending: true
+  "13":
+    title: Глава 13
+    text: Тебе понадобились всякие мелочи, на которые ты потратил 200 рублей.
+    mood: calm
+    entry:
+      - modify:
+          stat: money
+          delta: -200
+    interaction:
+      type: continue
+      to: "24"
+  "14":
+    title: Глава 14
+    text: Похоже, это не самый лучший твой месяц. Последние деньки тебе пришлось поголодать...
+    mood: danger
+    image: assets/illustrations/8.png
+    ending: true
+  "15":
+    title: Глава 15
+    text: Как оказалась вход в клуб стоил 200 рублей, а потом тебя неожиданно понесло, и ты оставил в баре 2000. Молодец, на три недели у тебя осталось ничего...
+    mood: danger
+    entry:
+      - modify:
+          stat: money
+          delta: -2200
+    ending: true
+  "16":
+    title: Глава 16
+    text: |-
+      И вот ты снова захотел покушать, и снова перед тобой тяжелый выбор. Купить побольше дешевых продуктов на 700 рублей или купить любимых деликатесов на 500 рублей?
+
+      потратить 700 рублей — [А]
+      потратить 500 рублей — [Б]
+    mood: calm
+    interaction:
+      type: choices
+      options:
+        - label: Вариант А
+          to: "25"
+          letter: А
+          effects:
+            - modify:
+                stat: money
+                delta: -700
+        - label: Вариант Б
+          to: "39"
+          letter: Б
+          effects:
+            - modify:
+                stat: money
+                delta: -500
+  "17":
+    title: Глава 17
+    text: Тебе понадобились всякие мелочи, на которые ты потратил последние 200 рублей. Похоже, ты проиграл.
+    mood: danger
+    entry:
+      - modify:
+          stat: money
+          delta: -200
+    ending: true
+  "18":
+    title: Глава 18
+    text: |-
+      И вот ты снова захотел покушать, и снова перед тобой тяжелый выбор. Купить побольше дешевых продуктов на 700 рублей или купить любимых деликатесов на 500 рублей?
+
+      потратить 700 рублей — [А]
+      потратить 500 рублей — [Б]
+    mood: calm
+    interaction:
+      type: choices
+      options:
+        - label: Вариант А
+          to: "39"
+          letter: А
+          effects:
+            - modify:
+                stat: money
+                delta: -700
+        - label: Вариант Б
+          to: "40"
+          letter: Б
+          effects:
+            - modify:
+                stat: money
+                delta: -500
+  "19":
+    title: Глава 19
+    text: |-
+      В KFC ты встречаешь старых друзей, которые говорят, что надо будет собраться на выходных и отдохнуть. Отказаться ты не можешь, поэтому перед тобой стоит важный вопрос.
+
+      пойти в клуб — [А]
+      собраться на квартире — [Б]
+    mood: calm
+    image: assets/illustrations/19.png
+    interaction:
+      type: choices
+      options:
+        - label: Вариант А
+          to: "15"
+          letter: А
+        - label: Вариант Б
+          to: "2"
+          letter: Б
+  "20":
+    title: Глава 20
+    text: И вот последние деньки...молодец, тебе удалось выжить.
+    mood: victory
+    image: assets/illustrations/3.png
+    ending: true
+  "21":
+    title: Глава 21
+    text: Тебе понадобились всякие мелочи, на которые ты потратил 200 рублей.
+    mood: calm
+    entry:
+      - modify:
+          stat: money
+          delta: -200
+    interaction:
+      type: continue
+      to: "20"
+  "22":
+    title: Глава 22
+    text: Тебе понадобились всякие мелочи, на которые ты потратил 200 рублей.
+    mood: calm
+    entry:
+      - modify:
+          stat: money
+          delta: -200
+    interaction:
+      type: continue
+      to: "8"
+  "23":
+    title: Глава 23
+    text: |-
+      И вот ты снова захотел покушать, и снова перед тобой тяжелый выбор. Купить побольше дешевых продуктов на 700 рублей или купить любимых деликатесов на 500 рублей?
+
+      потратить 700 рублей — [А]
+      потратить 500 рублей — [Б]
+    mood: calm
+    interaction:
+      type: choices
+      options:
+        - label: Вариант А
+          to: "37"
+          letter: А
+          effects:
+            - modify:
+                stat: money
+                delta: -700
+        - label: Вариант Б
+          to: "7"
+          letter: Б
+          effects:
+            - modify:
+                stat: money
+                delta: -500
+  "24":
+    title: Глава 24
+    text: И вот последние деньки...молодец, тебе удалось выжить.
+    mood: victory
+    image: assets/illustrations/3.png
+    ending: true
+  "25":
+    title: Глава 25
+    text: Упс...неожиданные расходы (-200 рублей)
+    mood: grief
+    entry:
+      - modify:
+          stat: money
+          delta: -200
+    interaction:
+      type: continue
+      to: "4"
+  "26":
+    title: Глава 26
+    text: Тебе понадобились всякие мелочи, на которые ты потратил 200 рублей.
+    mood: calm
+    entry:
+      - modify:
+          stat: money
+          delta: -200
+    interaction:
+      type: continue
+      to: "14"
+  "27":
+    title: Глава 27
+    text: Тебе понадобились всякие мелочи, на которые ты потратил 200 рублей.
+    mood: calm
+    entry:
+      - modify:
+          stat: money
+          delta: -200
+    interaction:
+      type: continue
+      to: "12"
+  "28":
+    title: Глава 28
+    text: |-
+      И снова пора кушать
+
+      сходить в магазин на 400 рублей — [А]
+      купить шаурму за 200 — [Б]
+    mood: calm
+    image: assets/illustrations/4.png
+    interaction:
+      type: choices
+      options:
+        - label: Вариант А
+          to: "22"
+          letter: А
+          effects:
+            - modify:
+                stat: money
+                delta: -400
+        - label: Вариант Б
+          to: "26"
+          letter: Б
+          effects:
+            - modify:
+                stat: money
+                delta: -200
+  "29":
+    title: Глава 29
+    text: |-
+      Молодец, сделал доброе дело. Вдруг тебе приходит SMS-ка, что надо скинуться на подарок преподавателю на день рождения
+
+      Отправить 200 рублей в сбербанке онлайн — [А]
+      Сказать, что уже отправил (зажмотить) — [Б]
+    mood: calm
+    interaction:
+      type: choices
+      options:
+        - label: Вариант А
+          to: "33"
+          letter: А
+          effects:
+            - modify:
+                stat: money
+                delta: -200
+        - label: Вариант Б
+          to: "10"
+          letter: Б
+  "30":
+    title: Глава 30
+    text: Упс...неожиданные расходы (-200 рублей)
+    mood: grief
+    entry:
+      - modify:
+          stat: money
+          delta: -200
+    interaction:
+      type: continue
+      to: "11"
+  "31":
+    title: Глава 31
+    text: |-
+      И снова пора кушать
+
+      сходить в магазин на 400 рублей — [А]
+      купить шаурму за 200 — [Б]
+    mood: calm
+    image: assets/illustrations/4.png
+    interaction:
+      type: choices
+      options:
+        - label: Вариант А
+          to: "21"
+          letter: А
+          effects:
+            - modify:
+                stat: money
+                delta: -400
+        - label: Вариант Б
+          to: "13"
+          letter: Б
+          effects:
+            - modify:
+                stat: money
+                delta: -200
+  "32":
+    title: Глава 32
+    text: Упс...неожиданные расходы (-200 рублей)
+    mood: grief
+    entry:
+      - modify:
+          stat: money
+          delta: -200
+    interaction:
+      type: continue
+      to: "5"
+  "33":
+    title: Глава 33
+    text: |-
+      И вот ты снова захотел покушать, и снова перед тобой тяжелый выбор. Купить побольше дешевых продуктов на 700 рублей или купить любимых деликатесов на 500 рублей?
+
+      потратить 700 рублей — [А]
+      потратить 500 рублей — [Б]
+    mood: calm
+    image: assets/illustrations/33.png
+    interaction:
+      type: choices
+      options:
+        - label: Вариант А
+          to: "7"
+          letter: А
+          effects:
+            - modify:
+                stat: money
+                delta: -700
+        - label: Вариант Б
+          to: "30"
+          letter: Б
+          effects:
+            - modify:
+                stat: money
+                delta: -500
+  "34":
+    title: Глава 34
+    text: |-
+      И снова пора кушать
+
+      сходить в магазин на 400 рублей — [А]
+      купить шаурму за 200 — [Б]
+    mood: calm
+    image: assets/illustrations/4.png
+    interaction:
+      type: choices
+      options:
+        - label: Вариант А
+          to: "17"
+          letter: А
+          effects:
+            - modify:
+                stat: money
+                delta: -400
+        - label: Вариант Б
+          to: "22"
+          letter: Б
+          effects:
+            - modify:
+                stat: money
+                delta: -200
+  "35":
+    title: Глава 35
+    text: Тебе понадобились всякие мелочи, на которые ты потратил 300 рублей.
+    mood: calm
+    entry:
+      - modify:
+          stat: money
+          delta: -300
+    interaction:
+      type: continue
+      to: "8"
+  "36":
+    title: Глава 36
+    text: Тебе понадобились всякие мелочи, на которые ты потратил 200 рублей.
+    mood: calm
+    entry:
+      - modify:
+          stat: money
+          delta: -200
+    interaction:
+      type: continue
+      to: "3"
+  "37":
+    title: Глава 37
+    text: Упс...неожиданные расходы (-200 рублей)
+    mood: grief
+    entry:
+      - modify:
+          stat: money
+          delta: -200
+    interaction:
+      type: continue
+      to: "34"
+  "38":
+    title: Глава 38
+    text: |-
+      Идя домой, ты встречаешь старую бабушку, которой явно не хватает на еду
+
+      помочь и дать 100 рублей — [А]
+      пройти мимо — [Б]
+    mood: tense
+    image: assets/illustrations/38.png
+    interaction:
+      type: choices
+      options:
+        - label: Вариант А
+          to: "29"
+          letter: А
+          effects:
+            - modify:
+                stat: money
+                delta: -100
+        - label: Вариант Б
+          to: "6"
+          letter: Б
+  "39":
+    title: Глава 39
+    text: Упс...неожиданные расходы (-200 рублей)
+    mood: grief
+    entry:
+      - modify:
+          stat: money
+          delta: -200
+    interaction:
+      type: continue
+      to: "31"
+  "40":
+    title: Глава 40
+    text: Упс...неожиданные расходы (-200 рублей)
+    mood: grief
+    entry:
+      - modify:
+          stat: money
+          delta: -200
+    interaction:
+      type: continue
+      to: "41"
+  "41":
+    title: Глава 41
+    text: |-
+      И снова пора кушать
+
+      сходить в магазин на 400 рублей — [А]
+      купить шаурму за 300 — [Б]
+    mood: calm
+    image: assets/illustrations/4.png
+    interaction:
+      type: choices
+      options:
+        - label: Вариант А
+          to: "13"
+          letter: А
+          effects:
+            - modify:
+                stat: money
+                delta: -400
+        - label: Вариант Б
+          to: "27"
+          letter: Б
+          effects:
+            - modify:
+                stat: money
+                delta: -300

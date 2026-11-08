@@ -39,6 +39,11 @@ function genreLabel(genre?: string): string {
   return clean || '—';
 }
 
+function coverUrl(id: string, cover: string): string {
+  if (/^(https?:)?\//.test(cover)) return cover;
+  return `/api/games/${encodeURIComponent(id)}/${cover.split('/').map(encodeURIComponent).join('/')}`;
+}
+
 export default function Library({
   games,
   saves,
@@ -57,6 +62,7 @@ export default function Library({
   const [confirmReset, setConfirmReset] = useState<string | null>(null);
   const [focusKey, setFocusKey] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [coverPreview, setCoverPreview] = useState<{ title: string; src: string } | null>(null);
 
   // порядок пунктов меню: книги, затем перезагрузка, если список пуст
   const items = useMemo(
@@ -133,6 +139,19 @@ export default function Library({
       ?.scrollIntoView({ block: 'nearest' });
   }, [focusKey, openId]);
 
+  useEffect(() => {
+    if (!coverPreview) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        setCoverPreview(null);
+      }
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [coverPreview]);
+
   return (
     <div className="library-screen">
       <div className="library-scroll">
@@ -187,6 +206,20 @@ export default function Library({
                   }}
                 >
                   <div className="lib-main" role="cell">
+                    {g.cover && (
+                      <button
+                        type="button"
+                        className="lib-cover"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setCoverPreview({ title: g.title, src: coverUrl(g.id, g.cover!) });
+                        }}
+                        aria-label={`Увеличить обложку: ${g.title}`}
+                        title="Увеличить обложку"
+                      >
+                        <img src={coverUrl(g.id, g.cover)} alt="" loading="lazy" />
+                      </button>
+                    )}
                     <button
                       type="button"
                       className={`lib-title${focused ? ' menu-focused' : ''}`}
@@ -308,6 +341,26 @@ export default function Library({
           </div>
         )}
       </div>
+
+      {coverPreview && (
+        <div
+          className="lib-cover-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Обложка: ${coverPreview.title}`}
+          onClick={() => setCoverPreview(null)}
+        >
+          <button
+            type="button"
+            className="lib-cover-close"
+            onClick={() => setCoverPreview(null)}
+            aria-label="Закрыть обложку"
+          >
+            ×
+          </button>
+          <img src={coverPreview.src} alt={`Обложка: ${coverPreview.title}`} onClick={(event) => event.stopPropagation()} />
+        </div>
+      )}
 
       <div className="hint">
         МЕНЮ — ↑↓ · ENTER — СТАРТ · ПРОБЕЛ — ДЕТАЛИ · ЦИФРА — СТАРТ · ESC — В БИБЛИОТЕКУ

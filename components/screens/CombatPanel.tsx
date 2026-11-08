@@ -2,6 +2,11 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { audio } from '@/lib/audio';
+import { DieFace } from '@/components/screens/Dice';
+import { usePanelKeys } from '@/lib/usePanelKeys';
+import { combatKey, combatKeyIndex } from '@/components/screens/combatKeys';
+import { rollDie } from '@/lib/rng';
+import { applyPoolDamage, resolvePoolRound } from '@/lib/combat';
 import type { CombatDef, Game, GameState } from '@/lib/types';
 
 type Phase = 'loadout' | 'round' | 'rolling' | 'victory' | 'defeat';
@@ -28,13 +33,13 @@ const FISTS = 'fists';
 function rollDamage(formula: string): DamageRoll {
   const match = /^(\d+)d(\d+)([+-]\d+)?$/i.exec(formula.trim());
   if (!match) {
-    return { formula, rolls: [1 + Math.floor(Math.random() * 6)], bonus: 0, total: 1 };
+    return { formula, rolls: [rollDie(6)], bonus: 0, total: 1 };
   }
   const dice = Math.max(1, Number(match[1]));
   const faces = Math.max(2, Number(match[2]));
   const bonus = Number(match[3] ?? 0);
   const rolls: number[] = [];
-  for (let i = 0; i < dice; i += 1) rolls.push(1 + Math.floor(Math.random() * faces));
+  for (let i = 0; i < dice; i += 1) rolls.push(rollDie(faces));
   return {
     formula,
     rolls,
@@ -53,42 +58,6 @@ function rollLabel(roll: DamageRoll): string {
   return `${rollExpression(roll)} = ${roll.total}`;
 }
 
-function applyDamage(enemies: number[], damage: number): { next: number[]; killed: number } {
-  let remaining = damage;
-  let killed = 0;
-  const next = [...enemies];
-  for (let i = 0; i < next.length && remaining > 0; i += 1) {
-    if (next[i] <= 0) continue;
-    const hit = Math.min(next[i], remaining);
-    next[i] -= hit;
-    remaining -= hit;
-    if (next[i] <= 0) killed += 1;
-  }
-  return { next, killed };
-}
-
-const DIE_PIPS: Record<number, number[]> = {
-  1: [5],
-  2: [1, 9],
-  3: [1, 5, 9],
-  4: [1, 3, 7, 9],
-  5: [1, 3, 5, 7, 9],
-  6: [1, 3, 4, 6, 7, 9],
-};
-
-function DieFace({ value }: { value: number }) {
-  const active = DIE_PIPS[value] ?? [];
-  return (
-    <span className="combat-die-face" role="img" aria-label={`${value}`}>
-      {Array.from({ length: 9 }, (_, index) => (
-        <span
-          key={index}
-          className={`combat-die-pip${active.includes(index + 1) ? ' on' : ''}`}
-        />
-      ))}
-    </span>
-  );
-}
 
 export default function CombatPanel({
   game,
@@ -125,8 +94,8 @@ export default function CombatPanel({
     const lines = [`ВСТРЕЧА: ${enemy.name.toUpperCase()} × ${count}`];
     if (combat.preDamage && preDamageAllowed) {
       const prepared = rollDamage(combat.preDamage);
-      const damage = applyDamage(next, prepared.total);
-      next.splice(0, next.length, ...damage.next);
+      const damage = applyPoolDamage(next, prepared.total);
+      next.splice(0, next.length, ...damage.enemies);
       lines.push(`ДО БОЯ: ${rollLabel(prepared)}. Убито ${damage.killed}.`);
     }
     let currentStamina = initialStamina;
@@ -256,7 +225,7 @@ export default function CombatPanel({
     const bonusRoll = combat.bonusDamage ? rollDamage(combat.bonusDamage) : null;
     const total = weaponRoll.total + (bonusRoll?.total ?? 0);
     const finalFaces = [...weaponRoll.rolls, ...(bonusRoll?.rolls ?? [])];
-    const randomFace = () => 1 + Math.floor(Math.random() * 6);
+    const randomFace = () => rollDie(6);
     setDiceFaces(Array.from({ length: finalFaces.length }, randomFace));
     diceInterval.current = window.setInterval(() => {
       setDiceFaces(Array.from({ length: finalFaces.length }, randomFace));
@@ -282,49 +251,49 @@ export default function CombatPanel({
         diceInterval.current = null;
       }
       const expression = `${rollExpression(weaponRoll)}${bonusRoll ? ` + ${rollExpression(bonusRoll)}` : ''} = ${total}`;
-      if (combat.threshold) {
-        if (total >= combat.threshold) {
+      const result = resolvePoolRound({
+        stamina,
+        enemies,
+        enemyAttack: Number(enemy.attack),
+        total,
+        threshold: combat.threshold,
+      });
+      setEnemies(result.enemies);
+      setStamina(result.stamina);
+      if (combat.threshold !== undefined) {
+        if (result.outcome === 'victory') {
           addLog(
             `РАУНД ${round}: ${expression}. Порог ${combat.threshold} пройден.`,
-            'Зомби Конг уничтожен.',
+            `${enemy.name} уничтожен.`,
+            `ИТОГ РАУНДА ${round}: противников ${result.after}, ${healthTitle} ${result.stamina}/${staminaMax}.`,
           );
           setPhase('victory');
           audio.beep();
         } else {
-          const nextStamina = Math.max(0, stamina - enemy.attack);
-          setStamina(nextStamina);
           addLog(
             `РАУНД ${round}: ${expression}. Порог ${combat.threshold} не пройден.`,
             `Ответ: −${enemy.attack} Выносливости.`,
+            `ИТОГ РАУНДА ${round}: противников ${result.after}, ${healthTitle} ${result.stamina}/${staminaMax}.`,
           );
-          if (nextStamina <= 0) setPhase('defeat');
-          else {
-            setRound((value) => value + 1);
-            setPhase('round');
-          }
+          setPhase(result.outcome === 'defeat' ? 'defeat' : 'round');
+          if (result.outcome === 'round') setRound((value) => value + 1);
         }
         setRoll(null);
         timer.current = null;
         return;
       }
-
-      const { next, killed } = applyDamage(enemies, total);
-      const after = next.filter((hp) => hp > 0).length;
-      const retaliation = after * enemy.attack;
-      const nextStamina = Math.max(0, stamina - retaliation);
-      setEnemies(next);
-      setStamina(nextStamina);
       addLog(
-        `РАУНД ${round}: ${expression} урона. Убито ${killed}.`,
-        after > 0
-          ? `Осталось ${after}. Ответ: −${retaliation} Выносливости.`
+        `РАУНД ${round}: ${expression} урона. Убито ${result.killed}.`,
+        result.after > 0
+          ? `Осталось ${result.after}. Ответ: −${result.after * enemy.attack} Выносливости.`
           : 'Все противники уничтожены.',
+        `ИТОГ РАУНДА ${round}: противников ${result.after}, ${healthTitle} ${result.stamina}/${staminaMax}.`,
       );
       setRoll(null);
-      if (after === 0) {
+      if (result.outcome === 'victory') {
         setPhase('victory');
         audio.beep();
-      } else if (nextStamina <= 0) {
+      } else if (result.outcome === 'defeat') {
         setPhase('defeat');
       } else {
         setRound((value) => value + 1);
@@ -337,7 +306,7 @@ export default function CombatPanel({
   const throwGrenade = () => {
     if (phase !== 'loadout' || grenadeUsed || grenades <= 0) return;
     const result = rollDamage('2d6+1');
-    const { next, killed } = applyDamage(enemies, result.total);
+    const { enemies: next, killed } = applyPoolDamage(enemies, result.total);
     setInventory((current) => {
       const left = (current.grenade ?? 0) - 1;
       const updated = { ...current };
@@ -380,11 +349,11 @@ export default function CombatPanel({
   };
 
   const onKey = (event: KeyboardEvent) => {
-    if (document.querySelector('.rules-modal')) return;
+    if (document.querySelector('.rules-modal')) return false;
     const buttons = choiceButtons();
     if (buttons.length === 0) {
-      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') event.preventDefault();
-      return;
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') return true;
+      return false;
     }
     const active = document.activeElement;
     const focusedChoice =
@@ -400,33 +369,31 @@ export default function CombatPanel({
       }
       setSelectedChoice(next);
       buttons[next]?.focus({ preventScroll: true });
-      return;
+      return true;
     }
 
     if (event.key === 'Enter' || event.key === ' ') {
       // если кнопка уже в фокусе, Enter/Space обработает сама кнопка
-      if (focusedChoice) return;
-      event.preventDefault();
+      if (focusedChoice) return false;
       const target = !buttons[selectedChoice]?.disabled
         ? buttons[selectedChoice]
         : buttons.find((button) => !button.disabled);
       target?.click();
-      return;
+      return true;
     }
 
-    if (/^[1-9]$/.test(event.key)) {
-      const target = buttons[Number(event.key) - 1];
+    const keyIndex = combatKeyIndex(event.key);
+    if (keyIndex >= 0) {
+      const target = buttons[keyIndex];
       if (target && !target.disabled) {
-        event.preventDefault();
         target.click();
+        return true;
       }
     }
+    return false;
   };
 
-  useEffect(() => {
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  });
+  usePanelKeys(onKey);
 
   const fistsNumber = weaponOptions.length + 1;
   const grenadeNumber = fistsNumber + 1;
@@ -436,8 +403,6 @@ export default function CombatPanel({
     <div className="combat-panel" role="region" aria-label={`Бой: ${enemy.name}`} ref={panelRef}>
       <div className={`combat-status-line${stamina <= 0 ? ' low' : ''}`}>
         <span>РАУНД: {round}.</span>
-        <span>Противник - {enemy.name.toUpperCase()} {alive}/{enemyTotal}.</span>
-        <span>Персонаж - {healthTitle} {stamina}/{staminaMax}.</span>
         {combat.threshold !== undefined && (
           <span>
             Порог - {combat.threshold}
@@ -481,7 +446,7 @@ export default function CombatPanel({
                   setWeaponPicked(true);
                 }}
               >
-                {index + 1}. {option.title.toUpperCase()} · {option.damage}
+                {combatKey(index)}. {option.title.toUpperCase()} · {option.damage}
                 {option.note ? ` · ${option.note}` : ''}
                 {selected.id === option.id ? ' · ВЫБРАНО' : ''}
               </button>
@@ -495,15 +460,15 @@ export default function CombatPanel({
                 setWeaponPicked(true);
               }}
             >
-              {fistsNumber}. КУЛАКИ · 1d6−3{selected.id === FISTS ? ' · ВЫБРАНО' : ''}
+              {combatKey(fistsNumber - 1)}. КУЛАКИ · 1d6−3{selected.id === FISTS ? ' · ВЫБРАНО' : ''}
             </button>
             {grenades > 0 && !grenadeUsed && (
               <button type="button" className={`choice${selectedChoice === grenadeNumber - 1 ? ' selected' : ''} combat-grenade`} onFocus={() => setSelectedChoice(grenadeNumber - 1)} onClick={throwGrenade}>
-                {grenadeNumber}. БРОСИТЬ ГРАНАТУ ×{grenades} · 2d6+1
+                {combatKey(grenadeNumber - 1)}. БРОСИТЬ ГРАНАТУ ×{grenades} · 2d6+1
               </button>
             )}
             <button type="button" className={`choice${selectedChoice === startNumber - 1 ? ' selected' : ''}`} onFocus={() => setSelectedChoice(startNumber - 1)} onClick={start}>
-              {startNumber}. В БОЙ
+              {combatKey(startNumber - 1)}. В БОЙ
             </button>
           </div>
         </>
@@ -514,13 +479,13 @@ export default function CombatPanel({
           <div className="combat-note">ОРУЖИЕ: {weaponTitle} · {selectedDamage}</div>
           <div className="choices combat-choices">
             <button type="button" className={`choice${selectedChoice === 0 ? ' selected' : ''}`} onFocus={() => setSelectedChoice(0)} onClick={attack}>
-              1. АТАКОВАТЬ
+              A. АТАКОВАТЬ
             </button>
             <button type="button" className={`choice${selectedChoice === 1 ? ' selected' : ''}`} onFocus={() => setSelectedChoice(1)} onClick={useMedkit} disabled={!canUseMedkit}>
-              2. АПТЕЧКА ×{inventory.medkit ?? 0}
+              B. АПТЕЧКА ×{inventory.medkit ?? 0}
             </button>
             <button type="button" className={`choice${selectedChoice === 2 ? ' selected' : ''}`} onFocus={() => setSelectedChoice(2)} onClick={() => setPhase('loadout')}>
-              3. СМЕНИТЬ ОРУЖИЕ
+              C. СМЕНИТЬ ОРУЖИЕ
             </button>
           </div>
         </>
@@ -533,7 +498,7 @@ export default function CombatPanel({
           </div>
           <div className="choices combat-choices">
             <button type="button" className={`choice${selectedChoice === 0 ? ' selected' : ''}`} onFocus={() => setSelectedChoice(0)} onClick={finish}>
-              1. ПРОДОЛЖИТЬ
+              A. ПРОДОЛЖИТЬ
             </button>
           </div>
         </>
@@ -546,10 +511,10 @@ export default function CombatPanel({
           </div>
           <div className="choices combat-choices">
             <button type="button" className={`choice${selectedChoice === 0 ? ' selected' : ''}`} onFocus={() => setSelectedChoice(0)} onClick={onRestart}>
-              1. НАЧАТЬ ЗАНОВО
+              A. НАЧАТЬ ЗАНОВО
             </button>
             <button type="button" className={`choice${selectedChoice === 1 ? ' selected' : ''}`} onFocus={() => setSelectedChoice(1)} onClick={onExit}>
-              2. В БИБЛИОТЕКУ
+              B. В БИБЛИОТЕКУ
             </button>
           </div>
         </>

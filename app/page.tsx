@@ -7,79 +7,18 @@ import Loading from '@/components/screens/Loading';
 import Library from '@/components/screens/Library';
 import Settings from '@/components/screens/Settings';
 import GameScreen from '@/components/screens/GameScreen';
+import CoverPage from '@/components/screens/CoverPage';
 import InitialRoll from '@/components/screens/InitialRoll';
 import ErrorScreen from '@/components/screens/ErrorScreen';
 import { audio } from '@/lib/audio';
 import { trackFor } from '@/lib/music';
 import { loadGame, loadIndex, type LoadProgress } from '@/lib/games';
 import { PackageError } from '@/lib/parse';
-import { advance, choose, goToScene, newState, resolveRoll, useCode } from '@/lib/engine';
+import { newState } from '@/lib/engine';
+import { applyAction } from '@/lib/actions';
+import { migrateState } from '@/lib/migrations';
 import { clearSave, loadSave, saveState, loadSettings, saveSettings } from '@/lib/storage';
 import type { Choice, Game, GameIndexEntry, GameState, ParseProblem } from '@/lib/types';
-
-/** добирает предметы, которые не попали в старые сейвы до исправления данных */
-function repairSceneItems(game: Game, state: GameState): GameState {
-  if (game.id !== 'zombie-blood') return state;
-  const requiredByScene: Record<string, Record<string, number>> = {
-    '178': { short_rope: 1 },
-    '291': { baseball_bat: 1 },
-    '44': { pistol: 1, ammo: 1 },
-    '92': { pistol: 1, ammo: 1 },
-    '105': { submachine: 1, ammo: 1 },
-    '136': { pistol: 1 },
-    '222': { medkit: 1, pistol: 1 },
-    '235': { medkit: 1, ammo: 2 },
-    '293': { grenade: 1 },
-    '302': { grenade: 3 },
-    '373': { axe: 1 },
-    '162': { medkit: 2, ammo: 6, shotgun_ammo: 6 },
-    '181': { ammo: 2, shotgun_ammo: 3 },
-    '213': { ammo: 3, shotgun_ammo: 3 },
-    '236': { shotgun_ammo: 1 },
-    '304': { ammo: 2, shotgun_ammo: 4 },
-  };
-  /** Старые сейвы складывали обычные и дробовые патроны в один счётчик. */
-  const legacySplit: Record<string, number> = { '162': 6, '181': 3, '213': 3, '236': 1, '304': 4 };
-  const inventory = { ...state.inventory };
-  let changed = false;
-  const split = legacySplit[state.scene];
-  if (split && (inventory.shotgun_ammo ?? 0) === 0) {
-    const currentAmmo = inventory.ammo ?? 0;
-    const moved = Math.min(split, currentAmmo);
-    if (moved > 0) {
-      inventory.shotgun_ammo = moved;
-      if (currentAmmo > moved) inventory.ammo = currentAmmo - moved;
-      else delete inventory.ammo;
-      changed = true;
-    }
-  }
-  // старые сейвы §218: аптечка расходуется, без неё — смерть
-  if (state.scene === '218') {
-    if ((inventory.medkit ?? 0) > 0) {
-      const left = inventory.medkit - 1;
-      if (left > 0) inventory.medkit = left;
-      else delete inventory.medkit;
-      changed = true;
-    } else {
-      return {
-        ...state,
-        inventory,
-        scene: '218_death',
-        visited: [...state.visited, '218_death'],
-        updated: new Date().toISOString(),
-      };
-    }
-  }
-
-  const required = requiredByScene[state.scene] ?? {};
-  for (const [id, count] of Object.entries(required)) {
-    if ((inventory[id] ?? 0) < count) {
-      inventory[id] = count;
-      changed = true;
-    }
-  }
-  return changed ? { ...state, inventory } : state;
-}
 
 /** статус со стартовым броском (ZombieBlood: Выносливость 2d6+20) */
 function initialRollStat(game: Game): string | null {
@@ -122,6 +61,7 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const [confirmRestart, setConfirmRestart] = useState(false);
   const [initialRoll, setInitialRoll] = useState<string | null>(null);
+  const [coverOpen, setCoverOpen] = useState(false);
   const audioStarted = useRef(false);
   const refreshSavesRef = useRef<() => void>(() => {});
   const cancelLoadingRef = useRef<() => void>(() => {});
@@ -276,7 +216,7 @@ export default function Page() {
           (!g.rev || save.rev === g.rev) &&
           g.scenes[save.scene];
         const fresh = !valid;
-        const next = repairSceneItems(g, valid ? save : newState(g));
+        const next = migrateState(g, valid ? save : newState(g));
         const rollStat = fresh ? initialRollStat(g) : null;
 
         // последние проценты и число сцен: экран успевает показать «READY»
@@ -301,6 +241,7 @@ export default function Page() {
         audio.beep();
         setGame(g);
         setState(next);
+        setCoverOpen(Boolean(g.cover));
         setInitialRoll(rollStat);
         setScreen('game');
         if (!rollStat) saveState(next);
@@ -318,8 +259,9 @@ export default function Page() {
   const handleChoose = useCallback(
     (choice: Choice) => {
       if (!game || !state) return;
+      const next = applyAction(game, state, { type: 'choose', choice });
+      if (!next) return;
       audio.click();
-      const next = choose(game, state, choice);
       setState(next);
       saveState(next);
     },
@@ -329,8 +271,9 @@ export default function Page() {
   const handleAdvance = useCallback(
     (value?: number) => {
       if (!game || !state) return;
+      const next = applyAction(game, state, { type: 'advance', value });
+      if (!next) return;
       audio.click();
-      const next = value === undefined ? advance(game, state) : resolveRoll(game, state, value);
       setState(next);
       saveState(next);
     },
@@ -339,14 +282,13 @@ export default function Page() {
 
   const handleCombatWin = useCallback(
     (result: GameState) => {
-      if (!game) return;
-      const target = game.combat?.[result.scene]?.win;
-      if (!target) return;
-      const next = goToScene(game, result, target);
+      if (!game || !state) return;
+      const next = applyAction(game, state, { type: 'combat-win', result });
+      if (!next) return;
       setState(next);
       saveState(next);
     },
-    [game],
+    [game, state],
   );
 
   const handleCombatExit = useCallback(() => {
@@ -359,9 +301,8 @@ export default function Page() {
 
   const handleBack = useCallback(() => {
     if (!game || !state) return;
-    const previous = state.visited[state.visited.length - 2];
-    if (!previous) return;
-    const next = goToScene(game, state, previous);
+    const next = applyAction(game, state, { type: 'back' });
+    if (!next) return;
     setState(next);
     saveState(next);
     audio.click();
@@ -370,14 +311,8 @@ export default function Page() {
   const handleGamble = useCallback(
     (delta: number) => {
       if (!game || !state) return;
-      const scene = game.gambles?.[state.scene];
-      if (!scene) return;
-      const money = Math.max(0, Number(state.stats.money ?? 0) + delta);
-      const next: GameState = {
-        ...state,
-        stats: { ...state.stats, money },
-        gamblesDone: [...new Set([...(state.gamblesDone ?? []), state.scene])],
-      };
+      const next = applyAction(game, state, { type: 'gamble', delta });
+      if (!next) return;
       setState(next);
       saveState(next);
       audio.beep();
@@ -388,23 +323,8 @@ export default function Page() {
   const handleCheck = useCallback(
     (success: boolean, moraleCost = 0) => {
       if (!game || !state) return;
-      const check = game.checks?.[state.scene];
-      if (!check) return;
-      let prepared = state;
-      if (moraleCost > 0) {
-        const moraleBefore = Number(state.stats.morale ?? 0);
-        const fromMorale = Math.min(moraleBefore, moraleCost);
-        const overflow = moraleCost - fromMorale;
-        prepared = {
-          ...state,
-          stats: {
-            ...state.stats,
-            morale: moraleBefore - fromMorale,
-            hp: Math.max(0, Number(state.stats.hp ?? 0) - overflow),
-          },
-        };
-      }
-      const next = goToScene(game, prepared, success ? check.success : check.failure);
+      const next = applyAction(game, state, { type: 'check', success, moraleCost });
+      if (!next) return;
       setState(next);
       saveState(next);
       audio.beep();
@@ -415,7 +335,7 @@ export default function Page() {
   const handleCode = useCallback(
     (id: string): boolean => {
       if (!game || !state) return false;
-      const next = useCode(game, state, id);
+      const next = applyAction(game, state, { type: 'code', id });
       if (!next) return false;
       setState(next);
       saveState(next);
@@ -427,15 +347,9 @@ export default function Page() {
 
   const handleBuy = useCallback(
     (itemId: string, price: number) => {
-      if (!game || !state || !game.items?.[itemId]) return;
-      if ((state.inventory[itemId] ?? 0) > 0) return;
-      const cost = Math.max(0, Number(price) || 0);
-      if (Number(state.stats.money ?? 0) < cost) return;
-      const next: GameState = {
-        ...state,
-        stats: { ...state.stats, money: Number(state.stats.money ?? 0) - cost },
-        inventory: { ...state.inventory, [itemId]: 1 },
-      };
+      if (!game || !state) return;
+      const next = applyAction(game, state, { type: 'buy', itemId, price, currencyItem: game.scenes[state.scene]?.shopCurrencyItem });
+      if (!next) return;
       setState(next);
       saveState(next);
     },
@@ -482,6 +396,7 @@ export default function Page() {
     audio.stopMusic();
     audio.beep();
     setState(next);
+    setCoverOpen(Boolean(game.cover));
     setInitialRoll(rollStat);
     if (!rollStat) saveState(next);
     setLoading(null);
@@ -646,11 +561,15 @@ export default function Page() {
         />
       )}
 
-      {screen === 'game' && initialRoll && game && state && (
+      {screen === 'game' && coverOpen && game && (
+        <CoverPage game={game} onStart={() => setCoverOpen(false)} />
+      )}
+
+      {screen === 'game' && initialRoll && game && state && !coverOpen && (
         <InitialRoll game={game} statId={initialRoll} onDone={handleInitialRollDone} />
       )}
 
-      {screen === 'game' && game && state && !initialRoll && (
+      {screen === 'game' && game && state && !coverOpen && !initialRoll && (
         <GameScreen
           game={game}
           state={state}

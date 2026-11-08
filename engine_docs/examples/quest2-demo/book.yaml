@@ -1,0 +1,235 @@
+format: quest/2
+id: quest2-demo
+title: Тестовый пакет Quest/2
+profile: hybrid
+status: beta
+author: Quest Engine
+genre: тестовая книга-игра
+annotation: Пакет для проверки схемы, валидатора, графа и симулятора.
+language: ru
+features:
+- choices
+- checks
+- combat.contest
+- gambles
+- shop
+- roll
+- codes
+start: start
+start_items:
+  medkit: 1
+stats:
+  hp:
+    title: Здоровье
+    initial: 5
+    min: 0
+    max: 5
+  courage:
+    title: Смелость
+    initial: 2
+    min: 0
+    max: 10
+  luck:
+    title: Удача
+    initial: 2
+    min: 0
+    max: 10
+  money:
+    title: Монеты
+    initial: 10
+    min: 0
+  secret_points:
+    title: Технические очки
+    initial: 0
+    min: 0
+    visible: false
+items:
+  sword:
+    title: Меч
+    kind: weapon
+    damage: 1d6+1
+    weapon_rating: 2
+  medkit:
+    title: Аптечка
+    kind: consumable
+    countable: true
+    consumable: true
+    restore: hp
+  amulet:
+    title: Амулет
+    kind: quest
+  potion:
+    title: Зелье
+    kind: consumable
+    countable: true
+    consumable: true
+flags:
+- met_guard
+- found_path
+codes:
+  map:
+    title: Карта
+    base: crossroads
+    offset: 0
+scenes:
+  start:
+    title: Начало
+    mood: calm
+    entry:
+    - grant:
+        item: sword
+        count: 1
+      once: true
+    - grant:
+        item: medkit
+        count: 1
+      once: true
+    - grant:
+        item: amulet
+        count: 1
+      once: true
+    - set_flag: found_path
+    - modify:
+        stat: secret_points
+        delta: 1
+    - learn_code: map
+    interaction:
+      type: choices
+      options:
+      - label: На перекрёсток
+        to: crossroads
+    text: Ты стоишь у входа в тестовую книгу.
+  crossroads:
+    title: Перекрёсток
+    mood: mystery
+    ui:
+      counter:
+        stat: secret_points
+        max: 3
+        label: ОЧКИ
+    interaction:
+      type: choices
+      options:
+      - label: В лес
+        to: forest
+      - label: К стражнику
+        to: guard
+        if:
+          not:
+            flag: met_guard
+        effects:
+        - set_flag: met_guard
+      - label: В таверну
+        to: gamble
+      - label: Купить зелье
+        to: shop
+      - label: Испытать судьбу
+        to: roll
+      - label: Открыть коды
+        to: codes
+        if:
+          known_code: map
+    text: Перед тобой несколько дорог.
+  forest:
+    title: Лес
+    mood: tense
+    entry:
+    - modify:
+        stat: courage
+        delta: 1
+    - consume:
+        item: medkit
+    - if:
+        stat:
+          id: courage
+          op: <
+          value: 0
+      redirect: bad_end
+    interaction:
+      type: check
+      mode: stat
+      stat: courage
+      formula: 2d6 + courage >= 9
+      outcomes:
+        success: good_end
+        failure: bad_end
+    text: В лесу пахнет хвоей и опасностью.
+  guard:
+    title: Стражник
+    mood: danger
+    interaction:
+      type: combat
+      mode: contest
+      enemies:
+      - name: Стражник
+        attack: 8
+        defense: 9
+        health: 3
+      options:
+        stop_at_one: true
+      outcomes:
+        victory: good_end
+        defeat: bad_end
+    text: Стражник преграждает путь.
+  gamble:
+    title: Ставка
+    mood: tense
+    interaction:
+      type: gamble
+      stat: luck
+      stake:
+        min: 1
+        max: 3
+      win: 12
+      push: 9
+      outcomes:
+        win: good_end
+        push: crossroads
+        lose: bad_end
+    text: В таверне звенит монета.
+  shop:
+    title: Лавка
+    mood: calm
+    interaction:
+      type: shop
+      title: Лавка тестового пакета
+      currency: монет
+      offers:
+      - item: potion
+        price: 3
+      outcomes:
+        continue: crossroads
+    text: На полках стоят зелья.
+  roll:
+    title: Бросок
+    mood: mystery
+    interaction:
+      type: roll
+      formula: 1d3
+      outcomes:
+      - min: 3
+        max: 3
+        to: good_end
+      - min: 2
+        max: 2
+        to: forest
+      - min: 1
+        max: 1
+        to: bad_end
+    text: Ты бросаешь кубик.
+  codes:
+    title: Коды
+    mood: mystery
+    interaction:
+      type: codebook
+    text: Ты открываешь книгу кодов.
+  good_end:
+    title: Удача
+    mood: victory
+    ending: true
+    text: Ты выбрался.
+  bad_end:
+    title: Провал
+    mood: grief
+    ending: true
+    text: Ты проиграл.

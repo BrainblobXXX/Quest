@@ -2,32 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { audio } from '@/lib/audio';
+import { usePanelKeys } from '@/lib/usePanelKeys';
+import { rollDie } from '@/lib/rng';
+import { DieFace } from '@/components/screens/Dice';
 import type { Game } from '@/lib/types';
 
 type Phase = 'offer' | 'rolling' | 'done';
 
-const DIE_PIPS: Record<number, number[]> = {
-  1: [5],
-  2: [1, 9],
-  3: [1, 5, 9],
-  4: [1, 3, 7, 9],
-  5: [1, 3, 5, 7, 9],
-  6: [1, 3, 4, 6, 7, 9],
-};
-
-function DieFace({ value }: { value: number }) {
-  const active = DIE_PIPS[value] ?? [];
-  return (
-    <span className="combat-die-face stamina-die-face" role="img" aria-label={`${value}`}>
-      {Array.from({ length: 9 }, (_, index) => (
-        <span
-          key={index}
-          className={`combat-die-pip${active.includes(index + 1) ? ' on' : ''}`}
-        />
-      ))}
-    </span>
-  );
-}
 
 function diceCount(formula: string): number {
   const match = /^(\d+)d/i.exec(formula.trim());
@@ -61,13 +42,13 @@ export default function InitialRoll({
 
   const roll = () => {
     if (phase !== 'offer') return;
-    const values = Array.from({ length: count }, () => 1 + Math.floor(Math.random() * 6));
+    const values = Array.from({ length: count }, () => rollDie(6));
     setRolls(values);
-    setFaces(Array.from({ length: count }, () => 1 + Math.floor(Math.random() * 6)));
+    setFaces(Array.from({ length: count }, () => rollDie(6)));
     setPhase('rolling');
     audio.click();
     interval.current = window.setInterval(() => {
-      setFaces(Array.from({ length: count }, () => 1 + Math.floor(Math.random() * 6)));
+      setFaces(Array.from({ length: count }, () => rollDie(6)));
     }, 80);
     timer.current = window.setTimeout(() => {
       if (interval.current !== null) {
@@ -84,18 +65,14 @@ export default function InitialRoll({
   const sum = rolls.reduce((total, value) => total + value, 0);
   const total = base + sum;
 
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key !== 'Enter' && event.key !== ' ' && event.key !== '1') return;
-      if (document.activeElement instanceof HTMLElement && document.activeElement.tagName === 'BUTTON') {
-        return;
-      }
-      event.preventDefault();
-      if (phase === 'offer') roll();
-      else if (phase === 'done') onDone(total);
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+  usePanelKeys((event) => {
+    if (event.key !== 'Enter' && event.key !== ' ' && event.key !== '1') return false;
+    if (document.activeElement instanceof HTMLElement && document.activeElement.tagName === 'BUTTON') {
+      return false;
+    }
+    if (phase === 'offer') roll();
+    else if (phase === 'done') onDone(total);
+    return true;
   });
 
   return (
@@ -108,7 +85,7 @@ export default function InitialRoll({
 
       <div className="stamina-roll-stage">
         {faces.map((face, index) => (
-          <DieFace value={face} key={index} />
+          <DieFace value={face} key={index} className="combat-die-face stamina-die-face" />
         ))}
         {faces.length === 0 && <span className="stamina-roll-empty">—</span>}
       </div>

@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { audio } from '@/lib/audio';
+import { usePanelKeys } from '@/lib/usePanelKeys';
 import type { Game, GameState, ShopOffer } from '@/lib/types';
 
 export default function ShopPanel({
@@ -11,6 +12,7 @@ export default function ShopPanel({
   onBuy,
   title = 'ЛАВКА БОРИСА',
   currency = '$',
+  currencyItem,
 }: {
   game: Game;
   state: GameState;
@@ -18,52 +20,45 @@ export default function ShopPanel({
   onBuy: (itemId: string, price: number) => void;
   title?: string;
   currency?: string;
+  currencyItem?: string;
 }) {
   if (offers.length === 0) return null;
-  const money = Number(state.stats.money ?? 0);
+  const money = currencyItem ? Number(state.inventory[currencyItem] ?? 0) : Number(state.stats.money ?? 0);
   const [selected, setSelected] = useState(0);
 
   const buttons = () =>
     Array.from(document.querySelectorAll<HTMLButtonElement>('.shop-panel .shop-choices .choice'));
 
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      const list = buttons();
-      if (list.length === 0) return;
-      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        const direction = event.key === 'ArrowDown' ? 1 : -1;
-        let next = selected;
-        for (let step = 0; step < list.length; step += 1) {
-          next = (next + direction + list.length) % list.length;
-          if (!list[next].disabled) break;
-        }
-        setSelected(next);
-        list[next]?.focus({ preventScroll: true });
-        return;
+  usePanelKeys((event) => {
+    const list = buttons();
+    if (list.length === 0) return false;
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      const direction = event.key === 'ArrowDown' ? 1 : -1;
+      let next = selected;
+      for (let step = 0; step < list.length; step += 1) {
+        next = (next + direction + list.length) % list.length;
+        if (!list[next].disabled) break;
       }
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        const target = !list[selected]?.disabled
-          ? list[selected]
-          : list.find((button) => !button.disabled);
-        target?.click();
-        return;
+      setSelected(next);
+      list[next]?.focus({ preventScroll: true });
+      return true;
+    }
+    if (event.key === 'Enter' || event.key === ' ') {
+      const target = !list[selected]?.disabled
+        ? list[selected]
+        : list.find((button) => !button.disabled);
+      target?.click();
+      return true;
+    }
+    if (/^[1-9]$/.test(event.key)) {
+      const target = list[Number(event.key) - 1];
+      if (target && !target.disabled) {
+        target.click();
+        return true;
       }
-      if (/^[1-9]$/.test(event.key)) {
-        const target = list[Number(event.key) - 1];
-        if (target && !target.disabled) {
-          event.preventDefault();
-          event.stopImmediatePropagation();
-          target.click();
-        }
-      }
-    };
-    window.addEventListener('keydown', onKey, true);
-    return () => window.removeEventListener('keydown', onKey, true);
-  }, [selected]);
+    }
+    return false;
+  });
 
   return (
     <div className="shop-panel" aria-label={title}>

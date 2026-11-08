@@ -23,7 +23,10 @@ function candidates(): string[] {
 function looksLikeGames(dir: string): boolean {
   try {
     return readdirSync(dir, { withFileTypes: true }).some(
-      (entry) => entry.isDirectory() && existsSync(join(dir, entry.name, 'game.yaml')),
+      (entry) =>
+        entry.isDirectory() &&
+        (existsSync(join(dir, entry.name, 'game.yaml')) ||
+          existsSync(join(dir, entry.name, 'quest2.yaml'))),
     );
   } catch {
     return false;

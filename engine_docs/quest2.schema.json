@@ -1,0 +1,1131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://quest.local/schema/quest-2.schema.json",
+  "title": "Quest/2 package",
+  "description": "Formal contract for a Quest/2 gamebook package. The schema defines the logical package; file layout and build-time normalisation are separate questions.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "id",
+    "title",
+    "start",
+    "scenes",
+    "profile"
+  ],
+  "properties": {
+    "format": {
+      "const": "quest/2"
+    },
+    "id": {
+      "$ref": "#/$defs/id"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "profile": {
+      "type": "string",
+      "enum": [
+        "storybook",
+        "fighting-fantasy",
+        "rpg",
+        "hybrid"
+      ]
+    },
+    "features": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9.-]*$"
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "alpha",
+        "beta",
+        "stable"
+      ]
+    },
+    "author": {
+      "type": "string"
+    },
+    "genre": {
+      "type": "string"
+    },
+    "annotation": {
+      "type": "string"
+    },
+    "language": {
+      "type": "string"
+    },
+    "year": {
+      "type": "integer"
+    },
+    "edition": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "cover": {
+      "type": "string"
+    },
+    "start": {
+      "$ref": "#/$defs/sceneId"
+    },
+    "moods": {
+      "type": "object",
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "stats": {
+      "$ref": "#/$defs/stats"
+    },
+    "items": {
+      "$ref": "#/$defs/items"
+    },
+    "flags": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/flagId"
+      }
+    },
+    "codes": {
+      "$ref": "#/$defs/codes"
+    },
+    "scenes": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "$ref": "#/$defs/scene"
+      }
+    },
+    "start_items": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 1
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$"
+    },
+    "sceneId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "statId": {
+      "type": "string",
+      "pattern": "^[a-z_][a-z0-9_]*$"
+    },
+    "itemId": {
+      "type": "string",
+      "pattern": "^[a-z_][a-z0-9_]*$"
+    },
+    "flagId": {
+      "type": "string",
+      "pattern": "^[a-z_][a-z0-9_]*$"
+    },
+    "codeId": {
+      "type": "string",
+      "pattern": "^[a-z_][a-z0-9_]*$"
+    },
+    "condition": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "all"
+          ],
+          "properties": {
+            "all": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/condition"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "any"
+          ],
+          "properties": {
+            "any": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/condition"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "not"
+          ],
+          "properties": {
+            "not": {
+              "$ref": "#/$defs/condition"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "has_item"
+          ],
+          "properties": {
+            "has_item": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id"
+              ],
+              "properties": {
+                "id": {
+                  "$ref": "#/$defs/itemId"
+                },
+                "count": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 1
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "flag"
+          ],
+          "properties": {
+            "flag": {
+              "$ref": "#/$defs/flagId"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "stat"
+          ],
+          "properties": {
+            "stat": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "op",
+                "value"
+              ],
+              "properties": {
+                "id": {
+                  "$ref": "#/$defs/statId"
+                },
+                "op": {
+                  "enum": [
+                    "=",
+                    "!=",
+                    "<",
+                    "<=",
+                    ">",
+                    ">="
+                  ]
+                },
+                "value": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "visited"
+          ],
+          "properties": {
+            "visited": {
+              "$ref": "#/$defs/sceneId"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "known_code"
+          ],
+          "properties": {
+            "known_code": {
+              "$ref": "#/$defs/codeId"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "always"
+          ],
+          "properties": {
+            "always": {
+              "const": true
+            }
+          }
+        }
+      ]
+    },
+    "effect": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "if": {
+          "$ref": "#/$defs/condition"
+        },
+        "once": {
+          "type": "boolean",
+          "default": false
+        },
+        "grant": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "item"
+          ],
+          "properties": {
+            "item": {
+              "$ref": "#/$defs/itemId"
+            },
+            "count": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          }
+        },
+        "consume": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "item"
+          ],
+          "properties": {
+            "item": {
+              "$ref": "#/$defs/itemId"
+            },
+            "count": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          }
+        },
+        "drop": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "item"
+          ],
+          "properties": {
+            "item": {
+              "$ref": "#/$defs/itemId"
+            },
+            "count": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          }
+        },
+        "modify": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "stat",
+            "delta"
+          ],
+          "properties": {
+            "stat": {
+              "$ref": "#/$defs/statId"
+            },
+            "delta": {
+              "type": "number"
+            }
+          }
+        },
+        "set_flag": {
+          "$ref": "#/$defs/flagId"
+        },
+        "clear_flag": {
+          "$ref": "#/$defs/flagId"
+        },
+        "learn_code": {
+          "$ref": "#/$defs/codeId"
+        },
+        "drop_best_weapon": {
+          "const": true
+        },
+        "roll": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "stat",
+            "formula"
+          ],
+          "properties": {
+            "stat": {
+              "$ref": "#/$defs/statId"
+            },
+            "formula": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "redirect": {
+          "$ref": "#/$defs/sceneId"
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "grant"
+          ]
+        },
+        {
+          "required": [
+            "consume"
+          ]
+        },
+        {
+          "required": [
+            "drop"
+          ]
+        },
+        {
+          "required": [
+            "modify"
+          ]
+        },
+        {
+          "required": [
+            "set_flag"
+          ]
+        },
+        {
+          "required": [
+            "clear_flag"
+          ]
+        },
+        {
+          "required": [
+            "learn_code"
+          ]
+        },
+        {
+          "required": [
+            "drop_best_weapon"
+          ]
+        },
+        {
+          "required": [
+            "roll"
+          ]
+        },
+        {
+          "required": [
+            "redirect"
+          ]
+        }
+      ]
+    },
+    "effects": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/effect"
+      }
+    },
+    "choice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "label",
+        "to"
+      ],
+      "properties": {
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "to": {
+          "$ref": "#/$defs/sceneId"
+        },
+        "letter": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1
+        },
+        "if": {
+          "$ref": "#/$defs/condition"
+        },
+        "effects": {
+          "$ref": "#/$defs/effects"
+        }
+      }
+    },
+    "outcomes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "success",
+        "failure"
+      ],
+      "properties": {
+        "success": {
+          "$ref": "#/$defs/sceneId"
+        },
+        "failure": {
+          "$ref": "#/$defs/sceneId"
+        }
+      }
+    },
+    "gambleOutcomes": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "win": {
+          "$ref": "#/$defs/sceneId"
+        },
+        "push": {
+          "$ref": "#/$defs/sceneId"
+        },
+        "lose": {
+          "$ref": "#/$defs/sceneId"
+        }
+      }
+    },
+    "combatOutcomes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "victory"
+      ],
+      "properties": {
+        "victory": {
+          "$ref": "#/$defs/sceneId"
+        },
+        "defeat": {
+          "$ref": "#/$defs/sceneId"
+        },
+        "retreat": {
+          "$ref": "#/$defs/sceneId"
+        }
+      }
+    },
+    "enemy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "attack",
+        "health"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1
+        },
+        "attack": {
+          "type": "number"
+        },
+        "defense": {
+          "type": "number"
+        },
+        "health": {
+          "type": "number",
+          "minimum": 1
+        },
+        "weapon": {
+          "type": "string"
+        }
+      }
+    },
+    "combatOptions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "stop_at_one": {
+          "type": "boolean"
+        },
+        "threshold": {
+          "type": "number"
+        },
+        "bonus_damage": {
+          "type": "string"
+        },
+        "pre_damage": {
+          "type": "string"
+        },
+        "pre_damage_from": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/sceneId"
+          }
+        },
+        "pre_stamina": {
+          "type": "number"
+        }
+      }
+    },
+    "interaction": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "options"
+          ],
+          "properties": {
+            "type": {
+              "const": "choices"
+            },
+            "options": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/choice"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "to"
+          ],
+          "properties": {
+            "type": {
+              "const": "continue"
+            },
+            "to": {
+              "$ref": "#/$defs/sceneId"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "mode",
+            "formula",
+            "outcomes"
+          ],
+          "properties": {
+            "type": {
+              "const": "check"
+            },
+            "mode": {
+              "enum": [
+                "stat",
+                "skill"
+              ]
+            },
+            "stat": {
+              "$ref": "#/$defs/statId"
+            },
+            "skill": {
+              "$ref": "#/$defs/statId"
+            },
+            "formula": {
+              "type": "string",
+              "minLength": 1
+            },
+            "morale_cost": {
+              "type": "string"
+            },
+            "outcomes": {
+              "$ref": "#/$defs/outcomes"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "mode": {
+                    "const": "stat"
+                  }
+                },
+                "required": [
+                  "mode"
+                ]
+              },
+              "then": {
+                "required": [
+                  "stat"
+                ],
+                "not": {
+                  "required": [
+                    "skill"
+                  ]
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "mode": {
+                    "const": "skill"
+                  }
+                },
+                "required": [
+                  "mode"
+                ]
+              },
+              "then": {
+                "required": [
+                  "skill"
+                ],
+                "not": {
+                  "required": [
+                    "stat"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "mode",
+            "enemies",
+            "outcomes"
+          ],
+          "properties": {
+            "type": {
+              "const": "combat"
+            },
+            "mode": {
+              "enum": [
+                "pool",
+                "contest",
+                "rpg"
+              ]
+            },
+            "enemies": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/enemy"
+              }
+            },
+            "options": {
+              "$ref": "#/$defs/combatOptions"
+            },
+            "outcomes": {
+              "$ref": "#/$defs/combatOutcomes"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "stat",
+            "stake",
+            "win",
+            "push"
+          ],
+          "properties": {
+            "type": {
+              "const": "gamble"
+            },
+            "stat": {
+              "$ref": "#/$defs/statId"
+            },
+            "stake": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "min",
+                "max"
+              ],
+              "properties": {
+                "min": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "max": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            },
+            "win": {
+              "type": "number"
+            },
+            "push": {
+              "type": "number"
+            },
+            "outcomes": {
+              "$ref": "#/$defs/gambleOutcomes"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "offers"
+          ],
+          "properties": {
+            "type": {
+              "const": "shop"
+            },
+            "title": {
+              "type": "string"
+            },
+            "currency": {
+              "type": "string"
+            },
+            "offers": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "item",
+                  "price"
+                ],
+                "properties": {
+                  "item": {
+                    "$ref": "#/$defs/itemId"
+                  },
+                  "price": {
+                    "type": "number",
+                    "minimum": 0
+                  }
+                }
+              }
+            },
+            "outcomes": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "continue": {
+                  "$ref": "#/$defs/sceneId"
+                }
+              }
+            },
+            "currency_item": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "formula",
+            "outcomes"
+          ],
+          "properties": {
+            "type": {
+              "const": "roll"
+            },
+            "formula": {
+              "type": "string",
+              "minLength": 1
+            },
+            "outcomes": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "to"
+                ],
+                "properties": {
+                  "min": {
+                    "type": "number"
+                  },
+                  "max": {
+                    "type": "number"
+                  },
+                  "to": {
+                    "$ref": "#/$defs/sceneId"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "const": "codebook"
+            }
+          }
+        }
+      ]
+    },
+    "ui": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "counter": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "stat"
+          ],
+          "properties": {
+            "stat": {
+              "$ref": "#/$defs/statId"
+            },
+            "max": {
+              "type": "number"
+            },
+            "label": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "scene": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title",
+        "text"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "text": {
+          "type": "string"
+        },
+        "mood": {
+          "type": "string"
+        },
+        "music": {
+          "type": "string"
+        },
+        "image": {
+          "type": "string"
+        },
+        "entry": {
+          "$ref": "#/$defs/effects"
+        },
+        "interaction": {
+          "$ref": "#/$defs/interaction"
+        },
+        "ending": {
+          "type": "boolean"
+        },
+        "ui": {
+          "$ref": "#/$defs/ui"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "after": {
+          "$ref": "#/$defs/interaction"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "ending": {
+                "const": true
+              }
+            },
+            "required": [
+              "ending"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "interaction"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "stats": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "initial": {
+            "type": "number"
+          },
+          "min": {
+            "type": "number"
+          },
+          "max": {
+            "type": "number"
+          },
+          "roll": {
+            "type": "string"
+          },
+          "visible": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      }
+    },
+    "items": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "weapon",
+              "armor",
+              "consumable",
+              "quest",
+              "misc"
+            ]
+          },
+          "countable": {
+            "type": "boolean"
+          },
+          "consumable": {
+            "type": "boolean"
+          },
+          "damage": {
+            "type": "string"
+          },
+          "ammo": {
+            "$ref": "#/$defs/itemId"
+          },
+          "weapon_rating": {
+            "type": "number"
+          },
+          "armor_rating": {
+            "type": "number"
+          },
+          "restore": {
+            "$ref": "#/$defs/statId"
+          }
+        }
+      }
+    },
+    "codes": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "title",
+          "offset"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "offset": {
+            "type": "integer"
+          },
+          "base": {
+            "$ref": "#/$defs/sceneId"
+          }
+        }
+      }
+    }
+  }
+}

@@ -19,3 +19,8 @@ out/
 page.html
 shot-*.png
 .DS_Store
+# исходники книг: PDF/TXT/EPUB не коммитим
+games/**/*.pdf
+games/**/*.txt
+games/**/*.epub
+games/**/*.fb2

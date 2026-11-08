@@ -2,27 +2,11 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { audio } from '@/lib/audio';
+import { usePanelKeys } from '@/lib/usePanelKeys';
+import { rollDie, roll2d6 } from '@/lib/rng';
+import { DieFace } from '@/components/screens/Dice';
 import type { GambleDef, Game, GameState } from '@/lib/types';
 
-const DIE_PIPS: Record<number, number[]> = {
-  1: [5],
-  2: [1, 9],
-  3: [1, 5, 9],
-  4: [1, 3, 7, 9],
-  5: [1, 3, 5, 7, 9],
-  6: [1, 3, 4, 6, 7, 9],
-};
-
-function DieFace({ value }: { value: number }) {
-  const active = DIE_PIPS[value] ?? [];
-  return (
-    <span className="combat-die-face check-die-face" role="img" aria-label={`${value}`}>
-      {Array.from({ length: 9 }, (_, index) => (
-        <span key={index} className={`combat-die-pip${active.includes(index + 1) ? ' on' : ''}`} />
-      ))}
-    </span>
-  );
-}
 
 export default function GamblePanel({
   game,
@@ -53,13 +37,14 @@ export default function GamblePanel({
 
   const play = () => {
     if (phase !== 'offer' || stake <= 0 || stake > money) return;
-    const a = 1 + Math.floor(Math.random() * 6);
-    const b = 1 + Math.floor(Math.random() * 6);
+    const rolled = roll2d6();
+    const a = rolled.faces[0];
+    const b = rolled.faces[1];
     setFaces([a, b]);
     setPhase('rolling');
     audio.click();
     interval.current = window.setInterval(() => {
-      setFaces([1 + Math.floor(Math.random() * 6), 1 + Math.floor(Math.random() * 6)]);
+      setFaces([rollDie(6), rollDie(6)]);
     }, 80);
     timer.current = window.setTimeout(() => {
       if (interval.current !== null) {
@@ -77,34 +62,27 @@ export default function GamblePanel({
     }, 1300);
   };
 
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (phase === 'offer') {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          event.stopPropagation();
-          play();
-          return;
-        }
-        if (/^[1-9]$/.test(event.key)) {
-          const value = gamble.stake.min + Number(event.key) - 1;
-          if (value <= gamble.stake.max && value <= money) {
-            event.preventDefault();
-            event.stopPropagation();
-            setStake(value);
-          }
-        }
-        return;
+  usePanelKeys((event) => {
+    if (phase === 'offer') {
+      if (event.key === 'Enter' || event.key === ' ') {
+        play();
+        return true;
       }
-      if (phase === 'done' && (event.key === 'Enter' || event.key === ' ' || event.key === '1')) {
-        event.preventDefault();
-        event.stopPropagation();
-        onDone(delta);
+      if (/^[1-9]$/.test(event.key)) {
+        const value = gamble.stake.min + Number(event.key) - 1;
+        if (value <= gamble.stake.max && value <= money) {
+          setStake(value);
+          return true;
+        }
       }
-    };
-    window.addEventListener('keydown', onKey, true);
-    return () => window.removeEventListener('keydown', onKey, true);
-  }, [phase, stake, money, delta]);
+      return false;
+    }
+    if (phase === 'done' && (event.key === 'Enter' || event.key === ' ' || event.key === '1')) {
+      onDone(delta);
+      return true;
+    }
+    return false;
+  });
 
   return (
     <div className="gamble-panel" aria-label="Ставка">
@@ -136,8 +114,8 @@ export default function GamblePanel({
       {phase === 'rolling' && (
         <>
           <div className="check-dice">
-            <DieFace value={faces[0]} />
-            <DieFace value={faces[1]} />
+            <DieFace value={faces[0]} className="combat-die-face check-die-face" />
+            <DieFace value={faces[1]} className="combat-die-face check-die-face" />
           </div>
           <div className="check-note">БРОСОК…</div>
         </>

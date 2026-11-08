@@ -1691,7 +1691,7 @@ body {
   margin: 4px 0 6px;
 }
 
-.roll-die-number {
+.die-number, .roll-die-number {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1716,4 +1716,223 @@ body {
     flex-shrink: 0;
     scrollbar-width: thin;
   }
+}
+
+/* ── d20: отдельный силуэт с числом ───────────────────────── */
+.die-shape {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  isolation: isolate;
+}
+
+.die-d20 {
+  clip-path: polygon(50% 0%, 94% 24%, 94% 76%, 50% 100%, 6% 76%, 6% 24%);
+  background:
+    linear-gradient(145deg, rgba(255, 196, 64, 0.30), rgba(120, 58, 0, 0.30)),
+    repeating-linear-gradient(45deg, rgba(255, 176, 0, 0.18) 0 1px, transparent 1px 9px);
+  box-shadow: inset 0 0 0 1px rgba(255, 196, 64, 0.45);
+  animation: d20-tick 150ms linear infinite alternate;
+}
+
+.die-d20::before {
+  content: '';
+  position: absolute;
+  inset: 13%;
+  clip-path: polygon(50% 0%, 96% 26%, 96% 74%, 50% 100%, 4% 74%, 4% 26%);
+  border: 1px solid rgba(255, 224, 150, 0.45);
+  z-index: 0;
+}
+
+.die-d20::after {
+  content: '';
+  position: absolute;
+  inset: 24% 16%;
+  clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+  background: rgba(255, 220, 140, 0.08);
+  z-index: 0;
+}
+
+.die-d20 .die-value {
+  position: relative;
+  z-index: 1;
+  font-family: var(--mono);
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--amber);
+  text-shadow: 0 0 10px rgba(255, 176, 0, 0.75);
+}
+
+.roll-die-face.die-d20 {
+  width: 78px;
+  height: 78px;
+  padding: 0;
+}
+
+.fallout-d20-live { display: flex; justify-content: center; }
+.fallout-d20-face {
+  width: 54px;
+  height: 54px;
+  padding: 0;
+  animation: d20-tick 150ms linear infinite alternate;
+}
+.fallout-d20-face .die-value {
+  font-size: 23px;
+}
+
+@keyframes d20-tick {
+  from { transform: translateY(-1px) rotate(-2deg); }
+  to { transform: translateY(1px) rotate(2deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .die-d20,
+  .fallout-d20-face { animation: none; }
+}
+
+/* d20 не должен сидеть в квадратной рамке: силуэт — сам кубик */
+.roll-die.roll-die-d20 {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* компактный HUD: до двух статов/предметов прямо в шапке */
+.hud-inline {
+  flex: 0 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  max-width: 46%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.hud-inline::-webkit-scrollbar { display: none; }
+.hud-chip {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 2px 6px;
+  border: 1px solid rgba(255, 176, 0, 0.35);
+  background: rgba(255, 176, 0, 0.06);
+  white-space: nowrap;
+}
+.hud-label {
+  font-size: 8px;
+  letter-spacing: 0.8px;
+  color: #8a6a2f;
+}
+.hud-value {
+  font-size: 12px;
+  line-height: 1;
+  color: var(--green);
+  text-shadow: 0 0 6px rgba(51, 255, 0, 0.35);
+}
+.hud-value.is-low { color: var(--magenta); }
+.hud-item { border-color: rgba(51, 255, 0, 0.3); background: rgba(51, 255, 0, 0.05); }
+.hud-empty .hud-value { color: #8a6a2f; }
+
+@media (max-width: 520px) {
+  .hud-inline { max-width: 58%; gap: 3px; }
+  .hud-chip { padding: 2px 4px; gap: 3px; }
+  .hud-label { font-size: 7px; letter-spacing: 0; }
+  .hud-value { font-size: 11px; }
+}
+
+/* обложки в библиотеке */
+.lib-main { display: flex; align-items: center; gap: 10px; }
+.lib-cover {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 46px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 176, 0, 0.35);
+  background: rgba(26, 14, 0, 0.65);
+  cursor: zoom-in;
+}
+.lib-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.lib-cover:hover, .lib-cover:focus-visible { border-color: var(--amber); outline: none; }
+.lib-cover-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(5, 3, 0, 0.86);
+  cursor: zoom-out;
+}
+.lib-cover-modal img {
+  max-width: min(92vw, 900px);
+  max-height: 86vh;
+  object-fit: contain;
+  border: 1px solid rgba(255, 176, 0, 0.5);
+  box-shadow: 0 0 50px rgba(255, 176, 0, 0.18);
+  cursor: default;
+}
+.lib-cover-close {
+  position: absolute;
+  top: 18px;
+  right: 24px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255, 176, 0, 0.5);
+  background: rgba(26, 14, 0, 0.9);
+  color: var(--amber);
+  font-family: var(--mono);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+.lib-cover-close:hover { background: var(--amber); color: var(--screen-bg); }
+@media (max-width: 520px) {
+  .lib-cover { width: 28px; height: 38px; }
+  .lib-main { gap: 7px; }
+}
+
+/* первая страница книги — обложка */
+.cover-screen {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px;
+  text-align: center;
+}
+.cover-kicker {
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: #8a6a2f;
+}
+.cover-art {
+  max-width: min(64%, 360px);
+  max-height: 58vh;
+  object-fit: contain;
+  border: 1px solid rgba(255, 176, 0, 0.4);
+  box-shadow: 0 0 34px rgba(255, 176, 0, 0.15);
+}
+.cover-title {
+  max-width: 86%;
+  font-size: clamp(16px, 2.2vw, 24px);
+  line-height: 1.2;
+  letter-spacing: 1px;
+  color: var(--amber);
+  text-shadow: 0 0 12px rgba(255, 176, 0, 0.5);
+}
+.cover-start { margin-top: 4px; }
+@media (max-height: 620px) {
+  .cover-art { max-height: 46vh; }
+  .cover-screen { gap: 5px; padding: 6px; }
 }

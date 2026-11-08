@@ -2,22 +2,15 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { audio } from '@/lib/audio';
+import { usePanelKeys } from '@/lib/usePanelKeys';
+import { combatKey, combatKeyIndex } from '@/components/screens/combatKeys';
+import { rollDie } from '@/lib/rng';
+import { DieFace } from '@/components/screens/Dice';
+import { resolveRpgRound } from '@/lib/combat';
 import type { CombatDef, CombatEnemy, Game, GameState } from '@/lib/types';
 
 type Phase = 'loadout' | 'round' | 'rolling' | 'victory' | 'defeat';
 
-function rollDamage(formula: string | undefined): { total: number; text: string } {
-  if (!formula) return { total: 0, text: '0' };
-  const match = /^(\d+)d(\d+)([+-]\d+)?$/i.exec(formula.trim());
-  if (!match) return { total: 0, text: '0' };
-  const dice = Math.max(1, Number(match[1]));
-  const faces = Math.max(2, Number(match[2]));
-  const bonus = Number(match[3] ?? 0);
-  const rolls = Array.from({ length: dice }, () => 1 + Math.floor(Math.random() * faces));
-  const total = Math.max(0, rolls.reduce((sum, value) => sum + value, 0) + bonus);
-  const bonusText = bonus === 0 ? '' : bonus > 0 ? ` + ${bonus}` : ` − ${Math.abs(bonus)}`;
-  return { total, text: `${rolls.join(' + ')}${bonusText} = ${total}` };
-}
 
 function weaponSkill(itemId: string): string {
   if (/laser|plasma|gauss|pulse/.test(itemId)) return 'energy_weapons';
@@ -83,11 +76,11 @@ export default function FalloutCombatPanel({
     if (phase !== 'round' || !weapon) return;
     const target = enemies.findIndex((enemy) => enemy.health > 0);
     if (target < 0) return;
-    const die = 1 + Math.floor(Math.random() * 20);
+    const die = rollDie(20);
     setD20(die);
     setPhase('rolling');
     audio.click();
-    interval.current = window.setInterval(() => setD20(1 + Math.floor(Math.random() * 20)), 80);
+    interval.current = window.setInterval(() => setD20(rollDie(20)), 80);
     timer.current = window.setTimeout(() => {
       if (interval.current !== null) {
         window.clearInterval(interval.current);
@@ -95,43 +88,41 @@ export default function FalloutCombatPanel({
       }
       timer.current = null;
       setD20(die);
-      const targetEnemy = enemies[target];
+      const result = resolveRpgRound({
+        hp,
+        enemies,
+        weaponDamage: weapon.damage ?? '1d6-3',
+        skill,
+        armor,
+        d20: die,
+      });
+      const targetEnemy = enemies[result.target];
       const check = die + skill;
-      const hit = check >= Number(targetEnemy.defense ?? 0);
-      let nextEnemies = enemies;
-      if (hit) {
-        const damage = rollDamage(weapon.damage);
-        nextEnemies = enemies.map((enemy, index) =>
-          index === target ? { ...enemy, health: Math.max(0, enemy.health - damage.total) } : enemy,
-        );
-        addLog(
-          `ВАША АТАКА (${skillId.toUpperCase()}): d20 ${die} + ${skill} = ${check} против Защиты ${targetEnemy.defense ?? 0} — попадание, урон ${damage.text}.`,
-        );
-      } else {
-        addLog(`ВАША АТАКА (${skillId.toUpperCase()}): d20 ${die} + ${skill} = ${check} против Защиты ${targetEnemy.defense ?? 0} — промах.`);
+      if (targetEnemy) {
+        if (result.hit) {
+          addLog(
+            `ВАША АТАКА (${skillId.toUpperCase()}): d20 ${die} + ${skill} = ${check} против Защиты ${targetEnemy.defense ?? 0} — попадание, урон ${result.damageText}.`,
+          );
+        } else {
+          addLog(`ВАША АТАКА (${skillId.toUpperCase()}): d20 ${die} + ${skill} = ${check} против Защиты ${targetEnemy.defense ?? 0} — промах.`);
+        }
       }
 
-      const alive = nextEnemies.filter((enemy) => enemy.health > 0);
-      if (alive.length === 0) {
-        setEnemies(nextEnemies);
+      setEnemies(result.enemies);
+      if (result.outcome === 'victory') {
+        addLog(`ИТОГ РАУНДА ${round}: врагов ${result.enemies.filter((enemy) => enemy.health > 0).length}/${result.enemies.length}, жизни ${result.hp}/${hpMax}, броня ${armor}.`);
         setPhase('victory');
         audio.beep();
         return;
       }
-
-      let nextHp = hp;
-      for (const enemy of alive) {
-        const damage = rollDamage(enemy.weapon);
-        const taken = Math.max(0, damage.total - armor);
-        nextHp = Math.max(0, nextHp - taken);
-        addLog(
-          `${enemy.name.toUpperCase()}: ${damage.text}, броня ${armor} → −${taken} жизней.`,
-        );
-        if (nextHp <= 0) break;
+      if (result.hp < hp) {
+        for (const attack of result.enemyAttacks) {
+          addLog(`${attack.name.toUpperCase()}: ${attack.text}, броня ${armor} → −${attack.taken} жизней.`);
+        }
       }
-      setEnemies(nextEnemies);
-      setHp(nextHp);
-      if (nextHp <= 0) {
+      setHp(result.hp);
+      addLog(`ИТОГ РАУНДА ${round}: врагов ${result.enemies.filter((enemy) => enemy.health > 0).length}/${result.enemies.length}, жизни ${result.hp}/${hpMax}, броня ${armor}.`);
+      if (result.outcome === 'defeat') {
         setPhase('defeat');
         audio.beep();
       } else {
@@ -147,69 +138,57 @@ export default function FalloutCombatPanel({
 
   const alive = enemies.filter((enemy) => enemy.health > 0);
 
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (phase === 'loadout') {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          event.stopPropagation();
+  usePanelKeys((event) => {
+    if (phase === 'loadout') {
+      if (event.key === 'Enter' || event.key === ' ') {
+        setPhase('round');
+        audio.click();
+        return true;
+      }
+      const keyIndex = combatKeyIndex(event.key);
+      if (keyIndex >= 0) {
+        const index = keyIndex;
+        if (index < weaponOptions.length) {
+          setSelectedWeapon(weaponOptions[index].id);
+          return true;
+        }
+        if (index === weaponOptions.length) {
+          setSelectedWeapon('fists');
+          return true;
+        }
+        if (index === weaponOptions.length + 1) {
           setPhase('round');
           audio.click();
-          return;
-        }
-        if (/^[1-9]$/.test(event.key)) {
-          const index = Number(event.key) - 1;
-          if (index < weaponOptions.length) {
-            event.preventDefault();
-            event.stopPropagation();
-            setSelectedWeapon(weaponOptions[index].id);
-          } else if (index === weaponOptions.length) {
-            event.preventDefault();
-            event.stopPropagation();
-            setSelectedWeapon('fists');
-          } else if (index === weaponOptions.length + 1) {
-            event.preventDefault();
-            event.stopPropagation();
-            setPhase('round');
-            audio.click();
-          }
-        }
-        return;
-      }
-      if (phase === 'round' && (event.key === 'Enter' || event.key === ' ' || event.key === '1')) {
-        event.preventDefault();
-        event.stopPropagation();
-        attack();
-        return;
-      }
-      if (phase === 'victory' && (event.key === 'Enter' || event.key === ' ' || event.key === '1')) {
-        event.preventDefault();
-        event.stopPropagation();
-        finish();
-        return;
-      }
-      if (phase === 'defeat') {
-        if (event.key === '1' || event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          event.stopPropagation();
-          onRestart();
-        } else if (event.key === '2') {
-          event.preventDefault();
-          event.stopPropagation();
-          onExit();
+          return true;
         }
       }
-    };
-    window.addEventListener('keydown', onKey, true);
-    return () => window.removeEventListener('keydown', onKey, true);
-  }, [phase, weaponOptions, selectedWeapon]);
+      return false;
+    }
+    if (phase === 'round' && (event.key === 'Enter' || event.key === ' ' || event.key.toUpperCase() === 'A')) {
+      attack();
+      return true;
+    }
+    if (phase === 'victory' && (event.key === 'Enter' || event.key === ' ' || event.key.toUpperCase() === 'A')) {
+      finish();
+      return true;
+    }
+    if (phase === 'defeat') {
+      if (event.key.toUpperCase() === 'A' || event.key === 'Enter' || event.key === ' ') {
+        onRestart();
+        return true;
+      }
+      if (event.key.toUpperCase() === 'B') {
+        onExit();
+        return true;
+      }
+    }
+    return false;
+  });
 
   return (
     <div className="combat-panel fallout-panel" aria-label={`Бой: ${combat.enemy.name}`}>
       <div className="combat-status-line">
         <span>РАУНД: {round}.</span>
-        <span>Врагов: {alive.length}/{enemies.length}.</span>
-        <span>Жизни {hp}/{hpMax} · Броня {armor}.</span>
       </div>
       <div className="combat-log" aria-live="polite">
         {log.map((line, index) => (
@@ -220,8 +199,8 @@ export default function FalloutCombatPanel({
       </div>
 
       {phase === 'rolling' && d20 !== null && (
-        <div className="combat-dice-live">
-          <span>d20: {d20}</span>
+        <div className="combat-dice-live fallout-d20-live">
+          <DieFace value={d20} sides={20} className="combat-die-face fallout-d20-face" numberClassName="die-number" />
         </div>
       )}
 
@@ -236,7 +215,7 @@ export default function FalloutCombatPanel({
                 className={`choice${selectedWeapon === option.id ? ' selected combat-selected' : ''}`}
                 onClick={() => setSelectedWeapon(option.id)}
               >
-                {index + 1}. {option.item?.title.toUpperCase()} · {weaponSkill(option.id)}
+                {combatKey(index)}. {option.item?.title.toUpperCase()} · {weaponSkill(option.id)}
               </button>
             ))}
             <button
@@ -244,7 +223,7 @@ export default function FalloutCombatPanel({
               className={`choice${isFists ? ' selected combat-selected' : ''}`}
               onClick={() => setSelectedWeapon('fists')}
             >
-              {weaponOptions.length + 1}. КУЛАКИ · 1d6−3
+              {combatKey(weaponOptions.length)}. КУЛАКИ · 1d6−3
             </button>
             <button
               type="button"
@@ -254,7 +233,7 @@ export default function FalloutCombatPanel({
                 audio.click();
               }}
             >
-              {weaponOptions.length + 2}. В БОЙ
+              {combatKey(weaponOptions.length + 1)}. В БОЙ
             </button>
           </div>
         </>
@@ -272,7 +251,7 @@ export default function FalloutCombatPanel({
               </div>
             ))}
             <button type="button" className="choice selected" onClick={attack}>
-              АТАКОВАТЬ
+              A. АТАКОВАТЬ
             </button>
           </div>
         </>
@@ -283,7 +262,7 @@ export default function FalloutCombatPanel({
           <div className="combat-note combat-victory-note">ПОБЕДА. Жизни {hp} / {hpMax}.</div>
           <div className="choices combat-choices">
             <button type="button" className="choice selected" onClick={finish}>
-              1. ПРОДОЛЖИТЬ
+              A. ПРОДОЛЖИТЬ
             </button>
           </div>
         </>
@@ -293,8 +272,8 @@ export default function FalloutCombatPanel({
         <>
           <div className="combat-note combat-defeat-note">ВЫ ПОГИБЛИ.</div>
           <div className="choices combat-choices">
-            <button type="button" className="choice selected" onClick={onRestart}>1. НАЧАТЬ ЗАНОВО</button>
-            <button type="button" className="choice" onClick={onExit}>2. В БИБЛИОТЕКУ</button>
+            <button type="button" className="choice selected" onClick={onRestart}>A. НАЧАТЬ ЗАНОВО</button>
+            <button type="button" className="choice" onClick={onExit}>B. В БИБЛИОТЕКУ</button>
           </div>
         </>
       )}

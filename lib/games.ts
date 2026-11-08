@@ -1,5 +1,6 @@
 import { parse as parseYaml } from 'yaml';
 import { PackageError, parsePackage } from './parse';
+import { parseQuest2 } from './quest2';
 import type { Game, GameIndexEntry, ParseProblem } from './types';
 
 /**
@@ -96,6 +97,25 @@ export async function loadGame(id: string, onProgress?: LoadListener): Promise<L
   const report: LoadListener = onProgress ?? (() => {});
 
   report({ stage: 'mount' });
+
+  // Quest/2: пакет — один файл, отдельного story.md нет.
+  const q2Text = await optional(`${dir}/quest2.yaml`);
+  if (q2Text) {
+    report({ stage: 'manifest' });
+    let q2Raw: Record<string, unknown>;
+    try {
+      q2Raw = (parseYaml(q2Text) ?? {}) as Record<string, unknown>;
+    } catch (e) {
+      throw new PackageError(`quest2.yaml не разбирается: ${(e as Error).message}`, [
+        { level: 'error', code: 'E_YAML', message: `quest2.yaml не разбирается: ${(e as Error).message}` },
+      ]);
+    }
+    report({ stage: 'parse' });
+    const parsedQ2 = parseQuest2(id, q2Raw);
+    report({ stage: 'ready' });
+    return parsedQ2;
+  }
+
   const manifestText = await text(`${dir}/game.yaml`, 'game.yaml');
   report({ stage: 'manifest' });
 

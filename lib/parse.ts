@@ -570,6 +570,17 @@ export function parsePackage(
     }
     if (m.ending) out.ending = true;
     if (m.next) out.next = m.next as Scene['next'];
+    if (m.counter && typeof m.counter === 'object' && !Array.isArray(m.counter)) {
+      const counter = m.counter as Record<string, unknown>;
+      const stat = String(counter.stat ?? '');
+      if (stat) {
+        out.counter = {
+          stat,
+          ...(Number.isFinite(Number(counter.max)) ? { max: Number(counter.max) } : {}),
+          ...(counter.label ? { label: String(counter.label) } : {}),
+        };
+      }
+    }
     if (m.shopTitle) out.shopTitle = String(m.shopTitle);
     if (m.shopCurrency) out.shopCurrency = String(m.shopCurrency);
     if (Array.isArray(m.shop)) {

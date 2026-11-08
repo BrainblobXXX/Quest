@@ -1,0 +1,1659 @@
+format: quest/2
+id: rybalka
+title: Рыбалка
+profile: hybrid
+status: beta
+author: Dima Brodovskiy
+genre: симулятор
+annotation: "Интерактивная рыбалка: выбор снасти, наживки и места, 21 глава и несколько финалов."
+language: ru
+source: Dima Brodovskiy - Рыбалка.pdf
+cover: assets/cover.jpg
+moods:
+  calm: null
+  tense: null
+  victory: null
+  grief: null
+features:
+  - choices
+  - roll
+stats:
+  money:
+    title: Деньги
+    initial: 500
+    min: 0
+  fatigue:
+    title: Усталость
+    initial: 0
+    min: 0
+    max: 5
+  bait:
+    title: Текущая наживка
+    initial: 0
+    min: 0
+    max: 7
+    visible: false
+  risk_yes:
+    title: "Риск: Да"
+    initial: 0
+    min: 0
+    max: 1
+    visible: false
+  risk_no:
+    title: "Риск: Нет"
+    initial: 0
+    min: 0
+    max: 1
+    visible: false
+  bite_yes:
+    title: "Клёв: Клюет"
+    initial: 0
+    min: 0
+    max: 1
+    visible: false
+  bite_no:
+    title: "Клёв: Не клюет"
+    initial: 0
+    min: 0
+    max: 1
+    visible: false
+  fish_crucian:
+    title: "Отметка: Карась"
+    initial: 0
+    min: 0
+    max: 1
+    visible: false
+  fish_carp:
+    title: "Отметка: Карп"
+    initial: 0
+    min: 0
+    max: 1
+    visible: false
+  fish_rudd:
+    title: "Отметка: Красноперка"
+    initial: 0
+    min: 0
+    max: 1
+    visible: false
+  fish_roach:
+    title: "Отметка: Плотва"
+    initial: 0
+    min: 0
+    max: 1
+    visible: false
+items:
+  worm:
+    title: Червь
+    countable: true
+    consumable: true
+  moth:
+    title: Мотыль
+    countable: true
+    consumable: true
+  maggot:
+    title: Опарыш
+    countable: true
+    consumable: true
+  bread:
+    title: Хлеб
+    countable: true
+    consumable: true
+  corn:
+    title: Кукуруза
+    countable: true
+    consumable: true
+  dough:
+    title: Тесто
+    countable: true
+    consumable: true
+  live_bait:
+    title: Живец
+    countable: true
+    consumable: true
+  net:
+    title: Подсака
+    countable: false
+    consumable: false
+  pike:
+    title: Щука
+    kind: misc
+    countable: true
+  carp:
+    title: Карп
+    kind: misc
+    countable: true
+  crucian:
+    title: Карась
+    kind: misc
+    countable: true
+  rudd:
+    title: Красноперка
+    kind: misc
+    countable: true
+start: "intro"
+scenes:
+  intro:
+    title: "Глава 1. Перед рыбалкой"
+    text: |-
+      Раннее утро. Над рекой ещё стоит туман, вода кажется неподвижной, а в воздухе пахнет тиной и свежей травой. Вы приехали сюда на весь день — с удочкой, старой корзинкой и твёрдым намерением вернуться домой с уловом.
+
+      Рыбалка — дело неспешное, но не простое. Здесь важно выбрать наживку, дождаться поклёва и вовремя подсечь. Иногда придётся рисковать, иногда — ждать. День пролетит незаметно, а река сама решит, кто сегодня окажется удачливее.
+
+      ПРАВИЛА
+
+      У вас есть 500 рублей. В начале рыбалки купите наживку в лавке: разную рыбу привлекает разное угощение.
+
+      Наживка расходуется при забросе. Следите за усталостью: если она станет слишком большой, можно задремать и пропустить поклёв.
+
+      Пойманная рыба отправляется в садок. Некоторые решения — отпустить рыбу, сделать из неё живца или продолжить ловлю — могут изменить ход рыбалки.
+
+      ВАША ЦЕЛЬ
+
+      Провести день на реке и вернуться с уловом. Слушайте реку, не спешите и помните: у каждой рыбы свой характер.
+
+      Первая глава закончилась. Пора выйти на берег.
+    interaction:
+      type: continue
+      to: "1"
+  "1":
+    title: "Глава 1. Наживка"
+    text: |-
+      Купите наживку.
+
+      Червь, «Деньги» -2, «Червь» +1 — [А]
+      Мотыль, «Мотыль» +10, «Деньги» -15 — [Б]
+      Опарыш, «Опарыш» +1, «Деньги» -4 — [В]
+      Хлеб, «Хлеб» +10, «Деньги» -15 — [Г]
+      Кукуруза, «Кукуруза» +10, «Деньги» -7 — [Д]
+      Тесто, «Деньги» -25, «Тесто» +10 — [Е]
+      Подсака, «Деньги» -100, «Подсака» +1 — [Ж]
+      На рыбалку — [З]
+      Итог — [И]
+    mood: calm
+    interaction:
+      type: choices
+      options:
+        - label: Вариант А
+          to: "1"
+          letter: А
+          if:
+            stat:
+              id: money
+              op: ">="
+              value: 2
+          effects:
+            - grant:
+                item: worm
+                count: 1
+            - modify:
+                stat: money
+                delta: -2
+        - label: Вариант Б
+          to: "1"
+          letter: Б
+          if:
+            stat:
+              id: money
+              op: ">="
+              value: 15
+          effects:
+            - grant:
+                item: moth
+                count: 10
+            - modify:
+                stat: money
+                delta: -15
+        - label: Вариант В
+          to: "1"
+          letter: В
+          if:
+            stat:
+              id: money
+              op: ">="
+              value: 4
+          effects:
+            - grant:
+                item: maggot
+                count: 1
+            - modify:
+                stat: money
+                delta: -4
+        - label: Вариант Г
+          to: "1"
+          letter: Г
+          if:
+            stat:
+              id: money
+              op: ">="
+              value: 15
+          effects:
+            - grant:
+                item: bread
+                count: 10
+            - modify:
+                stat: money
+                delta: -15
+        - label: Вариант Д
+          to: "1"
+          letter: Д
+          if:
+            stat:
+              id: money
+              op: ">="
+              value: 7
+          effects:
+            - grant:
+                item: corn
+                count: 10
+            - modify:
+                stat: money
+                delta: -7
+        - label: Вариант Е
+          to: "1"
+          letter: Е
+          if:
+            stat:
+              id: money
+              op: ">="
+              value: 25
+          effects:
+            - grant:
+                item: dough
+                count: 10
+            - modify:
+                stat: money
+                delta: -25
+        - label: Вариант Ж
+          to: "1"
+          letter: Ж
+          if:
+            all:
+              - stat:
+                  id: money
+                  op: ">="
+                  value: 100
+              - not:
+                  has_item:
+                    id: net
+          effects:
+            - grant:
+                item: net
+                count: 1
+            - modify:
+                stat: money
+                delta: -100
+        - label: Вариант З
+          to: "11"
+          letter: З
+        - label: Вариант И
+          to: "15"
+          letter: И
+          if:
+            stat:
+              id: money
+              op: "<"
+              value: 1
+  "2":
+    title: Глава 2
+    text: Рыбка сорвалась.
+    mood: grief
+    interaction:
+      type: continue
+      to: "11"
+  "3":
+    title: Глава 3
+    text: Рыбка уже у берега.
+    mood: tense
+    interaction:
+      type: roll
+      formula: 1d3
+      outcomes:
+        - min: 3
+          max: 3
+          to: s3_both
+        - min: 2
+          max: 2
+          to: s3_no
+        - min: 1
+          max: 1
+          to: s3_yes
+  "4":
+    title: Глава 4
+    text: Вы поймали щуку.
+    mood: victory
+    image: assets/images/4-pike.jpg
+    entry:
+      - modify:
+          stat: money
+          delta: 200
+      - grant:
+          item: pike
+          count: 1
+      - modify:
+          stat: bait
+          delta: -7
+    interaction:
+      type: continue
+      to: "11"
+  "5":
+    title: Глава 5
+    text: Удочка заброшена. Остается только ждать.
+    mood: calm
+    image: assets/images/5-fishing.jpg
+    interaction:
+      type: roll
+      formula: 1d3
+      outcomes:
+        - min: 3
+          max: 3
+          to: s5_both
+        - min: 2
+          max: 2
+          to: s5_no
+        - min: 1
+          max: 1
+          to: s5_yes
+  "6":
+    title: Глава 6
+    text: И это ...
+    mood: tense
+    interaction:
+      type: roll
+      formula: 1d3
+      outcomes:
+        - min: 3
+          max: 3
+          to: s6_both
+        - min: 2
+          max: 2
+          to: s6_rudd
+        - min: 1
+          max: 1
+          to: s6_carp
+  "7":
+    title: Глава 7
+    text: |-
+      И это ...
+
+      Щука
+    mood: tense
+    interaction:
+      type: continue
+      to: "4"
+  "8":
+    title: Глава 8
+    text: И это ...
+    mood: tense
+    interaction:
+      type: roll
+      formula: 1d15
+      outcomes:
+        - min: 15
+          max: 15
+          to: fish_set_15
+        - min: 14
+          max: 14
+          to: fish_set_14
+        - min: 13
+          max: 13
+          to: fish_set_13
+        - min: 12
+          max: 12
+          to: fish_set_12
+        - min: 11
+          max: 11
+          to: fish_set_11
+        - min: 10
+          max: 10
+          to: fish_set_10
+        - min: 9
+          max: 9
+          to: fish_set_09
+        - min: 8
+          max: 8
+          to: fish_set_08
+        - min: 7
+          max: 7
+          to: fish_set_07
+        - min: 6
+          max: 6
+          to: fish_set_06
+        - min: 5
+          max: 5
+          to: fish_set_05
+        - min: 4
+          max: 4
+          to: fish_set_04
+        - min: 3
+          max: 3
+          to: fish_set_03
+        - min: 2
+          max: 2
+          to: fish_set_02
+        - min: 1
+          max: 1
+          to: fish_set_01
+  "9":
+    title: Глава 9
+    text: И это ...
+    mood: tense
+    interaction:
+      type: roll
+      formula: 1d15
+      outcomes:
+        - min: 15
+          max: 15
+          to: fish_set_15
+        - min: 14
+          max: 14
+          to: fish_set_14
+        - min: 13
+          max: 13
+          to: fish_set_13
+        - min: 12
+          max: 12
+          to: fish_set_12
+        - min: 11
+          max: 11
+          to: fish_set_11
+        - min: 10
+          max: 10
+          to: fish_set_10
+        - min: 9
+          max: 9
+          to: fish_set_09
+        - min: 8
+          max: 8
+          to: fish_set_08
+        - min: 7
+          max: 7
+          to: fish_set_07
+        - min: 6
+          max: 6
+          to: fish_set_06
+        - min: 5
+          max: 5
+          to: fish_set_05
+        - min: 4
+          max: 4
+          to: fish_set_04
+        - min: 3
+          max: 3
+          to: fish_set_03
+        - min: 2
+          max: 2
+          to: fish_set_02
+        - min: 1
+          max: 1
+          to: fish_set_01
+  "10":
+    title: Глава 10
+    text: |-
+      Наконец-то клюет.
+
+      Подсечь — [А]
+      Резко потянуть — [Б]
+    mood: tense
+    image: assets/images/10-rod.jpg
+    interaction:
+      type: choices
+      options:
+        - label: Вариант А
+          to: "3"
+          letter: А
+        - label: Вариант Б
+          to: "2"
+          letter: Б
+  "11":
+    title: Глава 11
+    text: |-
+      Выберите наживку.
+
+      Назад — [А]
+      Червь, «Червь» -1 — [Б]
+      Опарыш, «Опарыш» -1 — [В]
+      Кукуруза, «Кукуруза» -1 — [Г]
+      Мотыль, «Мотыль» -1 — [Д]
+      Хлеб, «Хлеб» -1 — [Е]
+      Тесто, «Тесто» -1 — [Ж]
+      Живец, «Живец» -1 — [З]
+    mood: calm
+    entry:
+      - modify:
+          stat: bait
+          delta: -7
+    interaction:
+      type: choices
+      options:
+        - label: Вариант А
+          to: "1"
+          letter: А
+        - label: Вариант Б
+          to: "5"
+          letter: Б
+          if:
+            has_item:
+              id: worm
+          effects:
+            - consume:
+                item: worm
+            - modify:
+                stat: bait
+                delta: 1
+        - label: Вариант В
+          to: "5"
+          letter: В
+          if:
+            has_item:
+              id: maggot
+          effects:
+            - consume:
+                item: maggot
+            - modify:
+                stat: bait
+                delta: 3
+        - label: Вариант Г
+          to: "5"
+          letter: Г
+          if:
+            has_item:
+              id: corn
+          effects:
+            - consume:
+                item: corn
+            - modify:
+                stat: bait
+                delta: 6
+        - label: Вариант Д
+          to: "5"
+          letter: Д
+          if:
+            has_item:
+              id: moth
+          effects:
+            - consume:
+                item: moth
+            - modify:
+                stat: bait
+                delta: 2
+        - label: Вариант Е
+          to: "5"
+          letter: Е
+          if:
+            has_item:
+              id: bread
+          effects:
+            - consume:
+                item: bread
+            - modify:
+                stat: bait
+                delta: 4
+        - label: Вариант Ж
+          to: "5"
+          letter: Ж
+          if:
+            has_item:
+              id: dough
+          effects:
+            - consume:
+                item: dough
+            - modify:
+                stat: bait
+                delta: 5
+        - label: Вариант З
+          to: "5"
+          letter: З
+          if:
+            has_item:
+              id: live_bait
+          effects:
+            - consume:
+                item: live_bait
+            - modify:
+                stat: bait
+                delta: 7
+  "12":
+    title: Глава 12
+    text: И это ...
+    mood: tense
+    interaction:
+      type: roll
+      formula: 1d3
+      outcomes:
+        - min: 3
+          max: 3
+          to: s12_both
+        - min: 2
+          max: 2
+          to: s12_roach
+        - min: 1
+          max: 1
+          to: s12_rudd
+  "13":
+    title: Глава 13
+    text: Вы поймали карпа.
+    mood: victory
+    image: assets/images/13-carp.jpg
+    entry:
+      - modify:
+          stat: money
+          delta: 250
+      - grant:
+          item: carp
+          count: 1
+      - modify:
+          stat: bait
+          delta: -7
+    interaction:
+      type: continue
+      to: "11"
+  "14":
+    title: Глава 14
+    text: |-
+      И это ...
+
+      Карась
+    mood: tense
+    interaction:
+      type: continue
+      to: "16"
+  "15":
+    title: Глава 15
+    text: Вы потратили все деньги и отправились домой.
+    mood: grief
+    ending: true
+  "16":
+    title: Глава 16
+    text: Вы поймали карася.
+    mood: victory
+    image: assets/images/16-crucian.jpg
+    entry:
+      - modify:
+          stat: money
+          delta: 130
+      - grant:
+          item: crucian
+          count: 1
+      - modify:
+          stat: bait
+          delta: -7
+    interaction:
+      type: continue
+      to: "11"
+  "17":
+    title: Глава 17
+    text: Рыбак так долго ждал клева, что аж уснул. Он проснулся уже поздней ночью. Его удочку утащила какая-то рыба. По этой причине, рыбак пошел домой с пойманным уловом и больше никогда не ходил на рыбалку.
+    mood: grief
+    ending: true
+  "18":
+    title: Глава 18
+    text: |-
+      Вы поймали плотву.
+
+      Отпустить — [А]
+      Сделать живец, «Живец» +1 — [Б]
+    mood: victory
+    image: assets/images/18-roach.jpg
+    interaction:
+      type: choices
+      options:
+        - label: Вариант А
+          to: "11"
+          letter: А
+        - label: Вариант Б
+          to: "11"
+          letter: Б
+          effects:
+            - grant:
+                item: live_bait
+                count: 1
+            - modify:
+                stat: bait
+                delta: -7
+  "19":
+    title: Глава 19
+    text: |-
+      Вы поймали ...
+
+      Узнать — [А]
+      Узнать — [Б]
+      Узнать — [В]
+      Узнать — [Г]
+      Узнать — [Д]
+      Узнать — [Е]
+      Узнать — [Ж]
+    mood: tense
+    interaction:
+      type: choices
+      options:
+        - label: Вариант А
+          to: "9"
+          letter: А
+          if:
+            stat:
+              id: bait
+              op: "="
+              value: 1
+        - label: Вариант Б
+          to: "14"
+          letter: Б
+          if:
+            stat:
+              id: bait
+              op: "="
+              value: 2
+        - label: Вариант В
+          to: "7"
+          letter: В
+          if:
+            stat:
+              id: bait
+              op: "="
+              value: 7
+        - label: Вариант Г
+          to: "8"
+          letter: Г
+          if:
+            stat:
+              id: bait
+              op: "="
+              value: 3
+        - label: Вариант Д
+          to: "6"
+          letter: Д
+          if:
+            stat:
+              id: bait
+              op: "="
+              value: 4
+        - label: Вариант Е
+          to: "12"
+          letter: Е
+          if:
+            stat:
+              id: bait
+              op: "="
+              value: 5
+        - label: Вариант Ж
+          to: "20"
+          letter: Ж
+          if:
+            stat:
+              id: bait
+              op: "="
+              value: 6
+  "20":
+    title: Глава 20
+    text: |-
+      И это ...
+
+      Карп
+    mood: tense
+    interaction:
+      type: continue
+      to: "13"
+  "21":
+    title: Глава 21
+    text: Вы поймали красноперку.
+    mood: victory
+    image: assets/images/21-rudd.jpg
+    entry:
+      - modify:
+          stat: money
+          delta: 60
+      - grant:
+          item: rudd
+          count: 1
+      - modify:
+          stat: bait
+          delta: -7
+    interaction:
+      type: continue
+      to: "11"
+  s3_yes:
+    title: "Отметки риска: Да"
+    text: ""
+    mood: tense
+    entry:
+      - modify:
+          stat: risk_yes
+          delta: 1
+      - modify:
+          stat: risk_no
+          delta: -1
+      - redirect: s3_menu
+    interaction:
+      type: continue
+      to: s3_menu
+  s3_no:
+    title: "Отметки риска: Нет"
+    text: ""
+    mood: tense
+    entry:
+      - modify:
+          stat: risk_yes
+          delta: -1
+      - modify:
+          stat: risk_no
+          delta: 1
+      - redirect: s3_menu
+    interaction:
+      type: continue
+      to: s3_menu
+  s3_both:
+    title: "Отметки риска: Да и Нет"
+    text: ""
+    mood: tense
+    entry:
+      - modify:
+          stat: risk_yes
+          delta: 1
+      - modify:
+          stat: risk_no
+          delta: 1
+      - redirect: s3_menu
+    interaction:
+      type: continue
+      to: s3_menu
+  s3_menu:
+    title: "Риск: выбор"
+    text: |-
+      Тянуть — [А]
+      Тянуть — [Б]
+      Взять подсакой — [В]
+    mood: tense
+    interaction:
+      type: choices
+      options:
+        - label: Вариант А
+          to: "19"
+          letter: А
+          if:
+            stat:
+              id: risk_yes
+              op: "="
+              value: 1
+          effects:
+            - modify:
+                stat: risk_yes
+                delta: -1
+            - modify:
+                stat: risk_no
+                delta: -1
+        - label: Вариант Б
+          to: "2"
+          letter: Б
+          if:
+            stat:
+              id: risk_no
+              op: "="
+              value: 1
+          effects:
+            - modify:
+                stat: risk_yes
+                delta: -1
+            - modify:
+                stat: risk_no
+                delta: -1
+        - label: Вариант В
+          to: "19"
+          letter: В
+          if:
+            has_item:
+              id: net
+  s5_yes:
+    title: "Отметки клёва: Клюет"
+    text: ""
+    mood: tense
+    entry:
+      - modify:
+          stat: bite_yes
+          delta: 1
+      - modify:
+          stat: bite_no
+          delta: -1
+      - redirect: s5_menu
+    interaction:
+      type: continue
+      to: s5_menu
+  s5_no:
+    title: "Отметки клёва: Не клюет"
+    text: ""
+    mood: tense
+    entry:
+      - modify:
+          stat: bite_yes
+          delta: -1
+      - modify:
+          stat: bite_no
+          delta: 1
+      - redirect: s5_menu
+    interaction:
+      type: continue
+      to: s5_menu
+  s5_both:
+    title: "Отметки клёва: Клюет и Не клюет"
+    text: ""
+    mood: tense
+    entry:
+      - modify:
+          stat: bite_yes
+          delta: 1
+      - modify:
+          stat: bite_no
+          delta: 1
+      - redirect: s5_menu
+    interaction:
+      type: continue
+      to: s5_menu
+  s5_menu:
+    title: "Клёв: выбор"
+    text: |-
+      Клюет — [А]
+      Ждать, «Усталость» +1 — [Б]
+      Сменить наживку — [В]
+      Рыбак уснул — [Г]
+    mood: tense
+    interaction:
+      type: choices
+      options:
+        - label: Вариант А
+          to: "10"
+          letter: А
+          if:
+            all:
+              - stat:
+                  id: bite_yes
+                  op: "="
+                  value: 1
+              - stat:
+                  id: fatigue
+                  op: "<"
+                  value: 5
+          effects:
+            - modify:
+                stat: bite_yes
+                delta: -1
+        - label: Вариант Б
+          to: "5"
+          letter: Б
+          if:
+            all:
+              - stat:
+                  id: bite_no
+                  op: "="
+                  value: 1
+              - stat:
+                  id: fatigue
+                  op: "<"
+                  value: 5
+          effects:
+            - modify:
+                stat: bite_no
+                delta: -1
+            - modify:
+                stat: fatigue
+                delta: 1
+        - label: Вариант В
+          to: "11"
+          letter: В
+          if:
+            all:
+              - stat:
+                  id: fatigue
+                  op: "<"
+                  value: 5
+              - stat:
+                  id: bite_yes
+                  op: "="
+                  value: 0
+          effects:
+            - modify:
+                stat: bait
+                delta: -7
+        - label: Вариант Г
+          to: "17"
+          letter: Г
+          if:
+            stat:
+              id: fatigue
+              op: ">="
+              value: 5
+  s6_carp:
+    title: "Отметки хлеба: Карп"
+    text: ""
+    mood: tense
+    entry:
+      - modify:
+          stat: fish_carp
+          delta: 1
+      - modify:
+          stat: fish_rudd
+          delta: -1
+      - modify:
+          stat: fish_crucian
+          delta: -1
+      - modify:
+          stat: fish_roach
+          delta: -1
+      - redirect: s6_menu
+    interaction:
+      type: continue
+      to: s6_menu
+  s6_rudd:
+    title: "Отметки хлеба: Красноперка"
+    text: ""
+    mood: tense
+    entry:
+      - modify:
+          stat: fish_carp
+          delta: -1
+      - modify:
+          stat: fish_rudd
+          delta: 1
+      - modify:
+          stat: fish_crucian
+          delta: -1
+      - modify:
+          stat: fish_roach
+          delta: -1
+      - redirect: s6_menu
+    interaction:
+      type: continue
+      to: s6_menu
+  s6_both:
+    title: "Отметки хлеба: Карп и Красноперка"
+    text: ""
+    mood: tense
+    entry:
+      - modify:
+          stat: fish_carp
+          delta: 1
+      - modify:
+          stat: fish_rudd
+          delta: 1
+      - modify:
+          stat: fish_crucian
+          delta: -1
+      - modify:
+          stat: fish_roach
+          delta: -1
+      - redirect: s6_menu
+    interaction:
+      type: continue
+      to: s6_menu
+  s6_menu:
+    title: "Хлеб: выбор"
+    text: |-
+      Карп — [А]
+      Красноперка — [Б]
+    mood: tense
+    interaction:
+      type: choices
+      options:
+        - label: Вариант А
+          to: "13"
+          letter: А
+          if:
+            stat:
+              id: fish_carp
+              op: "="
+              value: 1
+          effects:
+            - modify:
+                stat: fish_carp
+                delta: -1
+            - modify:
+                stat: fish_rudd
+                delta: -1
+            - modify:
+                stat: fish_crucian
+                delta: -1
+            - modify:
+                stat: fish_roach
+                delta: -1
+        - label: Вариант Б
+          to: "21"
+          letter: Б
+          if:
+            stat:
+              id: fish_rudd
+              op: "="
+              value: 1
+          effects:
+            - modify:
+                stat: fish_carp
+                delta: -1
+            - modify:
+                stat: fish_rudd
+                delta: -1
+            - modify:
+                stat: fish_crucian
+                delta: -1
+            - modify:
+                stat: fish_roach
+                delta: -1
+  fish_set_01:
+    title: Отметки рыбы 01
+    text: ""
+    mood: tense
+    entry:
+      - modify:
+          stat: fish_crucian
+          delta: 1
+      - modify:
+          stat: fish_carp
+          delta: -1
+      - modify:
+          stat: fish_rudd
+          delta: -1
+      - modify:
+          stat: fish_roach
+          delta: -1
+      - redirect: fish_menu
+    interaction:
+      type: continue
+      to: fish_menu
+  fish_set_02:
+    title: Отметки рыбы 02
+    text: ""
+    mood: tense
+    entry:
+      - modify:
+          stat: fish_crucian
+          delta: -1
+      - modify:
+          stat: fish_carp
+          delta: 1
+      - modify:
+          stat: fish_rudd
+          delta: -1
+      - modify:
+          stat: fish_roach
+          delta: -1
+      - redirect: fish_menu
+    interaction:
+      type: continue
+      to: fish_menu
+  fish_set_03:
+    title: Отметки рыбы 03
+    text: ""
+    mood: tense
+    entry:
+      - modify:
+          stat: fish_crucian
+          delta: 1
+      - modify:
+          stat: fish_carp
+          delta: 1
+      - modify:
+          stat: fish_rudd
+          delta: -1
+      - modify:
+          stat: fish_roach
+          delta: -1
+      - redirect: fish_menu
+    interaction:
+      type: continue
+      to: fish_menu
+  fish_set_04:
+    title: Отметки рыбы 04
+    text: ""
+    mood: tense
+    entry:
+      - modify:
+          stat: fish_crucian
+          delta: -1
+      - modify:
+          stat: fish_carp
+          delta: -1
+      - modify:
+          stat: fish_rudd
+          delta: 1
+      - modify:
+          stat: fish_roach
+          delta: -1
+      - redirect: fish_menu
+    interaction:
+      type: continue
+      to: fish_menu
+  fish_set_05:
+    title: Отметки рыбы 05
+    text: ""
+    mood: tense
+    entry:
+      - modify:
+          stat: fish_crucian
+          delta: 1
+      - modify:
+          stat: fish_carp
+          delta: -1
+      - modify:
+          stat: fish_rudd
+          delta: 1
+      - modify:
+          stat: fish_roach
+          delta: -1
+      - redirect: fish_menu
+    interaction:
+      type: continue
+      to: fish_menu
+  fish_set_06:
+    title: Отметки рыбы 06
+    text: ""
+    mood: tense
+    entry:
+      - modify:
+          stat: fish_crucian
+          delta: -1
+      - modify:
+          stat: fish_carp
+          delta: 1
+      - modify:
+          stat: fish_rudd
+          delta: 1
+      - modify:
+          stat: fish_roach
+          delta: -1
+      - redirect: fish_menu
+    interaction:
+      type: continue
+      to: fish_menu
+  fish_set_07:
+    title: Отметки рыбы 07
+    text: ""
+    mood: tense
+    entry:
+      - modify:
+          stat: fish_crucian
+          delta: 1
+      - modify:
+          stat: fish_carp
+          delta: 1
+      - modify:
+          stat: fish_rudd
+          delta: 1
+      - modify:
+          stat: fish_roach
+          delta: -1
+      - redirect: fish_menu
+    interaction:
+      type: continue
+      to: fish_menu
+  fish_set_08:
+    title: Отметки рыбы 08
+    text: ""
+    mood: tense
+    entry:
+      - modify:
+          stat: fish_crucian
+          delta: -1
+      - modify:
+          stat: fish_carp
+          delta: -1
+      - modify:
+          stat: fish_rudd
+          delta: -1
+      - modify:
+          stat: fish_roach
+          delta: 1
+      - redirect: fish_menu
+    interaction:
+      type: continue
+      to: fish_menu
+  fish_set_09:
+    title: Отметки рыбы 09
+    text: ""
+    mood: tense
+    entry:
+      - modify:
+          stat: fish_crucian
+          delta: 1
+      - modify:
+          stat: fish_carp
+          delta: -1
+      - modify:
+          stat: fish_rudd
+          delta: -1
+      - modify:
+          stat: fish_roach
+          delta: 1
+      - redirect: fish_menu
+    interaction:
+      type: continue
+      to: fish_menu
+  fish_set_10:
+    title: Отметки рыбы 10
+    text: ""
+    mood: tense
+    entry:
+      - modify:
+          stat: fish_crucian
+          delta: -1
+      - modify:
+          stat: fish_carp
+          delta: 1
+      - modify:
+          stat: fish_rudd
+          delta: -1
+      - modify:
+          stat: fish_roach
+          delta: 1
+      - redirect: fish_menu
+    interaction:
+      type: continue
+      to: fish_menu
+  fish_set_11:
+    title: Отметки рыбы 11
+    text: ""
+    mood: tense
+    entry:
+      - modify:
+          stat: fish_crucian
+          delta: 1
+      - modify:
+          stat: fish_carp
+          delta: 1
+      - modify:
+          stat: fish_rudd
+          delta: -1
+      - modify:
+          stat: fish_roach
+          delta: 1
+      - redirect: fish_menu
+    interaction:
+      type: continue
+      to: fish_menu
+  fish_set_12:
+    title: Отметки рыбы 12
+    text: ""
+    mood: tense
+    entry:
+      - modify:
+          stat: fish_crucian
+          delta: -1
+      - modify:
+          stat: fish_carp
+          delta: -1
+      - modify:
+          stat: fish_rudd
+          delta: 1
+      - modify:
+          stat: fish_roach
+          delta: 1
+      - redirect: fish_menu
+    interaction:
+      type: continue
+      to: fish_menu
+  fish_set_13:
+    title: Отметки рыбы 13
+    text: ""
+    mood: tense
+    entry:
+      - modify:
+          stat: fish_crucian
+          delta: 1
+      - modify:
+          stat: fish_carp
+          delta: -1
+      - modify:
+          stat: fish_rudd
+          delta: 1
+      - modify:
+          stat: fish_roach
+          delta: 1
+      - redirect: fish_menu
+    interaction:
+      type: continue
+      to: fish_menu
+  fish_set_14:
+    title: Отметки рыбы 14
+    text: ""
+    mood: tense
+    entry:
+      - modify:
+          stat: fish_crucian
+          delta: -1
+      - modify:
+          stat: fish_carp
+          delta: 1
+      - modify:
+          stat: fish_rudd
+          delta: 1
+      - modify:
+          stat: fish_roach
+          delta: 1
+      - redirect: fish_menu
+    interaction:
+      type: continue
+      to: fish_menu
+  fish_set_15:
+    title: Отметки рыбы 15
+    text: ""
+    mood: tense
+    entry:
+      - modify:
+          stat: fish_crucian
+          delta: 1
+      - modify:
+          stat: fish_carp
+          delta: 1
+      - modify:
+          stat: fish_rudd
+          delta: 1
+      - modify:
+          stat: fish_roach
+          delta: 1
+      - redirect: fish_menu
+    interaction:
+      type: continue
+      to: fish_menu
+  fish_menu:
+    title: "Рыба: выбор"
+    text: |-
+      Карась — [А]
+      Карп — [Б]
+      Красноперка — [В]
+      Плотва — [Г]
+    mood: tense
+    interaction:
+      type: choices
+      options:
+        - label: Вариант А
+          to: "16"
+          letter: А
+          if:
+            stat:
+              id: fish_crucian
+              op: "="
+              value: 1
+          effects:
+            - modify:
+                stat: fish_crucian
+                delta: -1
+            - modify:
+                stat: fish_carp
+                delta: -1
+            - modify:
+                stat: fish_rudd
+                delta: -1
+            - modify:
+                stat: fish_roach
+                delta: -1
+        - label: Вариант Б
+          to: "13"
+          letter: Б
+          if:
+            stat:
+              id: fish_carp
+              op: "="
+              value: 1
+          effects:
+            - modify:
+                stat: fish_crucian
+                delta: -1
+            - modify:
+                stat: fish_carp
+                delta: -1
+            - modify:
+                stat: fish_rudd
+                delta: -1
+            - modify:
+                stat: fish_roach
+                delta: -1
+        - label: Вариант В
+          to: "21"
+          letter: В
+          if:
+            stat:
+              id: fish_rudd
+              op: "="
+              value: 1
+          effects:
+            - modify:
+                stat: fish_crucian
+                delta: -1
+            - modify:
+                stat: fish_carp
+                delta: -1
+            - modify:
+                stat: fish_rudd
+                delta: -1
+            - modify:
+                stat: fish_roach
+                delta: -1
+        - label: Вариант Г
+          to: "18"
+          letter: Г
+          if:
+            stat:
+              id: fish_roach
+              op: "="
+              value: 1
+          effects:
+            - modify:
+                stat: fish_crucian
+                delta: -1
+            - modify:
+                stat: fish_carp
+                delta: -1
+            - modify:
+                stat: fish_rudd
+                delta: -1
+            - modify:
+                stat: fish_roach
+                delta: -1
+  s12_rudd:
+    title: "Отметки теста: Красноперка"
+    text: ""
+    mood: tense
+    entry:
+      - modify:
+          stat: fish_rudd
+          delta: 1
+      - modify:
+          stat: fish_roach
+          delta: -1
+      - modify:
+          stat: fish_carp
+          delta: -1
+      - modify:
+          stat: fish_crucian
+          delta: -1
+      - redirect: s12_menu
+    interaction:
+      type: continue
+      to: s12_menu
+  s12_roach:
+    title: "Отметки теста: Плотва"
+    text: ""
+    mood: tense
+    entry:
+      - modify:
+          stat: fish_rudd
+          delta: -1
+      - modify:
+          stat: fish_roach
+          delta: 1
+      - modify:
+          stat: fish_carp
+          delta: -1
+      - modify:
+          stat: fish_crucian
+          delta: -1
+      - redirect: s12_menu
+    interaction:
+      type: continue
+      to: s12_menu
+  s12_both:
+    title: "Отметки теста: Красноперка и Плотва"
+    text: ""
+    mood: tense
+    entry:
+      - modify:
+          stat: fish_rudd
+          delta: 1
+      - modify:
+          stat: fish_roach
+          delta: 1
+      - modify:
+          stat: fish_carp
+          delta: -1
+      - modify:
+          stat: fish_crucian
+          delta: -1
+      - redirect: s12_menu
+    interaction:
+      type: continue
+      to: s12_menu
+  s12_menu:
+    title: "Тесто: выбор"
+    text: |-
+      Красноперка — [А]
+      Плотва — [Б]
+    mood: tense
+    interaction:
+      type: choices
+      options:
+        - label: Вариант А
+          to: "21"
+          letter: А
+          if:
+            stat:
+              id: fish_rudd
+              op: "="
+              value: 1
+          effects:
+            - modify:
+                stat: fish_rudd
+                delta: -1
+            - modify:
+                stat: fish_roach
+                delta: -1
+            - modify:
+                stat: fish_carp
+                delta: -1
+            - modify:
+                stat: fish_crucian
+                delta: -1
+        - label: Вариант Б
+          to: "18"
+          letter: Б
+          if:
+            stat:
+              id: fish_roach
+              op: "="
+              value: 1
+          effects:
+            - modify:
+                stat: fish_rudd
+                delta: -1
+            - modify:
+                stat: fish_roach
+                delta: -1
+            - modify:
+                stat: fish_carp
+                delta: -1
+            - modify:
+                stat: fish_crucian
+                delta: -1

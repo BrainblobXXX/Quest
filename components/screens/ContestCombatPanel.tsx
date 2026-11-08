@@ -2,35 +2,16 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { audio } from '@/lib/audio';
+import { usePanelKeys } from '@/lib/usePanelKeys';
+import { combatKey, combatKeyIndex } from '@/components/screens/combatKeys';
+import { roll2d6, rollDie } from '@/lib/rng';
+import { resolveContestRound } from '@/lib/combat';
+import { DieFace } from '@/components/screens/Dice';
 import type { CombatDef, Game, GameState } from '@/lib/types';
 
 type Phase = 'loadout' | 'round' | 'rolling' | 'victory' | 'defeat';
 type Roll = { enemy: number; player: number; enemyFaces: number[]; playerFaces: number[] };
 
-const DIE_PIPS: Record<number, number[]> = {
-  1: [5],
-  2: [1, 9],
-  3: [1, 5, 9],
-  4: [1, 3, 7, 9],
-  5: [1, 3, 5, 7, 9],
-  6: [1, 3, 4, 6, 7, 9],
-};
-
-function DieFace({ value }: { value: number }) {
-  const active = DIE_PIPS[value] ?? [];
-  return (
-    <span className="combat-die-face contest-die-face" role="img" aria-label={`${value}`}>
-      {Array.from({ length: 9 }, (_, index) => (
-        <span key={index} className={`combat-die-pip${active.includes(index + 1) ? ' on' : ''}`} />
-      ))}
-    </span>
-  );
-}
-
-function roll2d6(): { total: number; faces: number[] } {
-  const faces = [1 + Math.floor(Math.random() * 6), 1 + Math.floor(Math.random() * 6)];
-  return { total: faces[0] + faces[1], faces };
-}
 
 export default function ContestCombatPanel({
   game,
@@ -119,7 +100,7 @@ export default function ContestCombatPanel({
     setPhase('rolling');
     audio.click();
     interval.current = window.setInterval(() => {
-      setDiceFaces(Array.from({ length: 4 }, () => 1 + Math.floor(Math.random() * 6)));
+      setDiceFaces(Array.from({ length: 4 }, () => rollDie(6)));
     }, 80);
     timer.current = window.setTimeout(() => {
       if (interval.current !== null) {
@@ -129,45 +110,51 @@ export default function ContestCombatPanel({
       timer.current = null;
       setDiceFaces([...enemyRoll.faces, ...playerRoll.faces]);
 
-      const enemyCheck = enemyRoll.total + Math.max(brains, luck) + armor;
-      const enemyHit = enemyCheck >= Number(enemy.attack);
-      let nextHp = hp;
-      if (enemyHit) nextHp = Math.max(0, hp - 1);
+      const result = resolveContestRound({
+        hp,
+        enemyHp,
+        enemyAttack: Number(enemy.attack),
+        enemyDefense: defense,
+        brains,
+        luck,
+        muscles,
+        armor,
+        weaponRating,
+        stopAtOne: combat.stopAtOne,
+        enemyFaces: enemyRoll.faces,
+        playerFaces: playerRoll.faces,
+      });
       addLog(
-        `РАУНД ${round}: противник ${enemyRoll.total} + ${Math.max(brains, luck)} + броня ${armor} = ${enemyCheck} против Атаки ${enemy.attack} — ${enemyHit ? 'попадание' : 'промах'}.`,
+        `РАУНД ${round}: противник ${result.enemyTotal} + ${Math.max(brains, luck)} + броня ${armor} = ${result.enemyCheck} против Атаки ${enemy.attack} — ${result.enemyHit ? 'попадание' : 'промах'}.`,
       );
-      if (enemyHit) addLog('Вы теряете 1 Здоровье.');
-      if (nextHp <= 0) {
-        setHp(0);
+      if (result.enemyHit) addLog('Вы теряете 1 Здоровье.');
+      setHp(result.hp);
+      if (result.outcome === 'defeat') {
+        addLog(`ИТОГ РАУНДА ${round}: противник ${result.enemyHp}/${enemyMax}, здоровье ${result.hp}/${hpMax}.`);
         setPhase('defeat');
         audio.beep();
         return;
       }
-      if (combat.stopAtOne && nextHp <= 1) {
-        setHp(nextHp);
+      if (result.playerCheck === 0) {
+        addLog(`ИТОГ РАУНДА ${round}: противник ${result.enemyHp}/${enemyMax}, здоровье ${result.hp}/${hpMax}.`);
         setPhase('victory');
         addLog('У одного из вас осталось 1 Здоровье — бой окончен.');
         audio.beep();
         return;
       }
 
-      const playerCheck = playerRoll.total + muscles + weaponRating;
-      const playerHit = playerCheck >= defense;
-      let nextEnemyHp = enemyHp;
-      if (playerHit) nextEnemyHp = Math.max(0, enemyHp - 1);
       addLog(
-        `Ваша атака: ${playerRoll.total} + ${muscles} + оружие ${weaponRating} = ${playerCheck} против Защиты ${defense} — ${playerHit ? 'попадание' : 'промах'}.`,
+        `Ваша атака: ${result.playerTotal} + ${muscles} + оружие ${weaponRating} = ${result.playerCheck} против Защиты ${defense} — ${result.playerHit ? 'попадание' : 'промах'}.`,
       );
-      if (playerHit) addLog('Противник теряет 1 Здоровье.');
-      setHp(nextHp);
-      setEnemyHp(nextEnemyHp);
+      if (result.playerHit) addLog('Противник теряет 1 Здоровье.');
+      setEnemyHp(result.enemyHp);
+      addLog(`ИТОГ РАУНДА ${round}: противник ${result.enemyHp}/${enemyMax}, здоровье ${result.hp}/${hpMax}.`);
       setRoll(null);
-      if (nextEnemyHp <= 0) {
+      if (result.outcome === 'victory') {
         setPhase('victory');
-        audio.beep();
-      } else if (combat.stopAtOne && nextEnemyHp <= 1) {
-        setPhase('victory');
-        addLog('У противника осталось 1 Здоровье — бой окончен.');
+        if (combat.stopAtOne && result.enemyHp <= 1 && result.enemyHp > 0) {
+          addLog('У противника осталось 1 Здоровье — бой окончен.');
+        }
         audio.beep();
       } else {
         setRound((value) => value + 1);
@@ -180,70 +167,57 @@ export default function ContestCombatPanel({
     onWin({ ...state, stats: { ...state.stats, hp } });
   };
 
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (phase === 'loadout') {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          event.stopPropagation();
+  usePanelKeys((event) => {
+    if (phase === 'loadout') {
+      if (event.key === 'Enter' || event.key === ' ') {
+        setPhase('round');
+        audio.click();
+        return true;
+      }
+      const keyIndex = combatKeyIndex(event.key);
+      if (keyIndex >= 0) {
+        const index = keyIndex;
+        if (index < weaponOptions.length) {
+          setSelectedWeapon(weaponOptions[index].id);
+          return true;
+        }
+        if (index === weaponOptions.length) {
+          setSelectedWeapon('fists');
+          return true;
+        }
+        if (index === weaponOptions.length + 1) {
           setPhase('round');
           audio.click();
-          return;
-        }
-        if (/^[1-9]$/.test(event.key)) {
-          const index = Number(event.key) - 1;
-          if (index < weaponOptions.length) {
-            event.preventDefault();
-            event.stopPropagation();
-            setSelectedWeapon(weaponOptions[index].id);
-          } else if (index === weaponOptions.length) {
-            event.preventDefault();
-            event.stopPropagation();
-            setSelectedWeapon('fists');
-          } else if (index === weaponOptions.length + 1) {
-            event.preventDefault();
-            event.stopPropagation();
-            setPhase('round');
-            audio.click();
-          }
-        }
-        return;
-      }
-      if (phase === 'round' && (event.key === 'Enter' || event.key === ' ' || event.key === '1')) {
-        event.preventDefault();
-        event.stopPropagation();
-        attack();
-        return;
-      }
-      if (phase === 'victory' && (event.key === 'Enter' || event.key === ' ' || event.key === '1')) {
-        event.preventDefault();
-        event.stopPropagation();
-        finish();
-        return;
-      }
-      if (phase === 'defeat') {
-        if (event.key === '1' || event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          event.stopPropagation();
-          onRestart();
-        } else if (event.key === '2') {
-          event.preventDefault();
-          event.stopPropagation();
-          onExit();
+          return true;
         }
       }
-    };
-    window.addEventListener('keydown', onKey, true);
-    return () => window.removeEventListener('keydown', onKey, true);
-  }, [phase, weaponOptions, selectedWeapon]);
+      return false;
+    }
+    if (phase === 'round' && (event.key === 'Enter' || event.key === ' ' || event.key.toUpperCase() === 'A')) {
+      attack();
+      return true;
+    }
+    if (phase === 'victory' && (event.key === 'Enter' || event.key === ' ' || event.key.toUpperCase() === 'A')) {
+      finish();
+      return true;
+    }
+    if (phase === 'defeat') {
+      if (event.key.toUpperCase() === 'A' || event.key === 'Enter' || event.key === ' ') {
+        onRestart();
+        return true;
+      }
+      if (event.key.toUpperCase() === 'B') {
+        onExit();
+        return true;
+      }
+    }
+    return false;
+  });
 
   return (
     <div className="combat-panel contest-panel" aria-label={`Бой: ${enemy.name}`}>
       <div className="combat-status-line">
         <span>РАУНД: {round}.</span>
-        <span>Противник — {enemy.name.toUpperCase()} {enemyHp}/{enemyMax}.</span>
-        <span>Персонаж — Здоровье {hp}/{hpMax}.</span>
-        <span>Атака {enemy.attack} · Защита {defense}.</span>
       </div>
 
       <div className="combat-log" aria-live="polite">
@@ -258,11 +232,11 @@ export default function ContestCombatPanel({
         <div className="combat-dice-live">
           <span>ПРОТИВНИК</span>
           <span className="combat-dice-faces">
-            {diceFaces.slice(0, 2).map((face, index) => <DieFace value={face} key={`e${index}`} />)}
+            {diceFaces.slice(0, 2).map((face, index) => <DieFace value={face} key={`e${index}`} className="combat-die-face contest-die-face" />)}
           </span>
           <span>ВЫ</span>
           <span className="combat-dice-faces">
-            {diceFaces.slice(2).map((face, index) => <DieFace value={face} key={`p${index}`} />)}
+            {diceFaces.slice(2).map((face, index) => <DieFace value={face} key={`p${index}`} className="combat-die-face contest-die-face" />)}
           </span>
         </div>
       )}
@@ -281,7 +255,7 @@ export default function ContestCombatPanel({
                   audio.click();
                 }}
               >
-                {index + 1}. {option.title.toUpperCase()} · рейтинг {option.rating >= 0 ? '+' : ''}{option.rating}
+                {combatKey(index)}. {option.title.toUpperCase()} · рейтинг {option.rating >= 0 ? '+' : ''}{option.rating}
               </button>
             ))}
             <button
@@ -289,7 +263,7 @@ export default function ContestCombatPanel({
               className={`choice${selectedWeapon === 'fists' ? ' selected combat-selected' : ''}`}
               onClick={() => setSelectedWeapon('fists')}
             >
-              {weaponOptions.length + 1}. КУЛАКИ · рейтинг +0
+              {combatKey(weaponOptions.length)}. КУЛАКИ · рейтинг +0
             </button>
             <button
               type="button"
@@ -299,7 +273,7 @@ export default function ContestCombatPanel({
                 audio.click();
               }}
             >
-              {weaponOptions.length + 2}. В БОЙ
+              {combatKey(weaponOptions.length + 1)}. В БОЙ
             </button>
           </div>
         </>
@@ -310,7 +284,7 @@ export default function ContestCombatPanel({
           <div className="combat-note">ОРУЖИЕ: {weaponTitle} · рейтинг +{weaponRating} · БРОНЯ {armor}</div>
           <div className="choices combat-choices">
             <button type="button" className="choice selected" onClick={attack}>
-              1. АТАКОВАТЬ
+              A. АТАКОВАТЬ
             </button>
           </div>
         </>
@@ -321,7 +295,7 @@ export default function ContestCombatPanel({
           <div className="combat-note combat-victory-note">ПОБЕДА. Здоровье {hp} / {hpMax}.</div>
           <div className="choices combat-choices">
             <button type="button" className="choice selected" onClick={finish}>
-              1. ПРОДОЛЖИТЬ
+              A. ПРОДОЛЖИТЬ
             </button>
           </div>
         </>
@@ -332,10 +306,10 @@ export default function ContestCombatPanel({
           <div className="combat-note combat-defeat-note">ВЫ ПОГИБЛИ.</div>
           <div className="choices combat-choices">
             <button type="button" className="choice selected" onClick={onRestart}>
-              1. НАЧАТЬ ЗАНОВО
+              A. НАЧАТЬ ЗАНОВО
             </button>
             <button type="button" className="choice" onClick={onExit}>
-              2. В БИБЛИОТЕКУ
+              B. В БИБЛИОТЕКУ
             </button>
           </div>
         </>

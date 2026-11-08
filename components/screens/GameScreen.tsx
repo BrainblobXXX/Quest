@@ -4,71 +4,17 @@ import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { availableChoices, inventoryLine, isEnding, roll as rollDice, sceneOf } from '@/lib/engine';
 import { audio } from '@/lib/audio';
-import CombatPanel from '@/components/screens/CombatPanel';
-import CheckPanel from '@/components/screens/CheckPanel';
-import ContestCombatPanel from '@/components/screens/ContestCombatPanel';
-import GamblePanel from '@/components/screens/GamblePanel';
-import FalloutCombatPanel from '@/components/screens/FalloutCombatPanel';
+import InteractionHost from '@/components/screens/InteractionHost';
 import ShopPanel from '@/components/screens/ShopPanel';
+import { DieFace } from '@/components/screens/Dice';
+import { combatMode } from '@/lib/combat';
+import { instructionFor } from '@/lib/instructions';
 import type { Choice, Game, GameState, ParseProblem } from '@/lib/types';
-
-const SCENE_DIE_PIPS: Record<number, number[]> = {
-  1: [5],
-  2: [1, 9],
-  3: [1, 5, 9],
-  4: [1, 3, 7, 9],
-  5: [1, 3, 5, 7, 9],
-  6: [1, 3, 4, 6, 7, 9],
-};
-
-/** грань кубика: 1–6 точками, значения больше 6 — числом */
-function SceneDie({ value }: { value: number }) {
-  if (value > 6) {
-    return (
-      <span className="roll-die-face roll-die-number" role="img" aria-label={`${value}`}>
-        {value}
-      </span>
-    );
-  }
-  const active = SCENE_DIE_PIPS[value] ?? [];
-  return (
-    <span className="roll-die-face combat-die-face" role="img" aria-label={`${value}`}>
-      {Array.from({ length: 9 }, (_, index) => (
-        <span key={index} className={`combat-die-pip${active.includes(index + 1) ? ' on' : ''}`} />
-      ))}
-    </span>
-  );
-}
 
 function diceMax(formula: string): number {
   const match = /^(\d+)d(\d+)$/i.exec(formula.trim());
   if (!match) return 6;
   return Math.max(1, Number(match[1]) * Number(match[2]));
-}
-
-/** подсветка исходной разметки story.md: теги вариантов, отсылки, маркеры */
-function rawMarkup(raw: string): ReactNode[] {
-  const re = /\{([АБВГД])\}([\s\S]*?)\{\/\1\}|\[([АБВГД])\]/g;
-  const out: ReactNode[] = [];
-  let last = 0;
-  let index = 0;
-  let match: RegExpExecArray | null;
-  while ((match = re.exec(raw))) {
-    if (match.index > last) out.push(raw.slice(last, match.index));
-    if (match[1]) {
-      out.push(
-        <span key={`o${index}`} className="raw-tag">{`{${match[1]}}`}</span>,
-        <mark key={`m${index}`} data-variant={match[1]}>{match[2]}</mark>,
-        <span key={`c${index}`} className="raw-tag">{`{/${match[1]}}`}</span>,
-      );
-    } else {
-      out.push(<span key={`r${index}`} className="raw-ref">{`[${match[3]}]`}</span>);
-    }
-    index += 1;
-    last = re.lastIndex;
-  }
-  out.push(raw.slice(last));
-  return out;
 }
 
 const LETTER = /\[([А-ЯЁA-Z])\]/g;
@@ -121,7 +67,7 @@ function StatsPanel({ stats }: { stats: StatView[] }) {
   );
 }
 
-function HeaderIcon({ kind }: { kind: 'inventory' | 'stats' | 'raw' | 'rules' | 'codes' }) {
+function HeaderIcon({ kind }: { kind: 'inventory' | 'stats' | 'rules' | 'codes' }) {
   return (
     <svg
       className="btn-icon"
@@ -147,12 +93,6 @@ function HeaderIcon({ kind }: { kind: 'inventory' | 'stats' | 'raw' | 'rules' | 
           <path d="M5 20v-8" />
           <path d="M12 20V5" />
           <path d="M19 20v-6" />
-        </>
-      )}
-      {kind === 'raw' && (
-        <>
-          <path d="m9 7-5 5 5 5" />
-          <path d="m15 7 5 5-5 5" />
         </>
       )}
       {kind === 'codes' && (
@@ -207,15 +147,13 @@ export default function GameScreen({
   const gamble = game.gambles?.[scene.key];
   const showGamble = Boolean(gamble && !(state.gamblesDone ?? []).includes(scene.key));
   const hasCombat = Boolean(combat?.enemy.count && combat.enemy.count > 0);
-  const contestCombat = hasCombat && combat?.enemy.defense !== undefined && game.type === 'fighting-fantasy';
-  const falloutCombat = hasCombat && combat?.enemy.defense !== undefined && game.type === 'rpg';
+  const mode = combatMode(game, combat);
   const [combatStarted, setCombatStarted] = useState(false);
   const combatActive = hasCombat && combatStarted;
   const [rulesOpen, setRulesOpen] = useState(false);
-  const rulesScene = game.scenes.rules;
+  const instruction = instructionFor(game);
   const [invOpen, setInvOpen] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
-  const [rawOpen, setRawOpen] = useState(false);
   const [codesOpen, setCodesOpen] = useState(false);
   const [codeMessage, setCodeMessage] = useState<string | null>(null);
   const [zoom, setZoom] = useState(false);
@@ -244,6 +182,14 @@ export default function GameScreen({
     Object.keys(game.items ?? {}).length > 0 ||
     Object.keys(game.startItems ?? {}).length > 0 ||
     Object.keys(state.inventory).length > 0;
+  // Компактный HUD: не больше двух видимых статусов и/или объявленных предметов.
+  const compactStats = !combatActive && stats.length > 0 && stats.length <= 2;
+  const compactItems = !combatActive && Object.keys(game.items ?? {}).length > 0 && Object.keys(game.items ?? {}).length <= 2;
+  const compactInventory = compactItems
+    ? Object.entries(game.items ?? {})
+        .map(([id, item]) => ({ id, title: item.title, count: state.inventory[id] ?? 0 }))
+        .filter((item) => item.count > 0)
+    : [];
   const toggleInventory = () => {
     setInvOpen((value) => !value);
     setStatsOpen(false);
@@ -383,7 +329,6 @@ export default function GameScreen({
   useEffect(() => {
     setInvOpen(false);
     setStatsOpen(false);
-    setRawOpen(false);
     setZoom(false);
     setRulesOpen(false);
     setCodesOpen(false);
@@ -480,7 +425,7 @@ export default function GameScreen({
           e.preventDefault();
           return;
         }
-        if (e.key === 'Enter' || e.key === ' ' || e.key === '1') {
+        if (e.key === 'Enter' || e.key === ' ' || e.key.toUpperCase() === 'A') {
           const active = document.activeElement;
           const onButton = active instanceof HTMLElement && active.tagName === 'BUTTON';
           if (onButton && (e.key === 'Enter' || e.key === ' ')) return;
@@ -571,33 +516,48 @@ export default function GameScreen({
     };
   };
 
+
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div className="title-line">
         <span>{scene.title.toUpperCase()}</span>
-        {rulesScene && (
-          <button
-            type="button"
-            className={`rules-btn${rulesOpen ? ' on' : ''}`}
-            onClick={() => setRulesOpen((value) => !value)}
-            aria-expanded={rulesOpen}
-            aria-controls="rules-panel"
-            aria-label="Открыть правила книги"
-            title="Правила книги"
+        {(compactStats || compactItems) && (
+          <div
+            className="hud-inline"
+            aria-label={`Текущие параметры: ${[
+              ...stats.map((stat) => `${stat.title} ${stat.value}`),
+              ...compactInventory.map((item) => `${item.title} ${item.count}`),
+            ].join(', ')}`}
           >
-            <HeaderIcon kind="rules" />
-          </button>
+            {compactStats && stats.map((stat) => (
+              <span className="hud-chip hud-stat" key={`s-${stat.id}`}>
+                <span className="hud-label">{stat.title.toUpperCase()}</span>
+                <span className={`hud-value${stat.value <= 0 ? ' is-low' : ''}`}>{stat.value}</span>
+              </span>
+            ))}
+            {compactItems && (compactInventory.length === 0 ? (
+              <span className="hud-chip hud-empty">
+                <span className="hud-label">ИНВЕНТАРЬ</span>
+                <span className="hud-value">ПУСТО</span>
+              </span>
+            ) : compactInventory.map((item) => (
+              <span className="hud-chip hud-item" key={`i-${item.id}`}>
+                <span className="hud-label">{item.title.toUpperCase()}</span>
+                <span className="hud-value">{item.count}</span>
+              </span>
+            )))}
+          </div>
         )}
         <button
           type="button"
-          className={`raw-btn${rawOpen ? ' on' : ''}`}
-          onClick={() => setRawOpen((v) => !v)}
-          aria-pressed={rawOpen}
-          aria-label="Показать исходную разметку story.md"
-          title="Показать исходную разметку story.md"
+          className={`rules-btn${rulesOpen ? ' on' : ''}`}
+          onClick={() => setRulesOpen((value) => !value)}
+          aria-expanded={rulesOpen}
+          aria-controls="rules-panel"
+          aria-label="Открыть инструкцию к книге"
+          title="Инструкция"
         >
-          <span className="btn-text">MD</span>
-          <HeaderIcon kind="raw" />
+          <HeaderIcon kind="rules" />
         </button>
         {!combatActive && game.codes && Object.keys(game.codes).length > 0 && (
           <button
@@ -617,7 +577,7 @@ export default function GameScreen({
             <HeaderIcon kind="codes" />
           </button>
         )}
-        {!combatActive && hasStats && (
+        {!combatActive && hasStats && !compactStats && (
           <button
             type="button"
             className={`stats-toggle${statsOpen ? ' is-open' : ''}`}
@@ -631,7 +591,7 @@ export default function GameScreen({
             <HeaderIcon kind="stats" />
           </button>
         )}
-        {!combatActive && hasItems && (
+        {!combatActive && hasItems && !compactItems && (
           <button
             type="button"
             className={`inventory-toggle${invOpen ? ' is-open' : ''}`}
@@ -647,8 +607,8 @@ export default function GameScreen({
         )}
       </div>
 
-      {!combatActive && hasStats && statsOpen && <StatsPanel stats={stats} />}
-      {!combatActive && hasItems && invOpen && <InventoryPanel game={game} state={state} />}
+      {!combatActive && hasStats && !compactStats && statsOpen && <StatsPanel stats={stats} />}
+      {!combatActive && hasItems && !compactItems && invOpen && <InventoryPanel game={game} state={state} />}
       {!combatActive && codesOpen && game.codes && (
         <div className="codes-panel" aria-label="Известные коды">
           <div className="codes-title">ИЗВЕСТНЫЕ КОДЫ</div>
@@ -727,55 +687,28 @@ export default function GameScreen({
             </button>
           </figure>
         )}
-        {rawOpen && scene.raw ? (
-          <div className="scene-raw">{rawMarkup(scene.raw)}</div>
-        ) : (
-          <div className="scene-text">{sceneText()}</div>
-        )}
-        {scene.key === 'create' && game.stats?.creation_points && (
+        <div className="scene-text">{sceneText()}</div>
+        {scene.counter && game.stats?.[scene.counter.stat] && (
           <div className="creation-counter">
-            ОСТАЛОСЬ ОЧКОВ: {Number(state.stats.creation_points ?? 0)} / {Number(game.stats.creation_points.initial ?? 10)}
+            {(scene.counter.label ?? 'ОСТАЛОСЬ').toUpperCase()}: {Number(state.stats[scene.counter.stat] ?? 0)}
+            {' / '}
+            {Number(scene.counter.max ?? game.stats[scene.counter.stat]?.initial ?? 0)}
           </div>
         )}
-        {!hasCombat && showGamble && gamble && (
-          <GamblePanel game={game} state={state} gamble={gamble} onDone={onGamble} />
-        )}
-        {!hasCombat && !showGamble && check && (
-          <CheckPanel game={game} state={state} check={check} onResolve={onCheck} />
-        )}
-        {combatActive && combat && (
-          contestCombat ? (
-            <ContestCombatPanel
-              key={scene.key}
-              game={game}
-              state={state}
-              combat={combat}
-              onWin={onCombatWin}
-              onExit={onCombatExit}
-              onRestart={onRestart}
-            />
-          ) : falloutCombat ? (
-            <FalloutCombatPanel
-              key={scene.key}
-              game={game}
-              state={state}
-              combat={combat}
-              onWin={onCombatWin}
-              onExit={onCombatExit}
-              onRestart={onRestart}
-            />
-          ) : (
-            <CombatPanel
-              key={scene.key}
-              game={game}
-              state={state}
-              combat={combat}
-              onWin={onCombatWin}
-              onExit={onCombatExit}
-              onRestart={onRestart}
-            />
-          )
-        )}
+        <InteractionHost
+          key={scene.key}
+          game={game}
+          state={state}
+          check={!hasCombat && !showGamble ? check : null}
+          gamble={!hasCombat && showGamble ? gamble : null}
+          combat={combatActive ? combat : null}
+          combatMode={mode}
+          onGamble={onGamble}
+          onCheck={onCheck}
+          onCombatWin={onCombatWin}
+          onCombatExit={onCombatExit}
+          onRestart={onRestart}
+        />
       </div>
 
       {hasCombat && combat && !combatStarted && (
@@ -788,7 +721,7 @@ export default function GameScreen({
               setCombatStarted(true);
             }}
           >
-            1. НАЧАТЬ БОЙ
+            A. НАЧАТЬ БОЙ
           </button>
         </div>
       )}
@@ -801,6 +734,7 @@ export default function GameScreen({
           onBuy={onBuy}
           title={scene.shopTitle}
           currency={scene.shopCurrency}
+          currencyItem={scene.shopCurrencyItem}
         />
       )}
 
@@ -885,14 +819,19 @@ export default function GameScreen({
 
       {rollView && (
         <div className="roll-stage">
-          <div className={rollView.kind === 'coin' ? 'roll-coin' : 'roll-die'}>
+          <div className={rollView.kind === 'coin' ? 'roll-coin' : `roll-die${dice && diceMax(dice.roll) > 6 ? ' roll-die-d20' : ''}`}>
             {rollView.kind === 'coin'
               ? rollView.phase === 'result'
                 ? rollView.value === 1
                   ? 'ОРЁЛ'
                   : 'РЕШКА'
                 : '◉'
-              : <SceneDie value={rollView.phase === 'result' ? rollView.value : 1 + (tick % Math.max(1, dice ? diceMax(dice.roll) : 6))} />}
+              : <DieFace
+                value={rollView.phase === 'result' ? rollView.value : 1 + (tick % Math.max(1, dice ? diceMax(dice.roll) : 6))}
+                sides={dice ? diceMax(dice.roll) : 6}
+                className="roll-die-face combat-die-face"
+                numberClassName="roll-die-number"
+              />}
           </div>
           <div className="roll-caption">
             {rollView.phase === 'result'
@@ -908,34 +847,34 @@ export default function GameScreen({
         </div>
       )}
 
-      {!ending && !check && !showGamble && choices.length === 0 && !hasNext && (
+      {!ending && !check && !showGamble && !scene.codebook && choices.length === 0 && !hasNext && (
         <div className="choices error">СБОЙ: ТУПИК В СЦЕНЕ {scene.key}</div>
       )}
         </>
       )}
 
-      {rulesOpen && rulesScene && typeof document !== 'undefined' &&
+      {rulesOpen && typeof document !== 'undefined' &&
         createPortal(
           <div
             className="rules-modal"
             role="dialog"
             aria-modal="true"
-            aria-label="Правила книги"
+            aria-label="Инструкция к книге"
             onClick={() => setRulesOpen(false)}
           >
             <div className="rules-dialog" onClick={(event) => event.stopPropagation()}>
               <div className="rules-head">
-                <span>{rulesScene.title.toUpperCase()}</span>
+                <span>{instruction.title.toUpperCase()}</span>
                 <button
                   type="button"
                   className="rules-close"
                   onClick={() => setRulesOpen(false)}
-                  aria-label="Закрыть правила"
+                  aria-label="Закрыть инструкцию"
                 >
                   ЗАКРЫТЬ
                 </button>
               </div>
-              <div className="rules-body">{rulesScene.text}</div>
+              <div className="rules-body">{instruction.text}</div>
             </div>
           </div>,
           document.body,

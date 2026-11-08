@@ -2,27 +2,11 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { audio } from '@/lib/audio';
+import { usePanelKeys } from '@/lib/usePanelKeys';
+import { rollDie } from '@/lib/rng';
+import { DieFace } from '@/components/screens/Dice';
 import type { CheckDef, Game, GameState } from '@/lib/types';
 
-const DIE_PIPS: Record<number, number[]> = {
-  1: [5],
-  2: [1, 9],
-  3: [1, 5, 9],
-  4: [1, 3, 7, 9],
-  5: [1, 3, 5, 7, 9],
-  6: [1, 3, 4, 6, 7, 9],
-};
-
-function DieFace({ value }: { value: number }) {
-  const active = DIE_PIPS[value] ?? [];
-  return (
-    <span className="combat-die-face check-die-face" role="img" aria-label={`${value}`}>
-      {Array.from({ length: 9 }, (_, index) => (
-        <span key={index} className={`combat-die-pip${active.includes(index + 1) ? ' on' : ''}`} />
-      ))}
-    </span>
-  );
-}
 
 function evalExpr(expr: string, stats: Record<string, number>): number {
   const tokens = expr.match(/max|[a-z_][a-z0-9_]*|\d+|[()+\-*/]/gi) ?? [];
@@ -123,7 +107,7 @@ export default function CheckPanel({
       // Fallout: проверка навыка стоит (1d6 − навык) × 4 морали.
       let cost = 0;
       if (game.type === 'rpg' && check.skill) {
-        const die = 1 + Math.floor(Math.random() * 6);
+        const die = rollDie(6);
         cost = Math.max(0, (die - value) * 4);
         setMoraleCost(cost);
       }
@@ -132,13 +116,13 @@ export default function CheckPanel({
       audio.beep();
       return;
     }
-    const a = 1 + Math.floor(Math.random() * 6);
-    const b = 1 + Math.floor(Math.random() * 6);
+    const a = rollDie(6);
+    const b = rollDie(6);
     setFaces([a, b]);
     setPhase('rolling');
     audio.click();
     interval.current = window.setInterval(() => {
-      setFaces([1 + Math.floor(Math.random() * 6), 1 + Math.floor(Math.random() * 6)]);
+      setFaces([rollDie(6), rollDie(6)]);
     }, 80);
     timer.current = window.setTimeout(() => {
       if (interval.current !== null) {
@@ -168,22 +152,18 @@ export default function CheckPanel({
     }, 1300);
   };
 
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key !== 'Enter' && event.key !== ' ' && event.key !== '1') return;
-      if (phase === 'offer') {
-        event.preventDefault();
-        event.stopPropagation();
-        resolve();
-      } else if (phase === 'done') {
-        event.preventDefault();
-        event.stopPropagation();
-        onResolve(success, moraleCost);
-      }
-    };
-    window.addEventListener('keydown', onKey, true);
-    return () => window.removeEventListener('keydown', onKey, true);
-  }, [phase, success, moraleCost]);
+  usePanelKeys((event) => {
+    if (event.key !== 'Enter' && event.key !== ' ' && event.key !== '1') return false;
+    if (phase === 'offer') {
+      resolve();
+      return true;
+    }
+    if (phase === 'done') {
+      onResolve(success, moraleCost);
+      return true;
+    }
+    return false;
+  });
 
   const label = deterministic
     ? check.skill
@@ -197,8 +177,8 @@ export default function CheckPanel({
       <div className="check-formula">{label}</div>
       {!deterministic && phase !== 'offer' && (
         <div className="check-dice">
-          <DieFace value={faces[0]} />
-          <DieFace value={faces[1]} />
+          <DieFace value={faces[0]} className="combat-die-face check-die-face" />
+          <DieFace value={faces[1]} className="combat-die-face check-die-face" />
         </div>
       )}
       {phase === 'offer' && (
