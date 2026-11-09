@@ -1,0 +1,17 @@
+{
+  "source": "1.png",
+  "canvas": [
+    512,
+    512
+  ],
+  "states": {
+    "passive": "assets/zombies/zombie-passive.png",
+    "death": "assets/zombies/zombie-die.png",
+    "attack": [
+      "assets/zombies/zombie-attack_1.png",
+      "assets/zombies/zombie-attack_2.png",
+      "assets/zombies/zombie-attack_3.png"
+    ]
+  },
+  "count": 1
+}

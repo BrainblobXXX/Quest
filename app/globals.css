@@ -1936,3 +1936,185 @@ body {
   .cover-art { max-height: 46vh; }
   .cover-screen { gap: 5px; padding: 6px; }
 }
+
+/* ── визуальная панель боя (Кровь зомби) ─────────────────── */
+.combat-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+.combat-main { flex: 1 1 auto; min-width: 0; }
+.combat-visual {
+  flex: 0 0 190px;
+  width: 190px;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 8px 0;
+  border: 0;
+  background: none;
+  text-align: center;
+}
+.combat-visual.is-loadout { justify-content: center; }
+.combat-visual-block {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+.combat-visual-label {
+  color: #8a6a2f;
+  opacity: 0.8;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-align: center;
+}
+.combat-visual-separator {
+  width: 72%;
+  height: 1px;
+  margin: 8px 0 4px;
+  background: linear-gradient(90deg, transparent, rgba(255, 176, 0, 0.32), transparent);
+}
+.zombie-figure {
+  position: relative;
+  width: 142px;
+  height: 166px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.zombie-figure img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: bottom center;
+  filter: drop-shadow(0 0 10px rgba(255, 150, 20, 0.16));
+  animation: zombie-idle 3.2s ease-in-out infinite;
+  user-select: none;
+}
+.zombie-figure.player img { animation: zombie-hit 520ms ease-out both; }
+.zombie-figure.enemy img {
+  animation: zombie-lunge 300ms ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 14px rgba(255, 70, 20, 0.45));
+}
+.zombie-figure.dying img { animation: zombie-death 900ms ease-in forwards; }
+.zombie-figure.dead { opacity: 0; }
+.zombie-count {
+  position: absolute;
+  right: -2px;
+  top: 2px;
+  min-width: 32px;
+  padding: 3px 5px;
+  border: 1px solid rgba(255, 176, 0, 0.5);
+  background: rgba(26, 14, 0, 0.9);
+  color: #ffd27a;
+  font-family: var(--mono);
+  font-size: 16px;
+  line-height: 1;
+  text-align: center;
+  text-shadow: 0 0 8px rgba(255, 176, 0, 0.55);
+}
+.combat-weapon {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding-top: 0;
+  border-top: 0;
+}
+.weapon-icon {
+  width: 50px;
+  height: 50px;
+  margin: 2px 0;
+  color: #d9a13f;
+  filter: drop-shadow(0 0 6px rgba(255, 176, 0, 0.2));
+}
+.weapon-name {
+  max-width: 100%;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #ffd27a;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+.weapon-damage { color: #8a6a2f; font-size: 10px; letter-spacing: 1px; }
+
+/* иконки оружия в выборе */
+.combat-loadout-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.loadout-weapon-icon {
+  width: 30px;
+  height: 30px;
+  color: #d9a13f;
+  flex: 0 0 auto;
+}
+.choice-weapon-icon {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  margin-right: 5px;
+  vertical-align: -5px;
+  color: #c9a24a;
+}
+
+@keyframes zombie-idle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+@keyframes zombie-hit {
+  0% { transform: translateX(0); filter: brightness(1); }
+  25% { transform: translateX(-5px); filter: brightness(1.7) sepia(0.3); }
+  50% { transform: translateX(5px); filter: brightness(1.3); }
+  100% { transform: translateX(0); filter: brightness(1); }
+}
+@keyframes zombie-lunge {
+  from { transform: translateY(0) scale(1); }
+  to { transform: translateY(-4px) scale(1.035); }
+}
+@keyframes zombie-death {
+  0% { opacity: 1; transform: translateY(0) rotate(0); filter: brightness(1); }
+  35% { opacity: 0.9; filter: brightness(1.8); }
+  100% { opacity: 0; transform: translateY(18px) rotate(7deg); filter: brightness(0.6); }
+}
+
+@media (max-width: 760px) {
+  .combat-layout { display: block; }
+  .combat-visual {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    margin: 10px 0 6px;
+    padding: 4px 0;
+  }
+  .combat-visual-block { width: auto; }
+  .combat-visual-label { display: none; }
+  .combat-visual-separator {
+    width: 1px;
+    height: 92px;
+    margin: 0 2px;
+    background: linear-gradient(180deg, transparent, rgba(255, 176, 0, 0.3), transparent);
+  }
+  .zombie-figure { width: 100px; height: 122px; }
+  .combat-weapon { width: auto; }
+  .weapon-icon { width: 42px; height: 42px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zombie-figure img,
+  .zombie-figure.player img,
+  .zombie-figure.enemy img,
+  .zombie-figure.dying img { animation: none; }
+}
