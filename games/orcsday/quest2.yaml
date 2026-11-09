@@ -45,6 +45,7 @@ stats:
     min: 0
     max: 10
   hp:
+    vital: true
     title: Здоровье
     initial: 5
     min: 0

@@ -67,6 +67,7 @@ export default function Library({
   games,
   saves,
   onStart,
+  onBattle,
   onReset,
   onReload,
   sourceAt,
@@ -74,6 +75,7 @@ export default function Library({
   games: GameIndexEntry[];
   saves: Record<string, string | undefined>;
   onStart: (id: string) => void;
+  onBattle?: (id: string) => void;
   onReset: (id: string) => void;
   onReload: () => void;
   sourceAt?: string | null;
@@ -313,6 +315,19 @@ export default function Library({
                     >
                       Старт
                     </button>
+                    {open && g.id === 'zombie-blood' && onBattle && (
+                      <button
+                        type="button"
+                        className="lib-battle"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onBattle(g.id);
+                        }}
+                        title="Сражение с зомби"
+                      >
+                        Сражение с зомби
+                      </button>
+                    )}
                   </div>
 
                   {open && (

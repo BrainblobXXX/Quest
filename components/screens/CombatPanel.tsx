@@ -27,13 +27,91 @@ type CombatSetup = {
 };
 
 const ALIASES: Record<string, string> = { automatic: 'submachine' };
+const WEAPON_SOUNDS: Record<string, string> = {
+  penknife: 'knife.mp3',
+  baseball_bat: 'bat.mp3',
+  axe: 'bat.mp3',
+  sword: 'sword.mp3',
+  chainsaw: 'chainsaw.mp3',
+  crowbar: 'crowbar.mp3',
+  pistol: 'pistol.mp3',
+  sawed_off: 'shotgun.mp3',
+  shotgun: 'shotgun.mp3',
+  submachine: 'sub-machine.mp3',
+  fists: 'fists.mp3',
+};
+
+function weaponSoundUrl(game: Game, id: string): string | null {
+  const file = game.id === 'zombie-blood' ? WEAPON_SOUNDS[id] : undefined;
+  return file ? `/api/games/${encodeURIComponent(game.id)}/assets/sounds/weapons/${file}` : null;
+}
+
+function enemySoundUrl(game: Game, name: string): string | null {
+  if (game.id !== 'zombie-blood') return null;
+  const lower = name.toLowerCase();
+  const file = lower.includes('собак')
+    ? 'dog.mp3'
+    : lower.includes('крыс')
+      ? 'rat.mp3'
+      : lower.includes('зомби')
+        ? 'zombies.mp3'
+        : null;
+  return file ? `/api/games/${encodeURIComponent(game.id)}/assets/sounds/enemies/${file}` : null;
+}
 const DICE_ROLL_MS = 2000;
 const DICE_RANDOM_MS = 1500;
 const FISTS = 'fists';
 const PLAYER_PAUSE_MS = 650;
-const ENEMY_ATTACK_MS = 900;
-const DEATH_ANIM_MS = 950;
+const ATTACK_ANIM_MS = 1300;
+// Боевые эффекты на 15% тише предыдущих значений.
+const WEAPON_SFX_VOLUME = 0.56 * 0.85;
+const ENEMY_SFX_VOLUME = 0.65 * 0.85;
+const IDLE_ANIM_MS = 2900;
+const DEATH_ANIM_MS = 1450;
 type VisualPhase = 'idle' | 'player' | 'enemy' | 'dying' | 'dead';
+
+type EnemyVisual = {
+  key: string;
+  base: string;
+  passive: string[];
+  attack: string[];
+  death: string[];
+};
+
+function framePaths(prefix: string, count: number): string[] {
+  return Array.from({ length: count }, (_, index) => `${prefix}_${index + 1}.png`);
+}
+
+function enemyVisualFor(game: Game, name: string): EnemyVisual | null {
+  if (game.id !== 'zombie-blood') return null;
+  const base = `/api/games/${game.id}/assets`;
+  const lower = name.toLowerCase();
+  if (lower.includes('собак')) {
+    return {
+      key: 'dogs',
+      base: `${base}/dogs`,
+      passive: framePaths('dog-passive', 5),
+      attack: framePaths('dog-attack', 5),
+      death: ['dog_die_2.png', 'dog_die_3.png'],
+    };
+  }
+  if (lower.includes('крыс')) {
+    return {
+      key: 'rats',
+      base: `${base}/rats`,
+      passive: framePaths('rat-passive', 5),
+      attack: framePaths('rat-attack', 5),
+      death: framePaths('rat-die', 5),
+    };
+  }
+  return {
+    key: 'zombies',
+    base: `${base}/zombies`,
+    passive: ['zombie-passive.png'],
+    attack: ['zombie-attack_1.png', 'zombie-attack_2.png', 'zombie-attack_3.png'],
+    death: ['zombie-die.png'],
+  };
+}
 
 function rollDamage(formula: string): DamageRoll {
   const match = /^(\d+)d(\d+)([+-]\d+)?$/i.exec(formula.trim());
@@ -71,6 +149,7 @@ export default function CombatPanel({
   onWin,
   onExit,
   onRestart,
+  onStaminaChange,
 }: {
   game: Game;
   state: GameState;
@@ -78,6 +157,7 @@ export default function CombatPanel({
   onWin: (result: GameState) => void;
   onExit: () => void;
   onRestart: () => void;
+  onStaminaChange?: (value: number, max: number) => void;
 }) {
   const enemy = combat.enemy;
   const count = Math.max(1, Math.floor(enemy.count ?? 1));
@@ -85,6 +165,7 @@ export default function CombatPanel({
   const staminaDef = game.stats?.[staminaId];
   const healthTitle = staminaId === 'hp' ? 'Здоровье' : 'Выносливость';
   const staminaMax = Number(staminaDef?.max ?? 32);
+
   const staminaInitial = Number(
     state.initialStats?.[staminaId] ?? staminaDef?.initial ?? state.stats[staminaId] ?? 20,
   );
@@ -116,6 +197,12 @@ export default function CombatPanel({
   const [enemies, setEnemies] = useState<number[]>(setup.enemies);
   const [inventory, setInventory] = useState<Record<string, number>>(() => ({ ...initialInventory }));
   const [stamina, setStamina] = useState(setup.stamina);
+
+  useEffect(() => {
+    onStaminaChange?.(stamina, staminaMax);
+  }, [stamina, staminaMax, onStaminaChange]);
+
+
   const [phase, setPhase] = useState<Phase>(setup.phase);
   const [round, setRound] = useState(1);
   const [selectedWeapon, setSelectedWeapon] = useState<string>(FISTS);
@@ -126,7 +213,10 @@ export default function CombatPanel({
   const [log, setLog] = useState<string[]>(setup.log);
   const [selectedChoice, setSelectedChoice] = useState(0);
   const [visual, setVisual] = useState<VisualPhase>(setup.phase === 'victory' ? 'dead' : 'idle');
+  const [hitFlash, setHitFlash] = useState(false);
   const [attackFrame, setAttackFrame] = useState(0);
+  const [idleFrame, setIdleFrame] = useState(0);
+  const [deathFrame, setDeathFrame] = useState(0);
   const timer = useRef<number | null>(null);
   const sequence = useRef<number[]>([]);
   const faceTimer = useRef<number | null>(null);
@@ -231,33 +321,81 @@ export default function CombatPanel({
     if (phase === 'loadout' || phase === 'round') setVisual('idle');
   }, [phase]);
 
+  const enemyVisual = enemyVisualFor(game, enemy.name);
+  const enemyVisualKey = enemyVisual ? enemyVisual.key : 'none';
+  const hasVisual = Boolean(enemyVisual);
+
   useEffect(() => {
-    if (visual !== 'enemy') {
+    if (!enemyVisual || visual !== 'enemy' || enemyVisual.attack.length === 0) {
       setAttackFrame(0);
       return;
     }
-    const id = window.setInterval(() => setAttackFrame((frame) => (frame + 1) % 3), 150);
+    const length = enemyVisual.attack.length;
+    setAttackFrame(0);
+    if (length === 1) return;
+    let frame = 0;
+    const step = Math.max(120, Math.round(ATTACK_ANIM_MS / length));
+    const id = window.setInterval(() => {
+      frame += 1;
+      if (frame >= length) {
+        setAttackFrame(length - 1);
+        window.clearInterval(id);
+        return;
+      }
+      setAttackFrame(frame);
+    }, step);
     return () => window.clearInterval(id);
-  }, [visual]);
+  }, [visual, enemyVisualKey]);
 
-  const zombieVisual = game.id === 'zombie-blood';
-  const zombieBase = `/api/games/${game.id}/assets/zombies`;
-  const zombieSrc =
-    visual === 'dying' ? `${zombieBase}/zombie-die.png` :
-    visual === 'enemy' ? `${zombieBase}/zombie-attack_${attackFrame + 1}.png` :
-    `${zombieBase}/zombie-passive.png`;
+  const visualFrame = enemyVisual
+    ? visual === 'dying'
+      ? enemyVisual.death[deathFrame % enemyVisual.death.length]
+      : visual === 'enemy'
+        ? enemyVisual.attack[attackFrame % enemyVisual.attack.length]
+        : enemyVisual.passive[idleFrame % enemyVisual.passive.length]
+    : '';
+  const enemySrc = enemyVisual ? `${enemyVisual.base}/${visualFrame}` : '';
+
+  useEffect(() => {
+    if (!enemyVisual || visual !== 'idle' || enemyVisual.passive.length < 2) {
+      setIdleFrame(0);
+      return;
+    }
+    const id = window.setInterval(() => {
+      setIdleFrame((frame) => (frame + 1) % enemyVisual.passive.length);
+    }, Math.max(100, Math.round(IDLE_ANIM_MS / enemyVisual.passive.length)));
+    return () => window.clearInterval(id);
+  }, [enemyVisualKey, visual]);
+
+  useEffect(() => {
+    if (!enemyVisual || visual !== 'dying' || enemyVisual.death.length === 0) {
+      setDeathFrame(0);
+      return;
+    }
+    const length = enemyVisual.death.length;
+    setDeathFrame(0);
+    if (length === 1) return;
+    let frame = 0;
+    const step = Math.max(120, Math.round(DEATH_ANIM_MS / length));
+    const id = window.setInterval(() => {
+      frame += 1;
+      if (frame >= length) {
+        setDeathFrame(length - 1);
+        window.clearInterval(id);
+        return;
+      }
+      setDeathFrame(frame);
+    }, step);
+    return () => window.clearInterval(id);
+  }, [enemyVisualKey, visual]);
 
   // На выборе оружия спрайт скрыт, поэтому предзагружаем все кадры заранее:
-  // иначе при переходе в бой на долю секунды виден alt-текст вместо зомби.
+  // иначе при переходе в бой на долю секунды виден alt-текст вместо противника.
   useEffect(() => {
-    if (!zombieVisual) return;
-    const sources = [
-      `${zombieBase}/zombie-passive.png`,
-      `${zombieBase}/zombie-die.png`,
-      `${zombieBase}/zombie-attack_1.png`,
-      `${zombieBase}/zombie-attack_2.png`,
-      `${zombieBase}/zombie-attack_3.png`,
-    ];
+    if (!enemyVisual) return;
+    const sources = [...enemyVisual.passive, ...enemyVisual.attack, ...enemyVisual.death].map(
+      (file) => `${enemyVisual.base}/${file}`,
+    );
     const images = sources.map((src) => {
       const image = new window.Image();
       image.src = src;
@@ -266,7 +404,7 @@ export default function CombatPanel({
     return () => {
       for (const image of images) image.src = '';
     };
-  }, [zombieVisual, zombieBase]);
+  }, [enemyVisualKey]);
 
   const start = () => {
     const chosen =
@@ -317,6 +455,9 @@ export default function CombatPanel({
         total,
         threshold: combat.threshold,
       });
+      const hitSound = weaponSoundUrl(game, selected.id);
+      // Звук оружия: 0.7 → 0.56 → ещё −15%.
+      if (hitSound) audio.sfx(hitSound, WEAPON_SFX_VOLUME);
       setEnemies(result.enemies);
       setVisual(result.outcome === 'victory' ? 'dying' : 'player');
 
@@ -345,6 +486,8 @@ export default function CombatPanel({
 
       // Пауза после удара игрока: сначала показываем попадание, затем ответ врага.
       later(PLAYER_PAUSE_MS, () => {
+        const enemySound = enemySoundUrl(game, enemy.name);
+        if (enemySound) audio.sfx(enemySound, ENEMY_SFX_VOLUME);
         setVisual('enemy');
         setStamina(result.stamina);
         addLog(
@@ -355,8 +498,10 @@ export default function CombatPanel({
               : 'Все противники уничтожены.',
           `ИТОГ РАУНДА ${round}: противников ${result.after}, ${healthTitle} ${result.stamina}/${staminaMax}.`,
         );
-        later(ENEMY_ATTACK_MS, () => {
+        later(ATTACK_ANIM_MS, () => {
           setVisual('idle');
+          setHitFlash(true);
+          later(520, () => setHitFlash(false));
           setRoll(null);
           if (result.outcome === 'defeat') {
             setPhase('defeat');
@@ -472,8 +617,9 @@ export default function CombatPanel({
   const startNumber = fistsNumber + (grenades > 0 && !grenadeUsed ? 2 : 1);
 
   return (
-    <div className={`combat-panel${zombieVisual ? ' combat-with-visual' : ''}`} role="region" aria-label={`Бой: ${enemy.name}`} ref={panelRef}>
-      <div className={`combat-layout${zombieVisual ? ' combat-layout-with-visual' : ''}`}>
+    <div className={`combat-panel${hasVisual ? ' combat-with-visual' : ''}${hitFlash ? ' combat-player-hit' : ''}`} role="region" aria-label={`Бой: ${enemy.name}`} ref={panelRef}>
+      <div className={`combat-hit-flash${hitFlash ? ' is-hit' : ''}`} aria-hidden="true" />
+      <div className={`combat-layout${hasVisual ? ' combat-layout-with-visual' : ''}`}>
         <div className="combat-main">
       <div className={`combat-status-line${stamina <= 0 ? ' low' : ''}`}>
         <span>РАУНД: {round}.</span>
@@ -600,12 +746,13 @@ export default function CombatPanel({
       )}
         </div>
 
-        {zombieVisual && (
+        {hasVisual && (
           <aside className={`combat-visual${phase === 'loadout' ? ' is-loadout' : ''}`} aria-label={phase === 'loadout' ? 'Выбор оружия' : `Игрок против ${enemy.name}, осталось ${alive}`}>
             <div className="combat-visual-block combat-player-block">
               <div className="combat-visual-label">ИГРОК</div>
-              <div className="combat-weapon">
+              <div className={`combat-weapon${visual === 'player' || visual === 'dying' ? ' is-shooting' : ''}`}>
                 <WeaponIcon weaponId={selected.id} gameId={game.id} />
+                <span className="weapon-muzzle" aria-hidden="true" />
                 <div className="weapon-name">{weaponTitle}</div>
                 <div className="weapon-damage">{selectedDamage}</div>
               </div>
@@ -618,7 +765,7 @@ export default function CombatPanel({
                   <div className={`zombie-figure ${visual}`} role="img" aria-label={`${enemy.name}, осталось ${alive}`}>
                     {visual !== 'dead' && (
                       <img
-                        src={zombieSrc}
+                        src={enemySrc}
                         alt=""
                         draggable={false}
                         loading="eager"

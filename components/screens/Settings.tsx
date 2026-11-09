@@ -2,26 +2,30 @@
 
 import { useEffect, useState } from 'react';
 
-const ITEMS = ['sound', 'soundVolume', 'music', 'musicVolume'] as const;
+const ITEMS = ['sound', 'soundVolume', 'music', 'musicVolume', 'crt'] as const;
 
 export default function Settings({
   sound,
   music,
   soundVolume,
   musicVolume,
+  crt,
   onToggleSound,
   onToggleMusic,
   onSoundVolume,
   onMusicVolume,
+  onToggleCrt,
 }: {
   sound: boolean;
   music: boolean;
   soundVolume: number;
   musicVolume: number;
+  crt: boolean;
   onToggleSound: () => void;
   onToggleMusic: () => void;
   onSoundVolume: (value: number) => void;
   onMusicVolume: (value: number) => void;
+  onToggleCrt: () => void;
 }) {
   const [focus, setFocus] = useState<string | null>(null);
 
@@ -54,11 +58,12 @@ export default function Settings({
         e.preventDefault();
         if (focus === 'sound') onToggleSound();
         else if (focus === 'music') onToggleMusic();
+        else if (focus === 'crt') onToggleCrt();
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [focus, soundVolume, musicVolume, onSoundVolume, onMusicVolume, onToggleSound, onToggleMusic]);
+  }, [focus, soundVolume, musicVolume, onSoundVolume, onMusicVolume, onToggleSound, onToggleMusic, onToggleCrt]);
 
   useEffect(() => {
     if (!focus) return;
@@ -72,7 +77,7 @@ export default function Settings({
   return (
     <div>
       <h1 className="screen-heading">=== НАСТРОЙКИ ===</h1>
-      <div className="screen-note">ЗВУК И МУЗЫКА ДЛЯ ВСЕХ ИГР</div>
+      <div className="screen-note">ЗВУК, МУЗЫКА И ЭЛТ ДЛЯ ВСЕХ ИГР</div>
 
       <div className="settings-panel">
         <div className="settings-block">
@@ -97,7 +102,7 @@ export default function Settings({
             />
             <span className="volume-value">{Math.round(soundVolume * 100)}%</span>
           </div>
-          <div className="settings-note">щелчки, гул и писк</div>
+          <div className="settings-note">щелчки и писк</div>
         </div>
 
         <div className="settings-block">
@@ -123,6 +128,18 @@ export default function Settings({
             <span className="volume-value">{Math.round(musicVolume * 100)}%</span>
           </div>
           <div className="settings-note">треки сцен, отдельно от эффектов</div>
+        </div>
+
+        <div className="settings-block">
+          <button
+            className={`list-item${focusClass('crt')}`}
+            data-menu-key="crt"
+            onClick={onToggleCrt}
+            aria-pressed={crt}
+          >
+            ЭЛТ-ЭФФЕКТ: {crt ? 'ВКЛ' : 'ВЫКЛ'}
+          </button>
+          <div className="settings-note">гул ЭЛТ-монитора</div>
         </div>
       </div>
 

@@ -27,6 +27,8 @@ export type StatDef = {
   roll?: string;
   /** false — технический статус, не показывать в интерфейсе */
   show?: boolean;
+  /** жизненный показатель: показывается отдельным сердечком */
+  vital?: boolean;
 };
 
 export type Choice = {

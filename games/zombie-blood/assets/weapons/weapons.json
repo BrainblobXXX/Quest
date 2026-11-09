@@ -1,22 +1,29 @@
 {
-  "source": "Книга-игра «Кровь зомби», стр. 98 / §166–167 + pic_v2/weapons",
+  "source": "Кровь зомби: PDF стр. 98 + pic_v2/weapons",
   "items": {
     "baseball_bat": "bat.png",
     "penknife": "knife.png",
     "pistol": "pistol.png",
     "shotgun": "shotgun.png",
-    "sawed_off": "shotgun.png",
+    "sawed_off": "sawed_off.png",
     "axe": "axe.png",
     "submachine": "submachine.png",
-    "fists": "bare_hands.png"
+    "fists": "bare_hands.png",
+    "crowbar": "crowbar.png",
+    "sword": "sword.png",
+    "chainsaw": "chainsaw.png"
   },
   "files": [
     "axe.png",
     "bare_hands.png",
     "bat.png",
+    "chainsaw.png",
+    "crowbar.png",
     "knife.png",
     "pistol.png",
+    "sawed_off.png",
     "shotgun.png",
-    "submachine.png"
+    "submachine.png",
+    "sword.png"
   ]
 }

@@ -17,6 +17,7 @@ class AudioEngine {
   private musicVolume = 0.7;
   private soundVolume = 1;
   private musicEnabled = true;
+  private crtEnabled = true;
 
   constructor() {
     // диагностика в dev: window.__questAudioDebug() показывает состояние треков
@@ -62,17 +63,24 @@ class AudioEngine {
   }
 
   setEnabled(on: boolean): void {
-    // только гул, щелчки и писк; музыка живёт по своим настройкам
+    // только щелчки и писк; музыка живёт по своим настройкам
     this.enabled = on;
     if (!on) this.stopHum();
     else if (this.ctx) this.startHum();
+  }
+
+  /** Включает/выключает только фоновый гул ЭЛТ-монитора. */
+  setCrtEnabled(on: boolean): void {
+    this.crtEnabled = on;
+    if (!on) this.stopHum();
+    else if (this.ctx && this.enabled) this.startHum();
   }
 
   /** 0..1, влияет на гул, щелчки и писк */
   setSoundVolume(value: number): void {
     this.soundVolume = Math.min(1, Math.max(0, value));
     if (this.humGain) {
-      this.humGain.gain.value = this.enabled ? 0.015 * this.soundVolume : 0;
+      this.humGain.gain.value = this.enabled && this.crtEnabled ? 0.015 * this.soundVolume : 0;
     }
   }
 
@@ -218,13 +226,13 @@ class AudioEngine {
   }
 
   private startHum(): void {
-    if (!this.ctx || this.humGain) return;
+    if (!this.ctx || this.humGain || !this.enabled || !this.crtEnabled) return;
     const ctx = this.ctx;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = 'sine';
     osc.frequency.value = 55;
-    gain.gain.value = this.enabled ? 0.015 * this.soundVolume : 0;
+    gain.gain.value = this.enabled && this.crtEnabled ? 0.015 * this.soundVolume : 0;
     osc.connect(gain).connect(ctx.destination);
     osc.start();
     this.humOsc = osc;
@@ -269,6 +277,23 @@ class AudioEngine {
     osc.connect(gain).connect(ctx.destination);
     osc.start();
     osc.stop(ctx.currentTime + 0.13);
+  }
+
+  /** Короткий звуковой эффект (например, выстрел оружия). */
+  sfx(url: string, volume = 0.7): void {
+    if (!this.enabled || typeof window === 'undefined') return;
+    try {
+      const clip = new Audio(url);
+      clip.volume = Math.min(1, Math.max(0, this.soundVolume * volume));
+      clip.addEventListener('ended', () => {
+        clip.src = '';
+      });
+      void clip.play().catch(() => {
+        // браузер мог заблокировать автозапуск — не ломаем бой
+      });
+    } catch {
+      // звук не критичен для игрового процесса
+    }
   }
 }
 

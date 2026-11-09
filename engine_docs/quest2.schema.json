@@ -1048,6 +1048,10 @@
           "visible": {
             "type": "boolean",
             "default": true
+          },
+          "vital": {
+            "type": "boolean",
+            "default": false
           }
         }
       }

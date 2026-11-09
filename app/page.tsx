@@ -7,6 +7,7 @@ import Loading from '@/components/screens/Loading';
 import Library from '@/components/screens/Library';
 import Settings from '@/components/screens/Settings';
 import GameScreen from '@/components/screens/GameScreen';
+import BattleScreen from '@/components/screens/BattleScreen';
 import CoverPage from '@/components/screens/CoverPage';
 import InitialRoll from '@/components/screens/InitialRoll';
 import ErrorScreen from '@/components/screens/ErrorScreen';
@@ -53,11 +54,14 @@ export default function Page() {
   const [problems, setProblems] = useState<ParseProblem[]>([]);
   const [game, setGame] = useState<Game | null>(null);
   const [state, setState] = useState<GameState | null>(null);
+  const [battleGame, setBattleGame] = useState<Game | null>(null);
+  const [battleRestartToken, setBattleRestartToken] = useState(0);
   const [loading, setLoading] = useState<LoadingBook | null>(null);
   const [sound, setSound] = useState(true);
   const [music, setMusic] = useState(true);
   const [soundVolume, setSoundVolume] = useState(1);
   const [musicVolume, setMusicVolume] = useState(0.7);
+  const [crt, setCrt] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [confirmRestart, setConfirmRestart] = useState(false);
   const [initialRoll, setInitialRoll] = useState<string | null>(null);
@@ -89,6 +93,8 @@ export default function Page() {
     setMusic(settings.music);
     setSoundVolume(settings.soundVolume);
     setMusicVolume(settings.musicVolume);
+    setCrt(settings.crt);
+    audio.setCrtEnabled(settings.crt);
     audio.setEnabled(settings.sound);
     audio.setMusicEnabled(settings.music);
     audio.setSoundVolume(settings.soundVolume);
@@ -101,6 +107,7 @@ export default function Page() {
     const startAudio = () => {
       if (audioStarted.current) return;
       audioStarted.current = true;
+      audio.setCrtEnabled(crt);
       audio.start();
       audio.setEnabled(sound);
       audio.setMusicEnabled(music);
@@ -113,7 +120,7 @@ export default function Page() {
       window.removeEventListener('pointerdown', startAudio);
       window.removeEventListener('keydown', startAudio);
     };
-  }, [sound, music, soundVolume, musicVolume]);
+  }, [sound, music, soundVolume, musicVolume, crt]);
 
   // уход из приложения: свернуть вкладку, закрыть её или перейти на другой адрес —
   // гул и музыка должны замолчать; при возврате включаем их по настройкам
@@ -240,11 +247,43 @@ export default function Page() {
         audio.stopMusic();
         audio.beep();
         setGame(g);
+        setBattleGame(null);
         setState(next);
         setCoverOpen(Boolean(g.cover));
         setInitialRoll(rollStat);
         setScreen('game');
         if (!rollStat) saveState(next);
+      } catch (e: unknown) {
+        if (loadToken.current !== token) return;
+        setLoading(null);
+        setProblems(e instanceof PackageError ? e.problems : []);
+        setError(String(e instanceof Error ? e.message : e));
+        setScreen('error');
+      }
+    },
+    [games],
+  );
+
+  const startBattle = useCallback(
+    async (id: string) => {
+      const entry = games.find((g) => g.id === id);
+      const token = loadToken.current + 1;
+      loadToken.current = token;
+      setConfirmRestart(false);
+      setLoading({ id, title: entry?.title ?? id, progress: { stage: 'mount' } });
+      setScreen('loading');
+      audio.click();
+      try {
+        const { game: g, problems: parsed } = await loadGame(id, (progress) => {
+          if (loadToken.current !== token) return;
+          setLoading((current) => (current && current.id === id ? { ...current, progress } : current));
+        });
+        if (loadToken.current !== token) return;
+        setProblems(parsed);
+        setLoading(null);
+        setBattleGame(g);
+        setBattleRestartToken((value) => value + 1);
+        setScreen('battle');
       } catch (e: unknown) {
         if (loadToken.current !== token) return;
         setLoading(null);
@@ -357,6 +396,12 @@ export default function Page() {
   );
 
   const handleRestart = useCallback(async () => {
+    if (screen === 'battle' && battleGame) {
+      setConfirmRestart(false);
+      audio.click();
+      setBattleRestartToken((value) => value + 1);
+      return;
+    }
     if (!game) return;
 
     const token = loadToken.current + 1;
@@ -401,7 +446,7 @@ export default function Page() {
     if (!rollStat) saveState(next);
     setLoading(null);
     setScreen('game');
-  }, [game]);
+  }, [game, screen, battleGame]);
 
   useEffect(() => {
     if (!confirmRestart) return;
@@ -436,10 +481,15 @@ export default function Page() {
   );
 
   const handlePower = useCallback(() => {
+    if (screen === 'battle' && battleGame) {
+      audio.click();
+      setConfirmRestart(true);
+      return;
+    }
     if (!game || !state) return;
     audio.click();
     setConfirmRestart(true);
-  }, [game, state]);
+  }, [game, state, screen, battleGame]);
 
   const handleReset = useCallback(
     (id: string) => {
@@ -457,6 +507,7 @@ export default function Page() {
 
   const toLibrary = useCallback(() => {
     cancelLoading();
+    setBattleGame(null);
     setConfirmRestart(false);
     audio.stopMusic();
     audio.click();
@@ -465,13 +516,18 @@ export default function Page() {
   }, [cancelLoading, refreshSaves]);
 
   const toGame = useCallback(() => {
+    if (screen === 'battle' && battleGame) return;
+    if (screen === 'battle' && !battleGame) {
+      setScreen('library');
+      return;
+    }
     if (game && state) {
       cancelLoading();
       setConfirmRestart(false);
       audio.click();
       setScreen('game');
     }
-  }, [cancelLoading, game, state]);
+  }, [cancelLoading, game, state, screen, battleGame]);
 
   const toSettings = useCallback(() => {
     cancelLoading();
@@ -484,26 +540,26 @@ export default function Page() {
   const toggleSound = useCallback(() => {
     const next = !sound;
     setSound(next);
-    saveSettings({ sound: next, music, soundVolume, musicVolume });
+    saveSettings({ sound: next, music, soundVolume, musicVolume, crt });
     audio.setEnabled(next);
     if (next) audio.click();
-  }, [sound, music, soundVolume, musicVolume]);
+  }, [sound, music, soundVolume, musicVolume, crt]);
 
   const toggleMusic = useCallback(() => {
     const next = !music;
     setMusic(next);
-    saveSettings({ sound, music: next, soundVolume, musicVolume });
+    saveSettings({ sound, music: next, soundVolume, musicVolume, crt });
     audio.setMusicEnabled(next);
-  }, [sound, music, soundVolume, musicVolume]);
+  }, [sound, music, soundVolume, musicVolume, crt]);
 
   const changeSoundVolume = useCallback(
     (value: number) => {
       const v = Math.min(1, Math.max(0, value));
       setSoundVolume(v);
       audio.setSoundVolume(v);
-      saveSettings({ sound, music, soundVolume: v, musicVolume });
+      saveSettings({ sound, music, soundVolume: v, musicVolume, crt });
     },
-    [sound, music, musicVolume],
+    [sound, music, musicVolume, crt],
   );
 
   const changeMusicVolume = useCallback(
@@ -511,16 +567,23 @@ export default function Page() {
       const v = Math.min(1, Math.max(0, value));
       setMusicVolume(v);
       audio.setMusicVolume(v);
-      saveSettings({ sound, music, soundVolume, musicVolume: v });
+      saveSettings({ sound, music, soundVolume, musicVolume: v, crt });
     },
-    [sound, music, soundVolume],
+    [sound, music, soundVolume, crt],
   );
+
+  const toggleCrt = useCallback(() => {
+    const next = !crt;
+    setCrt(next);
+    saveSettings({ sound, music, soundVolume, musicVolume, crt: next });
+    audio.setCrtEnabled(next);
+  }, [sound, music, soundVolume, musicVolume, crt]);
 
   return (
     <Monoblock
       screen={screen}
-      gameAvailable={Boolean(game && state)}
-      powerAvailable={screen === 'game' && Boolean(game && state)}
+      gameAvailable={Boolean((game && state) || battleGame)}
+      powerAvailable={(screen === 'game' && Boolean(game && state)) || (screen === 'battle' && Boolean(battleGame))}
       onLibrary={toLibrary}
       onGame={toGame}
       onSettings={toSettings}
@@ -542,6 +605,7 @@ export default function Page() {
           games={games}
           saves={saves}
           onStart={startGame}
+          onBattle={startBattle}
           onReset={handleReset}
           onReload={refreshLibrary}
           sourceAt={sourceAt}
@@ -554,10 +618,12 @@ export default function Page() {
           music={music}
           soundVolume={soundVolume}
           musicVolume={musicVolume}
+          crt={crt}
           onToggleSound={toggleSound}
           onToggleMusic={toggleMusic}
           onSoundVolume={changeSoundVolume}
           onMusicVolume={changeMusicVolume}
+          onToggleCrt={toggleCrt}
         />
       )}
 
@@ -587,6 +653,10 @@ export default function Page() {
         />
       )}
 
+      {screen === 'battle' && battleGame && (
+        <BattleScreen key={`battle:${battleRestartToken}`} game={battleGame} onExit={toLibrary} />
+      )}
+
       {screen === 'error' && (
         <ErrorScreen
           message={error ?? 'НЕИЗВЕСТНАЯ ОШИБКА'}
@@ -598,7 +668,7 @@ export default function Page() {
       {confirmRestart && (
         <div className="confirm-overlay">
           <div className="confirm-box">
-            <div>НАЧАТЬ ИГРУ ЗАНОВО?</div>
+            <div>{screen === 'battle' ? 'НАЧАТЬ СРАЖЕНИЕ ЗАНОВО?' : 'НАЧАТЬ ИГРУ ЗАНОВО?'}</div>
             <div className="choices">
               <button className="choice" onClick={handleRestart}>
                 1. ДА

@@ -7,6 +7,7 @@ import { audio } from '@/lib/audio';
 import InteractionHost from '@/components/screens/InteractionHost';
 import ShopPanel from '@/components/screens/ShopPanel';
 import SceneItemChanges from '@/components/screens/SceneItemChanges';
+import { itemIconUrl } from '@/lib/itemIcons';
 import { DieFace } from '@/components/screens/Dice';
 import { combatMode } from '@/lib/combat';
 import { instructionFor } from '@/lib/instructions';
@@ -43,12 +44,22 @@ function InventoryPanel({ game, state }: { game: Game; state: GameState }) {
   return (
     <div className="inventory-panel" id="inventory-panel">
       {items.length === 0 && <div className="inventory-empty">ПУСТО</div>}
-      {items.map((it) => (
-        <div key={it.id} className="inventory-row">
-          <span>{it.title.toUpperCase()}</span>
-          <span className="count">{it.n}</span>
-        </div>
-      ))}
+      {items.map((it) => {
+        const icon = itemIconUrl(game, it.id);
+        return (
+          <div key={it.id} className="inventory-row">
+            <span className="inventory-name">
+              {icon ? (
+                <img className="inventory-icon" src={icon} alt="" draggable={false} />
+              ) : (
+                <span className="inventory-icon inventory-placeholder" aria-hidden="true" />
+              )}
+              {it.title.toUpperCase()}
+            </span>
+            <span className="count">{it.n}</span>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -63,6 +74,34 @@ function StatsPanel({ stats }: { stats: StatView[] }) {
           <span>{stat.title.toUpperCase()}</span>
           <span className={`stat-value${stat.value <= 0 ? ' is-low' : ''}`}>{stat.value}</span>
         </div>
+      ))}
+    </div>
+  );
+}
+
+function isVitalStat(id: string, def: { vital?: boolean }): boolean {
+  return def.vital === true || ['hp', 'health', 'life', 'stamina'].includes(id);
+}
+
+function VitalHud({ stats }: { stats: StatView[] }) {
+  if (stats.length === 0) return null;
+  return (
+    <div
+      className="vital-hud"
+      aria-label={`Жизненные показатели: ${stats.map((stat) => `${stat.title} ${stat.value}`).join(', ')}`}
+    >
+      {stats.map((stat) => (
+        <span
+          key={stat.id}
+          className={`vital-chip${stat.value <= 0 ? ' is-low' : ''}`}
+          title={`${stat.title}: ${stat.value}`}
+          aria-label={`${stat.title}: ${stat.value}`}
+        >
+          <svg className="vital-heart" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z" />
+          </svg>
+          <span className="vital-value">{stat.value}</span>
+        </span>
       ))}
     </div>
   );
@@ -169,13 +208,16 @@ export default function GameScreen({
     setCombatStarted(false);
   }, [scene.key]);
   const choices = availableChoices(game, state);
-  const stats = Object.entries(game.stats ?? {})
+  const allStats = Object.entries(game.stats ?? {})
     .filter(([, def]) => def.show !== false)
     .map(([id, def]) => ({
       id,
       title: def.title || id,
       value: state.stats[id] ?? def.initial ?? 0,
+      vital: isVitalStat(id, def),
     }));
+  const vitalStats = allStats.filter((stat) => stat.vital);
+  const stats = allStats.filter((stat) => !stat.vital);
   const statsSummary = stats.map((stat) => `${stat.title.toUpperCase()} ${stat.value}`).join(' · ');
   // меню показываем только если книга вообще умеет работать с предметами/статами
   const hasStats = stats.length > 0;
@@ -521,7 +563,19 @@ export default function GameScreen({
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div className="title-line">
-        <span>{scene.title.toUpperCase()}</span>
+        <button
+          type="button"
+          className={`rules-btn${rulesOpen ? ' on' : ''}`}
+          onClick={() => setRulesOpen((value) => !value)}
+          aria-expanded={rulesOpen}
+          aria-controls="rules-panel"
+          aria-label="Открыть инструкцию к книге"
+          title="Инструкция"
+        >
+          <HeaderIcon kind="rules" />
+        </button>
+        <span className="title-text">{scene.title.toUpperCase()}</span>
+        <VitalHud stats={vitalStats} />
         {(compactStats || compactItems) && (
           <div
             className="hud-inline"
@@ -549,17 +603,6 @@ export default function GameScreen({
             )))}
           </div>
         )}
-        <button
-          type="button"
-          className={`rules-btn${rulesOpen ? ' on' : ''}`}
-          onClick={() => setRulesOpen((value) => !value)}
-          aria-expanded={rulesOpen}
-          aria-controls="rules-panel"
-          aria-label="Открыть инструкцию к книге"
-          title="Инструкция"
-        >
-          <HeaderIcon kind="rules" />
-        </button>
         {!combatActive && game.codes && Object.keys(game.codes).length > 0 && (
           <button
             type="button"
@@ -602,8 +645,7 @@ export default function GameScreen({
             aria-label={`Инвентарь: ${inventoryLine(game, state) || 'пусто'}`}
             title="Инвентарь"
           >
-            <span className="inv-inline">{inventoryLine(game, state) || 'ПУСТО'}</span>
-            <HeaderIcon kind="inventory" />
+            <span className="inv-inline">ИНВЕНТАРЬ</span>
           </button>
         )}
       </div>

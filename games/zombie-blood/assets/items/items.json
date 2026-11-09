@@ -1,0 +1,23 @@
+{
+  "items": {
+    "rubber_gloves": "assets/items/rubber_gloves.png",
+    "lab_coat": "assets/items/lab_coat.png",
+    "short_rope": "assets/items/short_rope.png",
+    "climbing_rope": "assets/items/climbing_rope.png",
+    "pulley": "assets/items/pulley.png",
+    "note_paper": "assets/items/note_paper.png",
+    "note121": "assets/items/note_paper.png",
+    "code161": "assets/items/note_paper.png",
+    "note333": "assets/items/note_paper.png",
+    "brass_key": "assets/items/brass_key.png",
+    "keyring": "assets/items/keyring.png",
+    "number9_key": "assets/items/brass_key.png",
+    "number111_key": "assets/items/brass_key.png",
+    "car_keys": "assets/items/car_keys.png",
+    "money": "assets/items/money.png",
+    "ammo": "assets/items/ammo.png",
+    "shotgun_ammo": "assets/items/shotgun_ammo.png",
+    "hacksaw": "assets/items/hacksaw.png",
+    "grenade": "assets/items/grenade.png"
+  }
+}

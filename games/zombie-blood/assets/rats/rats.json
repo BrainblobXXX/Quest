@@ -1,0 +1,30 @@
+{
+  "source": "pic_v2/zombie art/rat.jpg",
+  "canvas": [
+    512,
+    512
+  ],
+  "animations": {
+    "passive": [
+      "rat-passive_1.png",
+      "rat-passive_2.png",
+      "rat-passive_3.png",
+      "rat-passive_4.png",
+      "rat-passive_5.png"
+    ],
+    "attack": [
+      "rat-attack_1.png",
+      "rat-attack_2.png",
+      "rat-attack_3.png",
+      "rat-attack_4.png",
+      "rat-attack_5.png"
+    ],
+    "death": [
+      "rat-die_1.png",
+      "rat-die_2.png",
+      "rat-die_3.png",
+      "rat-die_4.png",
+      "rat-die_5.png"
+    ]
+  }
+}

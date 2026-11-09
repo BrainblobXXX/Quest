@@ -9,8 +9,11 @@ const WEAPON_IMAGES: Record<string, string> = {
   penknife: 'knife.png',
   pistol: 'pistol.png',
   shotgun: 'shotgun.png',
-  sawed_off: 'shotgun.png',
+  sawed_off: 'sawed_off.png',
+  chainsaw: 'chainsaw.png',
   axe: 'axe.png',
+  sword: 'sword.png',
+  crowbar: 'crowbar.png',
   submachine: 'submachine.png',
   fists: 'bare_hands.png',
 };

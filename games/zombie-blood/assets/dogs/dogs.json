@@ -1,133 +1,27 @@
 {
   "source": "pic_v2/zombie art/dog.png",
-  "grid": {
-    "rows": 4,
-    "cols": 5
-  },
   "canvas": [
     512,
     512
   ],
-  "frames": [
-    {
-      "id": "dog-01",
-      "file": "assets/dogs/dog-01.png",
-      "row": 1,
-      "col": 1
-    },
-    {
-      "id": "dog-02",
-      "file": "assets/dogs/dog-02.png",
-      "row": 1,
-      "col": 2
-    },
-    {
-      "id": "dog-03",
-      "file": "assets/dogs/dog-03.png",
-      "row": 1,
-      "col": 3
-    },
-    {
-      "id": "dog-04",
-      "file": "assets/dogs/dog-04.png",
-      "row": 1,
-      "col": 4
-    },
-    {
-      "id": "dog-05",
-      "file": "assets/dogs/dog-05.png",
-      "row": 1,
-      "col": 5
-    },
-    {
-      "id": "dog-06",
-      "file": "assets/dogs/dog-06.png",
-      "row": 2,
-      "col": 1
-    },
-    {
-      "id": "dog-07",
-      "file": "assets/dogs/dog-07.png",
-      "row": 2,
-      "col": 2
-    },
-    {
-      "id": "dog-08",
-      "file": "assets/dogs/dog-08.png",
-      "row": 2,
-      "col": 3
-    },
-    {
-      "id": "dog-09",
-      "file": "assets/dogs/dog-09.png",
-      "row": 2,
-      "col": 4
-    },
-    {
-      "id": "dog-10",
-      "file": "assets/dogs/dog-10.png",
-      "row": 2,
-      "col": 5
-    },
-    {
-      "id": "dog-11",
-      "file": "assets/dogs/dog-11.png",
-      "row": 3,
-      "col": 1
-    },
-    {
-      "id": "dog-12",
-      "file": "assets/dogs/dog-12.png",
-      "row": 3,
-      "col": 2
-    },
-    {
-      "id": "dog-13",
-      "file": "assets/dogs/dog-13.png",
-      "row": 3,
-      "col": 3
-    },
-    {
-      "id": "dog-14",
-      "file": "assets/dogs/dog-14.png",
-      "row": 3,
-      "col": 4
-    },
-    {
-      "id": "dog-15",
-      "file": "assets/dogs/dog-15.png",
-      "row": 3,
-      "col": 5
-    },
-    {
-      "id": "dog-16",
-      "file": "assets/dogs/dog-16.png",
-      "row": 4,
-      "col": 1
-    },
-    {
-      "id": "dog-17",
-      "file": "assets/dogs/dog-17.png",
-      "row": 4,
-      "col": 2
-    },
-    {
-      "id": "dog-18",
-      "file": "assets/dogs/dog-18.png",
-      "row": 4,
-      "col": 3
-    },
-    {
-      "id": "dog-19",
-      "file": "assets/dogs/dog-19.png",
-      "row": 4,
-      "col": 4
-    },
-    {
-      "id": "dog-20",
-      "file": "assets/dogs/dog-20.png",
-      "row": 4,
-      "col": 5
-    }
-  ]
+  "animations": {
+    "passive": [
+      "dog-passive_1.png",
+      "dog-passive_2.png",
+      "dog-passive_3.png",
+      "dog-passive_4.png",
+      "dog-passive_5.png"
+    ],
+    "attack": [
+      "dog-attack_1.png",
+      "dog-attack_2.png",
+      "dog-attack_3.png",
+      "dog-attack_4.png",
+      "dog-attack_5.png"
+    ],
+    "death": [
+      "dog_die_2.png",
+      "dog_die_3.png"
+    ]
+  }
 }

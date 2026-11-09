@@ -24,6 +24,7 @@ features:
 - initial-roll
 stats:
   stamina:
+    vital: true
     title: Выносливость
     initial: 20
     min: 0
@@ -255,7 +256,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби без оружия
         count: 24
         attack: 1
         health: 1
@@ -306,7 +307,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби без оружия
         count: 2
         attack: 1
         health: 1
@@ -365,7 +366,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби без оружия
         count: 27
         attack: 1
         health: 1
@@ -431,7 +432,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби без оружия
         count: 26
         attack: 1
         health: 1
@@ -775,7 +776,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби без оружия
         count: 19
         attack: 1
         health: 1
@@ -907,7 +908,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби без оружия
         count: 6
         attack: 1
         health: 1
@@ -1118,7 +1119,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби без оружия
         count: 3
         attack: 1
         health: 1
@@ -1185,7 +1186,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби без оружия
         count: 24
         attack: 1
         health: 1
@@ -1408,7 +1409,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби без оружия
         count: 1
         attack: 1
         health: 1
@@ -1675,7 +1676,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби без оружия
         count: 4
         attack: 1
         health: 1
@@ -1845,7 +1846,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби без оружия
         count: 2
         attack: 1
         health: 1
@@ -2211,7 +2212,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби с оружием
         count: 12
         attack: 2
         health: 1
@@ -2252,7 +2253,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби без оружия
         count: 24
         attack: 1
         health: 1
@@ -2476,7 +2477,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби с оружием
         count: 2
         attack: 2
         health: 1
@@ -2563,7 +2564,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби без оружия
         count: 16
         attack: 1
         health: 1
@@ -2758,7 +2759,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби без оружия
         count: 19
         attack: 1
         health: 1
@@ -2856,7 +2857,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби без оружия
         count: 19
         attack: 1
         health: 1
@@ -2901,7 +2902,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби без оружия
         count: 10
         attack: 1
         health: 1
@@ -3038,7 +3039,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби без оружия
         count: 28
         attack: 1
         health: 1
@@ -3498,7 +3499,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби без оружия
         count: 8
         attack: 1
         health: 1
@@ -3643,7 +3644,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби без оружия
         count: 24
         attack: 1
         health: 1
@@ -3828,7 +3829,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби без оружия
         count: 17
         attack: 1
         health: 1
@@ -4213,7 +4214,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби без оружия
         count: 2
         attack: 1
         health: 1
@@ -4239,7 +4240,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби без оружия
         count: 2
         attack: 1
         health: 1
@@ -4433,7 +4434,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби без оружия
         count: 2
         attack: 1
         health: 1
@@ -4560,7 +4561,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби без оружия
         count: 27
         attack: 1
         health: 1
@@ -4664,7 +4665,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби без оружия
         count: 24
         attack: 1
         health: 1
@@ -4804,7 +4805,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби без оружия
         count: 17
         attack: 1
         health: 1
@@ -5025,7 +5026,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби без оружия
         count: 17
         attack: 1
         health: 1
@@ -5102,7 +5103,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби без оружия
         count: 2
         attack: 1
         health: 1
@@ -5159,7 +5160,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби без оружия
         count: 7
         attack: 1
         health: 1
@@ -5184,7 +5185,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби с оружием
         count: 13
         attack: 2
         health: 1
@@ -5209,7 +5210,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби без оружия
         count: 2
         attack: 1
         health: 1
@@ -5256,7 +5257,7 @@ scenes:
       type: combat
       mode: pool
       enemies:
-      - name: Зомби
+      - name: Зомби без оружия
         count: 6
         attack: 1
         health: 1

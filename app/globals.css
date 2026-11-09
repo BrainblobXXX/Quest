@@ -631,7 +631,7 @@ body {
   margin-bottom: 14px;
 }
 
-.title-line > span:first-child {
+.title-line > .title-text {
   flex: 1 1 auto;
   min-width: 0;
   display: -webkit-box;
@@ -2190,31 +2190,39 @@ body {
 .scene-item-changes {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin: 10px 0 8px;
-  padding: 7px 0 8px;
-  border-top: 1px dashed rgba(255, 176, 0, 0.22);
-  border-bottom: 1px dashed rgba(255, 176, 0, 0.16);
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin: 18px 0 8px;
+  padding: 14px 0 8px;
+  border-top: 1px dashed rgba(255, 176, 0, 0.28);
+  border-bottom: 1px dashed rgba(255, 176, 0, 0.14);
+  text-align: center;
 }
 .item-change-row {
   display: flex;
-  align-items: flex-start;
-  gap: 9px;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
   min-width: 0;
 }
 .item-change-kind {
-  flex: 0 0 58px;
-  padding-top: 9px;
-  font-size: 9px;
-  letter-spacing: 1px;
-  color: #8a6a2f;
-  text-transform: uppercase;
+  flex: none;
+  padding: 0;
+  font: inherit;
+  line-height: inherit;
+  letter-spacing: normal;
+  color: inherit;
+  text-shadow: inherit;
+  text-transform: none;
 }
-.item-change-kind.found { color: var(--green); }
-.item-change-kind.lost { color: var(--magenta); }
+.item-change-kind.found,
+.item-change-kind.lost { color: inherit; }
 .item-change-list {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 8px;
   min-width: 0;
 }
@@ -2258,14 +2266,300 @@ body {
   font-family: var(--mono);
   font-size: 9px;
 }
-.item-change-empty {
-  padding: 9px 0;
-  color: #6f5620;
-  font-size: 11px;
-}
 @media (max-width: 520px) {
-  .item-change-kind { flex-basis: 48px; font-size: 8px; }
+  .item-change-kind { font-size: inherit; }
   .item-change { width: 54px; }
   .item-change-icon { width: 34px; height: 34px; }
   .item-change-name { max-width: 54px; font-size: 8px; }
+}
+
+/* ── мини-игра «Сражение с зомби» ─────────────────────────── */
+.battle-screen {
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 2px 2px 20px;
+}
+.battle-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 176, 0, 0.3);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: #8a6a2f;
+  text-transform: uppercase;
+}
+.battle-title { color: #ff9b3d; }
+.battle-progress { color: #c9a24a; white-space: nowrap; }
+.battle-top-right { display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-left: auto; }
+.battle-health { max-width: 620px; margin: 30px auto 0; }
+.battle-kicker { color: #8a6a2f; font-size: 10px; letter-spacing: 2px; text-align: center; }
+.battle-room { padding-top: 4px; }
+.battle-room-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  color: #ff9b3d;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.battle-room-count { color: #8a6a2f; font-size: 9px; white-space: nowrap; }
+.battle-room-text {
+  margin: 7px 0 10px;
+  color: #d8b25a;
+  font-size: 15px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+.battle-error { color: var(--magenta); padding: 30px; text-align: center; }
+.battle-victory {
+  max-width: 620px;
+  margin: 8vh auto 0;
+  text-align: center;
+  color: #d8b25a;
+}
+.battle-victory h1 {
+  margin: 8px 0 16px;
+  color: var(--green);
+  font-size: clamp(24px, 4vw, 38px);
+  letter-spacing: 4px;
+  text-shadow: 0 0 18px rgba(51, 255, 0, 0.45);
+}
+.battle-victory p { margin: 10px 0; font-size: 15px; line-height: 1.65; }
+.battle-victory-choices { margin-top: 24px; display: inline-flex; flex-direction: column; gap: 5px; }
+.battle-victory-choices .choice { display: block; min-width: 240px; }
+
+.lib-actions { flex-direction: column; align-items: flex-end; gap: 5px; }
+.lib-battle {
+  margin-top: 8px;
+  min-width: 140px;
+  padding: 5px 8px;
+  border: 1px solid rgba(255, 80, 50, 0.65);
+  border-radius: 3px;
+  background: rgba(255, 50, 20, 0.08);
+  color: #ff8b6b;
+  font-family: var(--mono);
+  font-size: 9px;
+  line-height: 1.1;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.lib-battle:hover, .lib-battle:focus-visible { background: #ff8b6b; color: #180c00; outline: none; }
+@media (max-width: 760px) {
+  .battle-topbar { font-size: 9px; gap: 6px; }
+  .battle-title { font-size: 10px; }
+  .battle-room-text { font-size: 14px; }
+  .lib-actions { align-items: stretch; }
+  .lib-battle { min-width: 64px; width: 100%; }
+}
+
+/* предметные иконки в инвентаре и магазине */
+.inventory-name {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+.inventory-icon {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  object-fit: contain;
+  border: 1px solid rgba(51, 255, 0, 0.25);
+  background: rgba(255, 255, 255, 0.025);
+}
+.inventory-placeholder {
+  border-style: dashed;
+  background: transparent;
+}
+.shop-offer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+}
+.shop-offer-icon {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  object-fit: contain;
+  border: 1px solid rgba(255, 176, 0, 0.25);
+  background: rgba(255, 176, 0, 0.04);
+}
+.shop-offer-placeholder {
+  border-style: dashed;
+  background: transparent;
+}
+
+.battle-room-image {
+  margin: 10px 0 12px;
+  padding: 0;
+  border: 1px solid rgba(255, 176, 0, 0.22);
+  background: rgba(0, 0, 0, 0.2);
+  max-height: 300px;
+  overflow: hidden;
+}
+.battle-room-image img {
+  display: block;
+  width: 100%;
+  max-height: 300px;
+  object-fit: contain;
+}
+.battle-intro-choices { margin-top: 14px; }
+
+.battle-vital { margin: 0; }
+
+/* ── реакции на удары ─────────────────────────────────────── */
+.combat-panel { position: relative; }
+.combat-player-hit { animation: combat-player-shake 0.3s steps(2, end); }
+
+.combat-hit-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 0, 0, 0.22) 0 2px, transparent 2px 5px),
+    radial-gradient(circle at center, rgba(255, 0, 0, 0.18), rgba(120, 0, 0, 0.38));
+  mix-blend-mode: screen;
+}
+.combat-hit-flash.is-hit { animation: combat-screen-glitch 0.42s steps(3, end); }
+
+.combat-enemy-block { position: relative; }
+.combat-weapon { position: relative; }
+.weapon-muzzle {
+  position: absolute;
+  top: 20px;
+  left: calc(50% + 42px);
+  width: 24px;
+  height: 14px;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.3);
+  background: radial-gradient(ellipse at center, #fff 0%, #ffe27a 25%, #ff9d2e 48%, rgba(255, 60, 0, 0) 75%);
+  filter: drop-shadow(0 0 8px rgba(255, 180, 40, 0.9));
+}
+.combat-weapon.is-shooting .weapon-icon { animation: weapon-recoil 0.38s ease-out; }
+.combat-weapon.is-shooting .weapon-muzzle { animation: weapon-muzzle 0.34s ease-out; }
+
+@keyframes combat-screen-glitch {
+  0% { opacity: 0; transform: translateX(0); }
+  12% { opacity: 0.9; transform: translateX(-4px); }
+  24% { opacity: 0.25; transform: translateX(3px); }
+  38% { opacity: 0.7; transform: translateX(-2px); }
+  55% { opacity: 0.15; transform: translateX(2px); }
+  72% { opacity: 0.45; transform: translateX(0); }
+  100% { opacity: 0; transform: translateX(0); }
+}
+@keyframes combat-player-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  50% { transform: translateX(2px); }
+  75% { transform: translateX(-1px); }
+}
+@keyframes weapon-recoil {
+  0% { transform: translateX(0) rotate(0); }
+  22% { transform: translateX(-9px) translateY(2px) rotate(-5deg); }
+  45% { transform: translateX(2px) rotate(2deg); }
+  70% { transform: translateX(-2px) rotate(-1deg); }
+  100% { transform: translateX(0) rotate(0); }
+}
+@keyframes weapon-muzzle {
+  0% { opacity: 0; transform: scale(0.2); }
+  18% { opacity: 1; transform: scale(1.2); }
+  45% { opacity: 0.7; transform: scale(0.8); }
+  100% { opacity: 0; transform: scale(0.25); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .combat-player-hit { animation: none; }
+  .combat-hit-flash.is-hit { animation: none; opacity: 0; }
+  .combat-weapon.is-shooting .weapon-icon,
+  .combat-weapon.is-shooting .weapon-muzzle { animation: none; opacity: 0; }
+}
+
+
+/* крупная текстовая кнопка инвентаря в шапке книги */
+.title-line .inventory-toggle {
+  width: auto;
+  height: 34px;
+  max-width: none;
+  flex: 0 0 auto;
+  padding: 0 11px;
+  gap: 0;
+  justify-content: center;
+  border: 1px solid rgba(51, 255, 0, 0.55);
+  border-radius: 3px;
+  background: rgba(51, 255, 0, 0.06);
+}
+.title-line .inventory-toggle .inv-inline {
+  display: inline;
+  overflow: visible;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 1.5px;
+  color: var(--green);
+  text-shadow: 0 0 7px rgba(51, 255, 0, 0.55);
+}
+.title-line .inventory-toggle .btn-icon { display: none; }
+.title-line .inventory-toggle::after { display: none; }
+@media (max-width: 520px) {
+  .title-line .inventory-toggle { height: 30px; padding: 0 8px; }
+  .title-line .inventory-toggle .inv-inline { font-size: 13px; letter-spacing: 1px; }
+}
+
+/* жизненные показатели — отдельно от характеристик */
+.vital-hud {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+}
+.vital-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid rgba(255, 92, 92, 0.65);
+  border-radius: 3px;
+  background: rgba(255, 50, 50, 0.08);
+  color: #ff7171;
+  font-family: var(--mono);
+  line-height: 1;
+  text-shadow: 0 0 7px rgba(255, 60, 60, 0.55);
+}
+.vital-heart {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 17px;
+  fill: #ff5c5c;
+  filter: drop-shadow(0 0 4px rgba(255, 60, 60, 0.7));
+}
+.vital-value {
+  color: #ffd0c0;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.vital-chip.is-low {
+  border-color: var(--magenta);
+  color: var(--magenta);
+  text-shadow: 0 0 8px rgba(255, 0, 255, 0.7);
+}
+.vital-chip.is-low .vital-heart { fill: var(--magenta); filter: drop-shadow(0 0 6px rgba(255, 0, 255, 0.8)); }
+.vital-chip.is-low .vital-value { color: var(--magenta); }
+@media (max-width: 520px) {
+  .vital-chip { height: 27px; padding: 0 6px; }
+  .vital-heart { width: 15px; height: 15px; flex-basis: 15px; }
+  .vital-value { font-size: 14px; }
 }

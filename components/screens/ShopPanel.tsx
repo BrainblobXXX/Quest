@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { audio } from '@/lib/audio';
 import { usePanelKeys } from '@/lib/usePanelKeys';
+import { itemIconUrl } from '@/lib/itemIcons';
 import type { Game, GameState, ShopOffer } from '@/lib/types';
 
 export default function ShopPanel({
@@ -66,6 +67,7 @@ export default function ShopPanel({
       <div className="choices shop-choices">
         {offers.map((offer, index) => {
           const item = game.items?.[offer.item];
+          const icon = itemIconUrl(game, offer.item);
           const owned = (state.inventory[offer.item] ?? 0) > 0;
           const disabled = owned || money < offer.price;
           return (
@@ -80,9 +82,18 @@ export default function ShopPanel({
                 onBuy(offer.item, offer.price);
               }}
             >
-              {owned
-                ? `УЖЕ КУПЛЕНО: ${item?.title?.toUpperCase() ?? offer.item}`
-                : `КУПИТЬ: ${item?.title?.toUpperCase() ?? offer.item} · ${offer.price} ${currency}`}
+              <span className="shop-offer">
+                {icon ? (
+                  <img className="shop-offer-icon" src={icon} alt="" draggable={false} />
+                ) : (
+                  <span className="shop-offer-icon shop-offer-placeholder" aria-hidden="true" />
+                )}
+                <span>
+                  {owned
+                    ? `УЖЕ КУПЛЕНО: ${item?.title?.toUpperCase() ?? offer.item}`
+                    : `КУПИТЬ: ${item?.title?.toUpperCase() ?? offer.item} · ${offer.price} ${currency}`}
+                </span>
+              </span>
             </button>
           );
         })}

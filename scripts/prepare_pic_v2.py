@@ -110,29 +110,15 @@ def make_weapons() -> list[tuple[str, str]]:
 def make_dogs() -> int:
     DOGS_OUT.mkdir(parents=True, exist_ok=True)
     source = Image.open(SRC / 'zombie art' / 'dog.png').convert('RGB')
-    cell_w = source.width / 5
-    cell_h = source.height / 4
+    # Реальные границы клеток: линии сетки на исходнике не равномерны.
+    cols = [(18, 411), (423, 814), (822, 1227), (1239, 1629), (1637, 2030)]
+    rows = [(18, 504), (511, 997), (1004, 1466), (1473, 2019)]
     frames = []
-    for row in range(4):
-        for col in range(5):
+    for row, (top, bottom) in enumerate(rows):
+        for col, (left, right) in enumerate(cols):
             index = row * 5 + col + 1
-            # внутренняя часть клетки без чёрной рамки
-            left = round(col * cell_w) + 24
-            top = round(row * cell_h) + 24
-            right = round((col + 1) * cell_w) - 24
-            bottom = round((row + 1) * cell_h) - 24
             cut = remove_background(source.crop((left, top, right, bottom)))
-            cut = fit_canvas(trim_borders(cut, 14))
-            # В клетке 12 остаётся нижняя линия сетки и фрагмент соседнего кадра.
-            if index == 12:
-                import numpy as np
-                alpha = np.asarray(cut.getchannel('A')).copy()
-                alpha[458:, :] = 0
-                cut.putalpha(Image.fromarray(alpha, 'L'))
-                box = cut.getbbox()
-                if box:
-                    cut = cut.crop(box)
-                cut = fit_canvas(cut)
+            cut = fit_canvas(trim_borders(cut, 5))
             name = f'dog-{index:02d}.png'
             cut.save(DOGS_OUT / name, 'PNG', optimize=True)
             frames.append({'id': f'dog-{index:02d}', 'file': f'assets/dogs/{name}', 'row': row + 1, 'col': col + 1})

@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import { PanelButton } from './PanelButton';
 
-export type ScreenName = 'boot' | 'loading' | 'library' | 'game' | 'settings' | 'error';
+export type ScreenName = 'boot' | 'loading' | 'library' | 'game' | 'battle' | 'settings' | 'error';
 
 export default function Monoblock({
   screen,
@@ -97,7 +97,7 @@ export default function Monoblock({
           <div className="case-nav">
             <PanelButton
               label="Игра"
-              latched={screen === 'game'}
+              latched={screen === 'game' || screen === 'battle'}
               disabled={!gameAvailable}
               onClick={onGame}
             />
