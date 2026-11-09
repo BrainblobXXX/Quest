@@ -209,6 +209,8 @@ export type Game = {
   scenes: Record<string, Scene>;
 };
 
+export type ItemChange = { id: string; delta: number };
+
 export type GameState = {
   game: string;
   format: string;
@@ -223,6 +225,8 @@ export type GameState = {
   knownCodes?: string[];
   /** сцены, где ставка уже сделана */
   gamblesDone?: string[];
+  /** предметы, полученные/потерянные при входе в текущую сцену или действием в ней */
+  itemChanges?: ItemChange[];
   stats: Record<string, number>;
   /** стартовые значения после бросков (для лечения «до начального уровня») */
   initialStats?: Record<string, number>;

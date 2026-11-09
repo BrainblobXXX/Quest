@@ -2185,3 +2185,87 @@ body {
 @media (max-width: 520px) {
   .lib-group-row { padding-top: 11px; font-size: 10px; }
 }
+
+/* полученные/потерянные предметы сцены */
+.scene-item-changes {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 10px 0 8px;
+  padding: 7px 0 8px;
+  border-top: 1px dashed rgba(255, 176, 0, 0.22);
+  border-bottom: 1px dashed rgba(255, 176, 0, 0.16);
+}
+.item-change-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  min-width: 0;
+}
+.item-change-kind {
+  flex: 0 0 58px;
+  padding-top: 9px;
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: #8a6a2f;
+  text-transform: uppercase;
+}
+.item-change-kind.found { color: var(--green); }
+.item-change-kind.lost { color: var(--magenta); }
+.item-change-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+.item-change {
+  position: relative;
+  width: 62px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+}
+.item-change-icon {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  display: block;
+  border: 1px solid rgba(255, 176, 0, 0.3);
+  background: rgba(255, 176, 0, 0.04);
+}
+.item-change-placeholder {
+  border-style: dashed;
+  background: rgba(255, 176, 0, 0.018);
+}
+.item-change-name {
+  max-width: 62px;
+  max-height: 2.3em;
+  overflow: hidden;
+  color: #c9a24a;
+  font-size: 9px;
+  line-height: 1.15;
+  letter-spacing: 0.2px;
+}
+.item-change-count {
+  position: absolute;
+  top: -4px;
+  right: 1px;
+  padding: 1px 3px;
+  background: rgba(26, 14, 0, 0.95);
+  color: #ffd27a;
+  font-family: var(--mono);
+  font-size: 9px;
+}
+.item-change-empty {
+  padding: 9px 0;
+  color: #6f5620;
+  font-size: 11px;
+}
+@media (max-width: 520px) {
+  .item-change-kind { flex-basis: 48px; font-size: 8px; }
+  .item-change { width: 54px; }
+  .item-change-icon { width: 34px; height: 34px; }
+  .item-change-name { max-width: 54px; font-size: 8px; }
+}

@@ -1,4 +1,4 @@
-import { STATE_VERSION, type Choice, type Game, type GameState, type ItemDef, type Scene, type SceneEffect } from './types';
+import { STATE_VERSION, type Choice, type Game, type GameState, type ItemChange, type ItemDef, type Scene, type SceneEffect } from './types';
 import { rollDie, type Rng } from './rng';
 
 export function newState(game: Game, rng: Rng = Math.random): GameState {
@@ -23,13 +23,36 @@ export function newState(game: Game, rng: Rng = Math.random): GameState {
     updated: new Date().toISOString(),
   };
   // стартовая сцена тоже может что-то выдавать (game.yaml → on_enter)
-  return applyOnEnter(game, state, game.scenes[game.start], rng);
+  const entered = applyOnEnter(game, state, game.scenes[game.start], rng);
+  return { ...entered, itemChanges: inventoryDiff(state.inventory, entered.inventory) };
 }
 
 export function sceneOf(game: Game, state: GameState): Scene {
   const scene = game.scenes[state.scene];
   if (!scene) throw new Error(`E_SCENE_MISSING: ${state.scene}`);
   return scene;
+}
+
+/** Разница инвентаря: только реально изменившиеся предметы. */
+export function inventoryDiff(before: Record<string, number>, after: Record<string, number>): ItemChange[] {
+  const ids = new Set([...Object.keys(before), ...Object.keys(after)]);
+  return [...ids]
+    .map((id) => ({ id, delta: Number(after[id] ?? 0) - Number(before[id] ?? 0) }))
+    .filter((change) => change.delta !== 0)
+    .sort((a, b) => a.id.localeCompare(b.id));
+}
+
+export function mergeItemChanges(...groups: Array<ItemChange[] | undefined>): ItemChange[] {
+  const totals = new Map<string, number>();
+  for (const group of groups) {
+    for (const change of group ?? []) {
+      totals.set(change.id, (totals.get(change.id) ?? 0) + change.delta);
+    }
+  }
+  return [...totals.entries()]
+    .filter(([, delta]) => delta !== 0)
+    .map(([id, delta]) => ({ id, delta }))
+    .sort((a, b) => a.id.localeCompare(b.id));
 }
 
 /* ── условия ─────────────────────────────────────────────── */
@@ -286,7 +309,8 @@ export function blockedChoices(game: Game, state: GameState): Choice[] {
 
 export function choose(game: Game, state: GameState, choice: Choice, rng: Rng = Math.random): GameState {
   const moved = applyMods(game, state, choice);
-  return goToScene(game, moved, choice.goto, rng);
+  const carry = inventoryDiff(state.inventory, moved.inventory);
+  return goToScene(game, moved, choice.goto, rng, carry);
 }
 
 /** применяет известный код: target = (base ?? текущая сцена) + offset */
@@ -300,14 +324,25 @@ export function useCode(game: Game, state: GameState, id: string, rng: Rng = Mat
   return goToScene(game, state, target, rng);
 }
 
-export function goToScene(game: Game, state: GameState, key: string, rng: Rng = Math.random): GameState {
+export function goToScene(
+  game: Game,
+  state: GameState,
+  key: string,
+  rng: Rng = Math.random,
+  carry: ItemChange[] = [],
+): GameState {
+  const before = state.inventory;
   const moved: GameState = {
     ...state,
     scene: key,
     visited: [...state.visited, key],
     updated: new Date().toISOString(),
   };
-  return applyOnEnter(game, moved, game.scenes[key], rng);
+  const entered = applyOnEnter(game, moved, game.scenes[key], rng);
+  return {
+    ...entered,
+    itemChanges: mergeItemChanges(carry, inventoryDiff(before, entered.inventory)),
+  };
 }
 
 export function roll(dice: string, rng: Rng = Math.random): number {

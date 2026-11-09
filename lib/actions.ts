@@ -1,4 +1,4 @@
-import { advance, choose, goToScene, resolveRoll, useCode } from './engine';
+import { advance, choose, goToScene, inventoryDiff, mergeItemChanges, resolveRoll, useCode } from './engine';
 import { type Rng } from './rng';
 import type { Choice, Game, GameState } from './types';
 
@@ -85,13 +85,20 @@ export function applyAction(
         const left = (inventory[action.currencyItem] ?? 0) - cost;
         if (left > 0) inventory[action.currencyItem] = left;
         else delete inventory[action.currencyItem];
-        return { ...state, inventory, updated: new Date().toISOString() };
+        return {
+          ...state,
+          inventory,
+          itemChanges: mergeItemChanges(state.itemChanges, inventoryDiff(state.inventory, inventory)),
+          updated: new Date().toISOString(),
+        };
       }
       if (Number(state.stats.money ?? 0) < cost) return null;
+      const inventory = { ...state.inventory, [action.itemId]: 1 };
       return {
         ...state,
         stats: { ...state.stats, money: Number(state.stats.money ?? 0) - cost },
-        inventory: { ...state.inventory, [action.itemId]: 1 },
+        inventory,
+        itemChanges: mergeItemChanges(state.itemChanges, inventoryDiff(state.inventory, inventory)),
         updated: new Date().toISOString(),
       };
     }

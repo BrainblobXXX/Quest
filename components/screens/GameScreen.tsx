@@ -6,6 +6,7 @@ import { availableChoices, inventoryLine, isEnding, roll as rollDice, sceneOf } 
 import { audio } from '@/lib/audio';
 import InteractionHost from '@/components/screens/InteractionHost';
 import ShopPanel from '@/components/screens/ShopPanel';
+import SceneItemChanges from '@/components/screens/SceneItemChanges';
 import { DieFace } from '@/components/screens/Dice';
 import { combatMode } from '@/lib/combat';
 import { instructionFor } from '@/lib/instructions';
@@ -688,6 +689,7 @@ export default function GameScreen({
           </figure>
         )}
         <div className="scene-text">{sceneText()}</div>
+        <SceneItemChanges game={game} state={state} />
         {scene.counter && game.stats?.[scene.counter.stat] && (
           <div className="creation-counter">
             {(scene.counter.label ?? 'ОСТАЛОСЬ').toUpperCase()}: {Number(state.stats[scene.counter.stat] ?? 0)}

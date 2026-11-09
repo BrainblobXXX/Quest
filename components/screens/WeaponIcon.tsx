@@ -10,6 +10,9 @@ const WEAPON_IMAGES: Record<string, string> = {
   pistol: 'pistol.png',
   shotgun: 'shotgun.png',
   sawed_off: 'shotgun.png',
+  axe: 'axe.png',
+  submachine: 'submachine.png',
+  fists: 'bare_hands.png',
 };
 
 export function WeaponIcon({
