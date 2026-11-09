@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import type { GameIndexEntry } from '@/lib/types';
 
 /** тип книги для колонки «Тип»; неизвестное значение показываем как есть */
@@ -20,11 +20,30 @@ function typeLabel(type?: string): string {
   return TYPE_LABELS[type.toLowerCase()] ?? type;
 }
 
+type LibraryCategory = 'release' | 'beta' | 'alpha';
+
+const CATEGORY_LABELS: Record<LibraryCategory, string> = {
+  release: 'РЕЛИЗ',
+  beta: 'БЕТА',
+  alpha: 'АЛЬФА',
+};
+
+const CATEGORY_ORDER: LibraryCategory[] = ['release', 'beta', 'alpha'];
+
+function categoryOf(status?: string): LibraryCategory {
+  const value = (status ?? '').toLowerCase();
+  if (value === 'release' || value === 'released' || value === 'complete') return 'release';
+  if (value === 'alpha') return 'alpha';
+  return 'beta';
+}
+
 function statusLabel(status?: string): string {
   if (!status) return '—';
-  if (status.toLowerCase() === 'alpha') return 'АЛЬФА-ТЕСТ';
-  if (status.toLowerCase() === 'beta') return 'БЕТА-ТЕСТ';
-  if (status.toLowerCase() === 'complete') return 'ЗАВЕРШЕНА';
+  const normalized = status.toLowerCase();
+  if (normalized === 'alpha') return 'АЛЬФА-ТЕСТ';
+  if (normalized === 'beta') return 'БЕТА-ТЕСТ';
+  if (normalized === 'release' || normalized === 'released') return 'РЕЛИЗ';
+  if (normalized === 'complete') return 'ЗАВЕРШЕНА';
   return status.toUpperCase();
 }
 
@@ -64,10 +83,20 @@ export default function Library({
   const [openId, setOpenId] = useState<string | null>(null);
   const [coverPreview, setCoverPreview] = useState<{ title: string; src: string } | null>(null);
 
+  // Релиз сверху, затем бета и альфа; внутри категории — по названию.
+  const orderedGames = useMemo(
+    () =>
+      [...games].sort((a, b) => {
+        const byCategory = CATEGORY_ORDER.indexOf(categoryOf(a.status)) - CATEGORY_ORDER.indexOf(categoryOf(b.status));
+        return byCategory || a.title.localeCompare(b.title, 'ru');
+      }),
+    [games],
+  );
+
   // порядок пунктов меню: книги, затем перезагрузка, если список пуст
   const items = useMemo(
-    () => [...games.map((g) => `game:${g.id}`), ...(games.length === 0 ? ['reload'] : [])],
-    [games],
+    () => [...orderedGames.map((g) => `game:${g.id}`), ...(orderedGames.length === 0 ? ['reload'] : [])],
+    [orderedGames],
   );
 
   const toggleOpen = (id: string) => {
@@ -84,7 +113,7 @@ export default function Library({
     const onKey = (e: KeyboardEvent) => {
       // цифра открывает книгу сразу, как и раньше
       if (/^[1-9]$/.test(e.key) && !e.metaKey && !e.ctrlKey && !e.altKey) {
-        const entry = games[Number(e.key) - 1];
+        const entry = orderedGames[Number(e.key) - 1];
         if (entry) onStart(entry.id);
         return;
       }
@@ -129,7 +158,7 @@ export default function Library({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [games, items, focusKey, onStart, onReload]);
+  }, [orderedGames, items, focusKey, onStart, onReload]);
 
   // подсветка выбранного пункта должна попадать в видимую область
   useEffect(() => {
@@ -184,13 +213,26 @@ export default function Library({
               <span role="columnheader">Старт</span>
             </div>
 
-            {games.map((g, i) => {
+            {orderedGames.map((g, i) => {
               const key = `game:${g.id}`;
               const open = openId === g.id;
               const focused = focusKey === key;
               const progress = saves[g.id];
+              const category = categoryOf(g.status);
+              const previousCategory = i > 0 ? categoryOf(orderedGames[i - 1].status) : null;
+              const showGroup = category !== previousCategory;
+              const groupCount = orderedGames.filter((item) => categoryOf(item.status) === category).length;
 
               return (
+                <Fragment key={g.id}>
+                {showGroup && (
+                  <div className={`lib-group-row lib-group-${category}`} role="row">
+                    <span role="columnheader">
+                      {CATEGORY_LABELS[category]}
+                      <span className="lib-group-count">{groupCount}</span>
+                    </span>
+                  </div>
+                )}
                 <div
                   className={`lib-row${focused ? ' menu-focused-row' : ''}${
                     open ? ' lib-row-open' : ''
@@ -336,6 +378,7 @@ export default function Library({
                     </div>
                   )}
                 </div>
+                </Fragment>
               );
             })}
           </div>

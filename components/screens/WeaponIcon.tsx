@@ -4,7 +4,35 @@
  * Векторные иконки оружия для боевой панели.
  * Рисуются в том же янтарном контурном стиле, что и CRT-интерфейс.
  */
-export function WeaponIcon({ weaponId, className = 'weapon-icon' }: { weaponId: string; className?: string }) {
+const WEAPON_IMAGES: Record<string, string> = {
+  baseball_bat: 'bat.png',
+  penknife: 'knife.png',
+  pistol: 'pistol.png',
+  shotgun: 'shotgun.png',
+  sawed_off: 'shotgun.png',
+};
+
+export function WeaponIcon({
+  weaponId,
+  className = 'weapon-icon',
+  gameId,
+}: {
+  weaponId: string;
+  className?: string;
+  gameId?: string;
+}) {
+  const image = gameId === 'zombie-blood' ? WEAPON_IMAGES[weaponId] : undefined;
+  if (image) {
+    return (
+      <img
+        className={`${className} weapon-icon-image`}
+        src={`/api/games/${gameId}/assets/weapons/${image}`}
+        alt=""
+        draggable={false}
+      />
+    );
+  }
+
   return (
     <svg
       className={className}

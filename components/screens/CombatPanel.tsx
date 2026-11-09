@@ -247,6 +247,27 @@ export default function CombatPanel({
     visual === 'enemy' ? `${zombieBase}/zombie-attack_${attackFrame + 1}.png` :
     `${zombieBase}/zombie-passive.png`;
 
+  // На выборе оружия спрайт скрыт, поэтому предзагружаем все кадры заранее:
+  // иначе при переходе в бой на долю секунды виден alt-текст вместо зомби.
+  useEffect(() => {
+    if (!zombieVisual) return;
+    const sources = [
+      `${zombieBase}/zombie-passive.png`,
+      `${zombieBase}/zombie-die.png`,
+      `${zombieBase}/zombie-attack_1.png`,
+      `${zombieBase}/zombie-attack_2.png`,
+      `${zombieBase}/zombie-attack_3.png`,
+    ];
+    const images = sources.map((src) => {
+      const image = new window.Image();
+      image.src = src;
+      return image;
+    });
+    return () => {
+      for (const image of images) image.src = '';
+    };
+  }, [zombieVisual, zombieBase]);
+
   const start = () => {
     const chosen =
       weaponOptions.find((option) => option.id === selectedWeapon && option.usable) ??
@@ -452,7 +473,7 @@ export default function CombatPanel({
 
   return (
     <div className={`combat-panel${zombieVisual ? ' combat-with-visual' : ''}`} role="region" aria-label={`Бой: ${enemy.name}`} ref={panelRef}>
-      <div className="combat-layout">
+      <div className={`combat-layout${zombieVisual ? ' combat-layout-with-visual' : ''}`}>
         <div className="combat-main">
       <div className={`combat-status-line${stamina <= 0 ? ' low' : ''}`}>
         <span>РАУНД: {round}.</span>
@@ -486,7 +507,7 @@ export default function CombatPanel({
       {phase === 'loadout' && (
         <>
           <div className="combat-note combat-loadout-note">
-            <WeaponIcon weaponId={selected.id} className="loadout-weapon-icon" />
+            <WeaponIcon weaponId={selected.id} gameId={game.id} className="loadout-weapon-icon" />
             <span>ВЫБЕРИТЕ ОРУЖИЕ</span>
           </div>
           <div className="choices combat-choices">
@@ -502,7 +523,7 @@ export default function CombatPanel({
                   setWeaponPicked(true);
                 }}
               >
-                <WeaponIcon weaponId={option.id} className="choice-weapon-icon" />
+                <WeaponIcon weaponId={option.id} gameId={game.id} className="choice-weapon-icon" />
                 {combatKey(index)}. {option.title.toUpperCase()} · {option.damage}
                 {option.note ? ` · ${option.note}` : ''}
                 {selected.id === option.id ? ' · ВЫБРАНО' : ''}
@@ -517,7 +538,7 @@ export default function CombatPanel({
                 setWeaponPicked(true);
               }}
             >
-              <WeaponIcon weaponId={FISTS} className="choice-weapon-icon" />
+              <WeaponIcon weaponId={FISTS} gameId={game.id} className="choice-weapon-icon" />
               {combatKey(fistsNumber - 1)}. КУЛАКИ · 1d6−3{selected.id === FISTS ? ' · ВЫБРАНО' : ''}
             </button>
             {grenades > 0 && !grenadeUsed && (
@@ -580,17 +601,28 @@ export default function CombatPanel({
         </div>
 
         {zombieVisual && (
-          <aside className={`combat-visual${phase === 'loadout' ? ' is-loadout' : ''}`} aria-label={phase === 'loadout' ? 'Выбор оружия' : `Противник: ${enemy.name}, осталось ${alive}`}>
+          <aside className={`combat-visual${phase === 'loadout' ? ' is-loadout' : ''}`} aria-label={phase === 'loadout' ? 'Выбор оружия' : `Игрок против ${enemy.name}, осталось ${alive}`}>
+            <div className="combat-visual-block combat-player-block">
+              <div className="combat-visual-label">ИГРОК</div>
+              <div className="combat-weapon">
+                <WeaponIcon weaponId={selected.id} gameId={game.id} />
+                <div className="weapon-name">{weaponTitle}</div>
+                <div className="weapon-damage">{selectedDamage}</div>
+              </div>
+            </div>
             {phase !== 'loadout' && (
               <>
+                <div className="combat-vs" aria-hidden="true">VS</div>
                 <div className="combat-visual-block combat-enemy-block">
                   <div className="combat-visual-label">ПРОТИВНИК</div>
-                  <div className={`zombie-figure ${visual}`}>
+                  <div className={`zombie-figure ${visual}`} role="img" aria-label={`${enemy.name}, осталось ${alive}`}>
                     {visual !== 'dead' && (
                       <img
                         src={zombieSrc}
-                        alt={`${enemy.name}${alive > 0 ? `, осталось ${alive}` : ''}`}
+                        alt=""
                         draggable={false}
+                        loading="eager"
+                        decoding="async"
                       />
                     )}
                     <span className="zombie-count" aria-label={`Количество: ${alive}`}>
@@ -598,15 +630,8 @@ export default function CombatPanel({
                     </span>
                   </div>
                 </div>
-                <div className="combat-visual-separator" aria-hidden="true" />
               </>
             )}
-            <div className="combat-visual-block combat-weapon">
-              <div className="combat-visual-label">ОРУЖИЕ</div>
-              <WeaponIcon weaponId={selected.id} />
-              <div className="weapon-name">{weaponTitle}</div>
-              <div className="weapon-damage">{selectedDamage}</div>
-            </div>
           </aside>
         )}
       </div>
