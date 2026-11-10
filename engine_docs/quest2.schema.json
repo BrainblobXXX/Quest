@@ -581,6 +581,13 @@
         "attack": {
           "type": "number"
         },
+        "attack_roll": {
+          "type": "string"
+        },
+        "boss": {
+          "type": "boolean",
+          "default": false
+        },
         "defense": {
           "type": "number"
         },
@@ -589,6 +596,53 @@
           "minimum": 1
         },
         "weapon": {
+          "type": "string"
+        }
+      }
+    },
+    "combatAlly": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "damage"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "weapon": {
+          "type": "string"
+        },
+        "damage": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "combatRestrictions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "allowed_weapons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "allowed_items": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "force_weapon": {
           "type": "string"
         }
       }
@@ -770,6 +824,15 @@
             },
             "options": {
               "$ref": "#/$defs/combatOptions"
+            },
+            "allies": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/combatAlly"
+              }
+            },
+            "restrictions": {
+              "$ref": "#/$defs/combatRestrictions"
             },
             "outcomes": {
               "$ref": "#/$defs/combatOutcomes"

@@ -2615,3 +2615,109 @@ body {
   .battle-select { margin-top: 12px; }
   .battle-select-title { font-size: 18px; letter-spacing: 2px; }
 }
+
+/* отдельные карточки бросков участников боя */
+.combat-roll-card {
+  --roll-color: #ffd27a;
+  margin: 8px 0 2px;
+  padding: 7px 9px;
+  border: 1px solid color-mix(in srgb, var(--roll-color) 55%, transparent);
+  background: color-mix(in srgb, var(--roll-color) 7%, transparent);
+  color: var(--roll-color);
+}
+.combat-roll-card.actor-player { --roll-color: #7dff5c; }
+.combat-roll-card.actor-ally { --roll-color: #7dd3ff; }
+.combat-roll-card.actor-enemy { --roll-color: #ff7b7b; }
+.combat-roll-card.is-rolling { animation: combat-roll-pulse 500ms ease-in-out infinite alternate; }
+.combat-roll-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 4px;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.combat-roll-head strong { font-size: 12px; font-weight: 700; }
+.combat-roll-card .combat-die-face {
+  border-color: var(--roll-color);
+  background: color-mix(in srgb, var(--roll-color) 9%, transparent);
+}
+.combat-roll-card .combat-die-pip.on {
+  background: var(--roll-color);
+  box-shadow: 0 0 6px var(--roll-color);
+}
+.combat-roll-formula { color: var(--roll-color); font-size: 11px; letter-spacing: 1px; }
+.combat-restriction-note {
+  margin: 4px 0;
+  color: #ff9b6b;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+@keyframes combat-roll-pulse {
+  from { box-shadow: 0 0 0 rgba(0, 0, 0, 0); }
+  to { box-shadow: 0 0 12px color-mix(in srgb, var(--roll-color) 30%, transparent); }
+}
+
+/* боссы: боевое окно и спрайт на 50% больше */
+.combat-visual.combat-boss .combat-visual-block {
+  height: 243px;
+}
+.combat-visual.combat-boss .combat-enemy-block {
+  width: 183px;
+}
+.combat-visual.combat-boss .zombie-figure {
+  width: 183px;
+  height: 219px;
+  flex-basis: 219px;
+}
+@media (max-width: 760px) {
+  .combat-visual.combat-boss .combat-visual-block { height: 190px; }
+  .combat-visual.combat-boss .combat-enemy-block { width: 168px; }
+  .combat-visual.combat-boss .zombie-figure { width: 147px; height: 177px; flex-basis: 177px; }
+}
+
+/* союзник в боевой сцене: слева от оружия игрока */
+.combat-player-block.has-ally { width: 190px; }
+.combat-player-line {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.combat-ally {
+  width: 54px;
+  flex: 0 0 54px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: #7dd3ff;
+}
+.combat-ally-icon {
+  width: 40px;
+  height: 40px;
+  color: #7dd3ff;
+  filter: drop-shadow(0 0 5px rgba(125, 211, 255, 0.25));
+}
+.combat-ally-name {
+  color: #7dd3ff;
+  font-size: 8px;
+  letter-spacing: 0.5px;
+  line-height: 1.1;
+  text-align: center;
+  text-transform: uppercase;
+}
+.combat-ally.is-shooting .combat-ally-icon {
+  animation: weapon-recoil 0.38s ease-out;
+  filter: drop-shadow(0 0 9px rgba(125, 211, 255, 0.75));
+}
+@media (max-width: 760px) {
+  .combat-player-block.has-ally { width: 154px; }
+  .combat-ally { width: 42px; flex-basis: 42px; }
+  .combat-ally-icon { width: 30px; height: 30px; }
+  .combat-ally-name { font-size: 7px; }
+}

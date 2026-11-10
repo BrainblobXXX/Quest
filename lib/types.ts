@@ -151,11 +151,33 @@ export type CombatEnemy = {
   /** число врагов; без него бой не запускается — данные неполные */
   count?: number;
   attack: number;
+  /** формула ответного урона в pool-бою; при наличии заменяет attack */
+  attackRoll?: string;
+  /** босс: увеличенное боевое окно */
+  boss?: boolean;
   /** защита — сложность атаки игрока */
   defense?: number;
   health: number;
   /** урон оружия врага (Fallout) */
   weapon?: string;
+};
+
+export type CombatAlly = {
+  id: string;
+  name: string;
+  /** id оружия союзника для иконки */
+  weapon?: string;
+  /** формула урона союзника в раунде */
+  damage: string;
+};
+
+export type CombatRestrictions = {
+  /** белый список оружия; если задан — остальное недоступно */
+  allowedWeapons?: string[];
+  /** белый список предметов (аптечка, граната…); пустой — всё запрещено */
+  allowedItems?: string[];
+  /** оружие, выбранное принудительно */
+  forceWeapon?: string;
 };
 
 export type CombatDef = {
@@ -176,8 +198,12 @@ export type CombatDef = {
   preStamina?: number;
   /** особый бой: нужно нанести не меньше порога за раунд */
   threshold?: number;
-  /** дополнительный бросок к урону (пистолет Эми у Конга) */
+  /** @deprecated используйте allies; дополнительный бросок к урону */
   bonusDamage?: string;
+  /** союзники, бросающие урон каждый раунд */
+  allies?: CombatAlly[];
+  /** ограничения игрока в этой сцене */
+  restrictions?: CombatRestrictions;
   /** бой останавливается, когда у одного из участников остаётся 1 здоровье */
   stopAtOne?: boolean;
 };

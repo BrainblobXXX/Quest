@@ -179,6 +179,8 @@ function combatFromInteraction(value: Q2Interaction, scene: string): CombatDef |
     attack: num(enemy.attack),
     ...(enemy.defense !== undefined ? { defense: num(enemy.defense) } : {}),
     health: num(enemy.health, 1),
+    ...(enemy.attack_roll ? { attackRoll: str(enemy.attack_roll) } : {}),
+    ...(enemy.boss === true ? { boss: true } : {}),
     ...(enemy.weapon ? { weapon: str(enemy.weapon) } : {}),
   });
   const mapped = enemies.map(mapEnemy);
@@ -186,10 +188,32 @@ function combatFromInteraction(value: Q2Interaction, scene: string): CombatDef |
   const win = str(outcomes.victory);
   if (!win) return null;
   const options = asRecord(value.options) ?? {};
+  const allies = asArray(value.allies)
+    .map((raw) => asRecord(raw))
+    .filter((raw): raw is Record<string, unknown> => Boolean(raw))
+    .map((raw, index) => ({
+      id: str(raw.id, `ally_${index + 1}`),
+      name: str(raw.name, `Союзник ${index + 1}`),
+      ...(raw.weapon ? { weapon: str(raw.weapon) } : {}),
+      damage: str(raw.damage, '1d6'),
+    }));
+  const restrictionsRaw = asRecord(value.restrictions) ?? {};
+  const allowedWeapons = Array.isArray(restrictionsRaw.allowed_weapons)
+    ? restrictionsRaw.allowed_weapons.map((item) => str(item)).filter(Boolean)
+    : undefined;
+  const allowedItems = Array.isArray(restrictionsRaw.allowed_items)
+    ? restrictionsRaw.allowed_items.map((item) => str(item)).filter(Boolean)
+    : undefined;
+  const forceWeapon = restrictionsRaw.force_weapon ? str(restrictionsRaw.force_weapon) : undefined;
+  const restrictions = allowedWeapons || allowedItems || forceWeapon
+    ? { ...(allowedWeapons ? { allowedWeapons } : {}), ...(allowedItems ? { allowedItems } : {}), ...(forceWeapon ? { forceWeapon } : {}) }
+    : undefined;
   return {
     scene,
     enemy: mapped[0],
     enemies: mapped,
+    ...(allies.length > 0 ? { allies } : {}),
+    ...(restrictions ? { restrictions } : {}),
     win,
     ...(outcomes.defeat ? { lose: str(outcomes.defeat) } : {}),
     ...(options.stop_at_one ? { stopAtOne: true } : {}),

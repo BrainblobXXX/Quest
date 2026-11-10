@@ -41,6 +41,47 @@ export function applyPoolDamage(enemies: number[], damage: number): { enemies: n
   return { enemies: next, killed };
 }
 
+export type PoolAttackResult = {
+  enemies: number[];
+  killed: number;
+  after: number;
+  victory: boolean;
+};
+
+/** Первая фаза раунда: урон игрока и союзников по пулу врагов/порогу. */
+export function resolvePoolAttack({
+  enemies,
+  total,
+  threshold,
+}: {
+  enemies: number[];
+  total: number;
+  threshold?: number;
+}): PoolAttackResult {
+  if (threshold !== undefined) {
+    if (total >= threshold) {
+      return { enemies: enemies.map(() => 0), killed: enemies.length, after: 0, victory: true };
+    }
+    const after = enemies.filter((hp) => hp > 0).length;
+    return { enemies, killed: 0, after, victory: false };
+  }
+  const damaged = applyPoolDamage(enemies, total);
+  const after = damaged.enemies.filter((hp) => hp > 0).length;
+  return { enemies: damaged.enemies, killed: damaged.killed, after, victory: after === 0 };
+}
+
+/** Вторая фаза раунда: ответный урон выживших врагов. */
+export function resolvePoolCounter({
+  stamina,
+  damage,
+}: {
+  stamina: number;
+  damage: number;
+}): { stamina: number; outcome: CombatOutcome } {
+  const next = Math.max(0, stamina - Math.max(0, damage));
+  return { stamina: next, outcome: next <= 0 ? 'defeat' : 'round' };
+}
+
 export function resolvePoolRound({
   stamina,
   enemies,

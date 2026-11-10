@@ -500,6 +500,10 @@ export function parsePackage(
             name: String(enemyRaw.name ?? 'Противник'),
             count: count !== undefined && Number.isFinite(count) && count >= 1 ? Math.floor(count) : undefined,
             attack: Math.max(0, Number(enemyRaw.attack ?? 1) || 0),
+            attackRoll: enemyRaw.attackRoll || enemyRaw.attack_roll
+              ? String(enemyRaw.attackRoll ?? enemyRaw.attack_roll)
+              : undefined,
+            boss: enemyRaw.boss === true,
             defense: enemyRaw.defense === undefined ? undefined : Math.max(0, Number(enemyRaw.defense) || 0),
             health: Math.max(1, Number(enemyRaw.health ?? 1) || 1),
             weapon: enemyRaw.weapon ? String(enemyRaw.weapon) : undefined,
@@ -522,6 +526,30 @@ export function parsePackage(
               preStamina: item.preStamina === undefined ? undefined : Number(item.preStamina),
               threshold: item.threshold === undefined ? undefined : Number(item.threshold),
               bonusDamage: item.bonusDamage ? String(item.bonusDamage) : undefined,
+              allies: Array.isArray(item.allies)
+                ? item.allies.map((raw) => {
+                    const ally = (raw ?? {}) as Record<string, unknown>;
+                    return {
+                      id: String(ally.id ?? 'ally'),
+                      name: String(ally.name ?? 'Союзник'),
+                      weapon: ally.weapon ? String(ally.weapon) : undefined,
+                      damage: String(ally.damage ?? '1d6'),
+                    };
+                  })
+                : undefined,
+              restrictions: item.restrictions && typeof item.restrictions === 'object'
+                ? {
+                    allowedWeapons: Array.isArray((item.restrictions as Record<string, unknown>).allowedWeapons)
+                      ? ((item.restrictions as Record<string, unknown>).allowedWeapons as unknown[]).map(String)
+                      : undefined,
+                    allowedItems: Array.isArray((item.restrictions as Record<string, unknown>).allowedItems)
+                      ? ((item.restrictions as Record<string, unknown>).allowedItems as unknown[]).map(String)
+                      : undefined,
+                    forceWeapon: (item.restrictions as Record<string, unknown>).forceWeapon
+                      ? String((item.restrictions as Record<string, unknown>).forceWeapon)
+                      : undefined,
+                  }
+                : undefined,
               stopAtOne: item.stopAtOne === true,
             };
           }

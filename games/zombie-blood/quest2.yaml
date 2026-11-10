@@ -1793,8 +1793,13 @@ scenes:
       enemies:
       - name: Юрр
         count: 1
+        boss: true
         attack: 1
+        attack_roll: 1d6-3
         health: 7
+      restrictions:
+        allowed_weapons: [fists]
+        allowed_items: []
       outcomes:
         victory: '44'
   '118':
@@ -2345,11 +2350,16 @@ scenes:
       enemies:
       - name: Зомби Конг
         count: 1
+        boss: true
         attack: 6
         health: 1
+      allies:
+      - id: emi
+        name: Эми
+        weapon: pistol
+        damage: '1d6+2'
       options:
         threshold: 20
-        bonus_damage: 1d6+2
       outcomes:
         victory: '19'
   '159':

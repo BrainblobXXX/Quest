@@ -6,7 +6,7 @@ import { DieFace } from '@/components/screens/Dice';
 import { usePanelKeys } from '@/lib/usePanelKeys';
 import { combatKey, combatKeyIndex } from '@/components/screens/combatKeys';
 import { rollDie } from '@/lib/rng';
-import { applyPoolDamage, resolvePoolRound } from '@/lib/combat';
+import { applyPoolDamage, resolvePoolAttack, resolvePoolCounter } from '@/lib/combat';
 import { WeaponIcon } from '@/components/screens/WeaponIcon';
 import type { CombatDef, Game, GameState } from '@/lib/types';
 
@@ -17,6 +17,18 @@ type DamageRoll = {
   rolls: number[];
   bonus: number;
   total: number;
+};
+
+type RollActor = 'player' | 'ally' | 'enemy';
+
+type RollView = {
+  actor: RollActor;
+  name: string;
+  formula: string;
+  faces: number[];
+  bonus: number;
+  total: number;
+  rolling: boolean;
 };
 
 type CombatSetup = {
@@ -58,8 +70,8 @@ function enemySoundUrl(game: Game, name: string): string | null {
         : null;
   return file ? `/api/games/${encodeURIComponent(game.id)}/assets/sounds/enemies/${file}` : null;
 }
-const DICE_ROLL_MS = 2000;
-const DICE_RANDOM_MS = 1500;
+const ACTOR_ROLL_MS = 1400;
+const ACTOR_ROLL_TICK_MS = 80;
 const FISTS = 'fists';
 const PLAYER_PAUSE_MS = 650;
 const ATTACK_ANIM_MS = 1300;
@@ -192,6 +204,7 @@ export default function CombatPanel({
   onStaminaChange?: (value: number, max: number) => void;
 }) {
   const enemy = combat.enemy;
+  const boss = enemy.boss === true;
   const count = Math.max(1, Math.floor(enemy.count ?? 1));
   const staminaId = game.stats?.stamina ? 'stamina' : game.stats?.hp ? 'hp' : 'stamina';
   const staminaDef = game.stats?.[staminaId];
@@ -240,8 +253,8 @@ export default function CombatPanel({
   const [selectedWeapon, setSelectedWeapon] = useState<string>(FISTS);
   const [weaponPicked, setWeaponPicked] = useState(false);
   const [grenadeUsed, setGrenadeUsed] = useState(false);
-  const [roll, setRoll] = useState<DamageRoll | null>(null);
-  const [diceFaces, setDiceFaces] = useState<number[]>([]);
+  const [rollView, setRollView] = useState<RollView | null>(null);
+  const [activeAllyId, setActiveAllyId] = useState<string | null>(null);
   const [log, setLog] = useState<string[]>(setup.log);
   const [selectedChoice, setSelectedChoice] = useState(0);
   const [visual, setVisual] = useState<VisualPhase>(setup.phase === 'victory' ? 'dead' : 'idle');
@@ -249,7 +262,6 @@ export default function CombatPanel({
   const [attackFrame, setAttackFrame] = useState(0);
   const [idleFrame, setIdleFrame] = useState(0);
   const [deathFrame, setDeathFrame] = useState(0);
-  const timer = useRef<number | null>(null);
   const sequence = useRef<number[]>([]);
   const faceTimer = useRef<number | null>(null);
   const diceInterval = useRef<number | null>(null);
@@ -260,7 +272,6 @@ export default function CombatPanel({
     Array.from(panelRef.current?.querySelectorAll<HTMLButtonElement>('.combat-choices .choice') ?? []);
 
   useEffect(() => () => {
-    if (timer.current !== null) window.clearTimeout(timer.current);
     if (faceTimer.current !== null) window.clearTimeout(faceTimer.current);
     if (diceInterval.current !== null) window.clearInterval(diceInterval.current);
     for (const id of sequence.current) window.clearTimeout(id);
@@ -294,6 +305,16 @@ export default function CombatPanel({
   const alive = enemies.filter((hp) => hp > 0).length;
   const initialAlive = setup.enemies.filter((hp) => hp > 0).length;
   const enemyTotal = Math.max(1, initialAlive);
+  const allies = combat.allies ?? [];
+  const allowedWeaponIds = combat.restrictions?.allowedWeapons
+    ? new Set(combat.restrictions.allowedWeapons.map((id) => ALIASES[id] ?? id))
+    : null;
+  const allowedItemIds = combat.restrictions?.allowedItems
+    ? new Set(combat.restrictions.allowedItems)
+    : null;
+  const weaponAllowed = (id: string) => !allowedWeaponIds || allowedWeaponIds.has(ALIASES[id] ?? id);
+  const itemAllowed = (id: string) => !allowedItemIds || allowedItemIds.has(id);
+  const fistsAllowed = weaponAllowed(FISTS);
   const damageWeapons = Object.entries(game.items ?? {})
     .filter(([id, item]) => id !== 'grenade' && Boolean(item.damage))
     .map(([id]) => id);
@@ -321,7 +342,7 @@ export default function CombatPanel({
         note: !ammoOk ? 'нет патронов' : null,
       };
     })
-    .filter((option) => option.owned);
+    .filter((option) => option.owned && weaponAllowed(option.id));
   const usableOptions = weaponOptions.filter((option) => option.usable);
   const firstUsable = usableOptions[0]?.id ?? FISTS;
   const selected =
@@ -329,13 +350,29 @@ export default function CombatPanel({
     { id: FISTS, title: 'Кулаки', damage: '1d6-3', usable: true, note: null };
   const selectedDamage = selected.id === FISTS ? '1d6-3' : selected.damage;
   const grenades = inventory.grenade ?? 0;
-  const canUseMedkit = (inventory.medkit ?? 0) > 0 && stamina < staminaInitial;
+  const canUseGrenades = itemAllowed('grenade');
+  const canUseMedkit = itemAllowed('medkit') && (inventory.medkit ?? 0) > 0 && stamina < staminaInitial;
   const weaponTitle = selected.id === FISTS ? 'КУЛАКИ' : selected.title.toUpperCase();
+  const restrictionNotes: string[] = [];
+  if (allowedWeaponIds && allowedWeaponIds.size === 1 && allowedWeaponIds.has(FISTS)) {
+    restrictionNotes.push('В ЭТОМ БОЮ ТОЛЬКО ГОЛЫЕ РУКИ');
+  }
+  if (allowedItemIds && allowedItemIds.size === 0) {
+    restrictionNotes.push('ПРЕДМЕТЫ НЕДОСТУПНЫ');
+  }
 
   useEffect(() => {
     if (weaponPicked) return;
     setSelectedWeapon(firstUsable);
   }, [firstUsable, weaponPicked]);
+
+  useEffect(() => {
+    const forced = combat.restrictions?.forceWeapon;
+    if (!forced || weaponPicked) return;
+    const id = ALIASES[forced] ?? forced;
+    if (id === FISTS && fistsAllowed) setSelectedWeapon(FISTS);
+    else if (weaponOptions.some((option) => option.id === id)) setSelectedWeapon(id);
+  }, [combat.restrictions?.forceWeapon, weaponPicked, fistsAllowed, weaponOptions]);
 
   const addLog = (...lines: string[]) => {
     setLog((current) => [...current, ...lines]);
@@ -348,6 +385,57 @@ export default function CombatPanel({
     }, ms);
     sequence.current.push(id);
   };
+
+  const wait = (ms: number) => new Promise<void>((resolve) => {
+    const id = window.setTimeout(() => {
+      sequence.current = sequence.current.filter((item) => item !== id);
+      resolve();
+    }, ms);
+    sequence.current.push(id);
+  });
+
+  const animateRoll = (
+    actor: RollActor,
+    name: string,
+    damageRoll: DamageRoll,
+  ) => new Promise<void>((resolve) => {
+    if (faceTimer.current !== null) window.clearTimeout(faceTimer.current);
+    if (diceInterval.current !== null) window.clearInterval(diceInterval.current);
+    const randomFace = () => rollDie(6);
+    const finalFaces = damageRoll.rolls;
+    setRollView({
+      actor,
+      name,
+      formula: damageRoll.formula,
+      faces: Array.from({ length: finalFaces.length }, randomFace),
+      bonus: damageRoll.bonus,
+      total: damageRoll.total,
+      rolling: true,
+    });
+    diceInterval.current = window.setInterval(() => {
+      setRollView((current) => current ? {
+        ...current,
+        faces: Array.from({ length: finalFaces.length }, randomFace),
+      } : current);
+    }, ACTOR_ROLL_TICK_MS);
+    faceTimer.current = window.setTimeout(() => {
+      if (diceInterval.current !== null) {
+        window.clearInterval(diceInterval.current);
+        diceInterval.current = null;
+      }
+      faceTimer.current = null;
+      setRollView({
+        actor,
+        name,
+        formula: damageRoll.formula,
+        faces: finalFaces,
+        bonus: damageRoll.bonus,
+        total: damageRoll.total,
+        rolling: false,
+      });
+      resolve();
+    }, ACTOR_ROLL_MS);
+  });
 
   useEffect(() => {
     if (phase === 'loadout' || phase === 'round') setVisual('idle');
@@ -448,107 +536,102 @@ export default function CombatPanel({
     addLog(`ОРУЖИЕ: ${chosen.id === FISTS ? 'КУЛАКИ' : chosen.title.toUpperCase()} · ${chosen.damage}`);
   };
 
-  const attack = () => {
+  const attack = async () => {
     if (phase !== 'round') return;
-    const weaponRoll = rollDamage(selectedDamage);
-    const bonusRoll = combat.bonusDamage ? rollDamage(combat.bonusDamage) : null;
-    const total = weaponRoll.total + (bonusRoll?.total ?? 0);
-    const finalFaces = [...weaponRoll.rolls, ...(bonusRoll?.rolls ?? [])];
-    const randomFace = () => rollDie(6);
-    setDiceFaces(Array.from({ length: finalFaces.length }, randomFace));
-    diceInterval.current = window.setInterval(() => {
-      setDiceFaces(Array.from({ length: finalFaces.length }, randomFace));
-    }, 80);
-    faceTimer.current = window.setTimeout(() => {
-      setDiceFaces(finalFaces);
-      if (diceInterval.current !== null) {
-        window.clearInterval(diceInterval.current);
-        diceInterval.current = null;
-      }
-      faceTimer.current = null;
-    }, DICE_RANDOM_MS);
-    setRoll({ ...weaponRoll, total });
     setPhase('rolling');
-    audio.click();
-    timer.current = window.setTimeout(() => {
-      if (faceTimer.current !== null) {
-        window.clearTimeout(faceTimer.current);
-        faceTimer.current = null;
-      }
-      if (diceInterval.current !== null) {
-        window.clearInterval(diceInterval.current);
-        diceInterval.current = null;
-      }
-      const expression = `${rollExpression(weaponRoll)}${bonusRoll ? ` + ${rollExpression(bonusRoll)}` : ''} = ${total}`;
-      const result = resolvePoolRound({
-        stamina,
-        enemies,
-        enemyAttack: Number(enemy.attack),
-        total,
-        threshold: combat.threshold,
-      });
-      const hitSound = weaponSoundUrl(game, selected.id);
-      // Звук оружия: 0.7 → 0.56 → ещё −15%.
-      if (hitSound) audio.sfx(hitSound, WEAPON_SFX_VOLUME);
-      setEnemies(result.enemies);
-      setVisual(result.outcome === 'victory' ? 'dying' : 'player');
+    setRollView(null);
+    const playerRoll = rollDamage(selectedDamage);
+    const playerName = selected.id === FISTS ? 'КУЛАКИ' : selected.title.toUpperCase();
+    await animateRoll('player', playerName, playerRoll);
+    setVisual('player');
+    await wait(450);
+    setVisual('idle');
+    addLog(`ИГРОК: ${playerName} · ${rollLabel(playerRoll)}`);
 
-      if (result.outcome === 'victory') {
-        addLog(
-          combat.threshold !== undefined
-            ? `РАУНД ${round}: ${expression}. Порог ${combat.threshold} пройден.`
-            : `РАУНД ${round}: ${expression} урона. Убито ${result.killed}. Все противники уничтожены.`,
-        );
-        later(DEATH_ANIM_MS, () => {
-          setVisual('dead');
-          addLog(`ИТОГ РАУНДА ${round}: противников 0, ${healthTitle} ${result.stamina}/${staminaMax}.`);
-          setPhase('victory');
-          setRoll(null);
-          audio.beep();
-        });
-        timer.current = null;
-        return;
-      }
+    const attackAllies = [...allies];
+    if (attackAllies.length === 0 && combat.bonusDamage) {
+      attackAllies.push({ id: 'bonus', name: 'БОНУС', damage: combat.bonusDamage });
+    }
+    let allyTotal = 0;
+    for (const ally of attackAllies) {
+      setActiveAllyId(ally.id);
+      const allyRoll = rollDamage(ally.damage);
+      await animateRoll('ally', ally.name.toUpperCase(), allyRoll);
+      setVisual('player');
+      await wait(450);
+      setVisual('idle');
+      setActiveAllyId(null);
+      allyTotal += allyRoll.total;
+      addLog(`${ally.name.toUpperCase()}: ${rollLabel(allyRoll)}`);
+    }
+    const total = playerRoll.total + allyTotal;
+    if (attackAllies.length > 0) addLog(`СУММА: ${playerRoll.total} + ${allyTotal} = ${total}`);
 
-      if (combat.threshold !== undefined) {
-        addLog(`РАУНД ${round}: ${expression}. Порог ${combat.threshold} не пройден.`);
-      } else {
-        addLog(`РАУНД ${round}: ${expression} урона. Убито ${result.killed}.`);
-      }
+    const offense = resolvePoolAttack({ enemies, total, threshold: combat.threshold });
+    setEnemies(offense.enemies);
 
-      // Пауза после удара игрока: сначала показываем попадание, затем ответ врага.
-      later(PLAYER_PAUSE_MS, () => {
-        const enemySound = enemySoundUrl(game, enemy.name);
-        if (enemySound) audio.sfx(enemySound, ENEMY_SFX_VOLUME);
-        setVisual('enemy');
-        setStamina(result.stamina);
-        addLog(
-          combat.threshold !== undefined
-            ? `Ответ: −${enemy.attack} ${healthTitle}.`
-            : result.after > 0
-              ? `Осталось ${result.after}. Ответ: −${result.after * enemy.attack} ${healthTitle}.`
-              : 'Все противники уничтожены.',
-          `ИТОГ РАУНДА ${round}: противников ${result.after}, ${healthTitle} ${result.stamina}/${staminaMax}.`,
-        );
-        later(ATTACK_ANIM_MS, () => {
-          setVisual('idle');
-          setHitFlash(true);
-          later(520, () => setHitFlash(false));
-          setRoll(null);
-          if (result.outcome === 'defeat') {
-            setPhase('defeat');
-          } else {
-            setRound((value) => value + 1);
-            setPhase('round');
-          }
-        });
-      });
-      timer.current = null;
-    }, DICE_ROLL_MS);
+    if (offense.victory) {
+      setVisual('dying');
+      addLog(
+        combat.threshold !== undefined
+          ? `РАУНД ${round}: ${total}. Порог ${combat.threshold} пройден.`
+          : `РАУНД ${round}: ${total} урона. Убито ${offense.killed}. Все противники уничтожены.`,
+      );
+      await wait(DEATH_ANIM_MS);
+      setVisual('dead');
+      addLog(`ИТОГ РАУНДА ${round}: противников 0, ${healthTitle} ${stamina}/${staminaMax}.`);
+      setPhase('victory');
+      setRollView(null);
+      audio.beep();
+      return;
+    }
+
+    const hitSound = weaponSoundUrl(game, selected.id);
+    if (hitSound) audio.sfx(hitSound, WEAPON_SFX_VOLUME);
+    if (combat.threshold !== undefined) {
+      addLog(`РАУНД ${round}: ${total}. Порог ${combat.threshold} не пройден.`);
+    } else {
+      addLog(`РАУНД ${round}: ${total} урона. Убито ${offense.killed}.`);
+    }
+
+    await wait(PLAYER_PAUSE_MS);
+    setVisual('enemy');
+    const enemySound = enemySoundUrl(game, enemy.name);
+    if (enemySound) audio.sfx(enemySound, ENEMY_SFX_VOLUME);
+
+    let enemyRoll: DamageRoll | null = null;
+    let enemyDamage = 0;
+    const counterFactor = combat.threshold !== undefined ? 1 : Math.max(1, offense.after);
+    if (enemy.attackRoll) {
+      enemyRoll = rollDamage(enemy.attackRoll);
+      await animateRoll('enemy', enemy.name.toUpperCase(), enemyRoll);
+      enemyDamage = enemyRoll.total * counterFactor;
+      addLog(`ПРОТИВНИК: ${enemy.name.toUpperCase()} · ${rollLabel(enemyRoll)}`);
+    } else {
+      enemyDamage = Number(enemy.attack) * counterFactor;
+      await wait(ATTACK_ANIM_MS);
+    }
+
+    const counter = resolvePoolCounter({ stamina, damage: enemyDamage });
+    setStamina(counter.stamina);
+    addLog(
+      `ОТВЕТ: −${enemyDamage} ${healthTitle}.`,
+      `ИТОГ РАУНДА ${round}: противников ${offense.after}, ${healthTitle} ${counter.stamina}/${staminaMax}.`,
+    );
+    setHitFlash(true);
+    await wait(520);
+    setHitFlash(false);
+    setRollView(null);
+    if (counter.outcome === 'defeat') {
+      setPhase('defeat');
+    } else {
+      setRound((value) => value + 1);
+      setPhase('round');
+    }
   };
 
   const throwGrenade = () => {
-    if (phase !== 'loadout' || grenadeUsed || grenades <= 0) return;
+    if (phase !== 'loadout' || grenadeUsed || grenades <= 0 || !canUseGrenades) return;
     const result = rollDamage('2d6+1');
     const { enemies: next, killed } = applyPoolDamage(enemies, result.total);
     setInventory((current) => {
@@ -560,7 +643,15 @@ export default function CombatPanel({
     });
     setGrenadeUsed(true);
     setEnemies(next);
-    setRoll(result);
+    setRollView({
+      actor: 'player',
+      name: 'ГРАНАТА',
+      formula: result.formula,
+      faces: result.rolls,
+      bonus: result.bonus,
+      total: result.total,
+      rolling: false,
+    });
     addLog(`ГРАНАТА: ${rollLabel(result)}. Убито ${killed}.`);
     audio.click();
     if (next.every((hp) => hp <= 0)) {
@@ -644,9 +735,9 @@ export default function CombatPanel({
 
   usePanelKeys(onKey);
 
-  const fistsNumber = weaponOptions.length + 1;
+  const fistsNumber = weaponOptions.length + (fistsAllowed ? 1 : 0);
   const grenadeNumber = fistsNumber + 1;
-  const startNumber = fistsNumber + (grenades > 0 && !grenadeUsed ? 2 : 1);
+  const startNumber = fistsNumber + (canUseGrenades && grenades > 0 && !grenadeUsed ? 2 : 1);
 
   return (
     <div className={`combat-panel${hasVisual ? ' combat-with-visual' : ''}${hitFlash ? ' combat-player-hit' : ''}`} role="region" aria-label={`Бой: ${enemy.name}`} ref={panelRef}>
@@ -671,14 +762,22 @@ export default function CombatPanel({
         ))}
       </div>
 
-      {phase === 'rolling' && diceFaces.length > 0 && (
-        <div className="combat-dice-live" aria-live="polite">
-          <span>БРОСОК {diceFaces.length}d6:</span>
-          <span className="combat-dice-faces">
-            {diceFaces.map((face, index) => (
-              <DieFace value={face} key={index} />
-            ))}
-          </span>
+      {phase === 'rolling' && rollView && (
+        <div className={`combat-roll-card actor-${rollView.actor}${rollView.rolling ? ' is-rolling' : ''}`} aria-live="polite">
+          <div className="combat-roll-head">
+            <span>{rollView.actor === 'player' ? 'ИГРОК' : rollView.actor === 'ally' ? 'СОЮЗНИК' : 'ПРОТИВНИК'}</span>
+            <strong>{rollView.name}</strong>
+          </div>
+          <div className="combat-dice-live">
+            <span className="combat-dice-faces">
+              {rollView.faces.map((face, index) => (
+                <DieFace value={face} key={index} />
+              ))}
+            </span>
+            <span className="combat-roll-formula">
+              {rollView.formula} {rollView.rolling ? '…' : `= ${rollView.total}`}
+            </span>
+          </div>
         </div>
       )}
 
@@ -688,6 +787,9 @@ export default function CombatPanel({
             <WeaponIcon weaponId={selected.id} gameId={game.id} className="loadout-weapon-icon" />
             <span>ВЫБЕРИТЕ ОРУЖИЕ</span>
           </div>
+          {restrictionNotes.map((note) => (
+            <div className="combat-restriction-note" key={note}>{note}</div>
+          ))}
           <div className="choices combat-choices">
             {weaponOptions.map((option, index) => (
               <button
@@ -707,19 +809,21 @@ export default function CombatPanel({
                 {selected.id === option.id ? ' · ВЫБРАНО' : ''}
               </button>
             ))}
-            <button
-              type="button"
-              className={`choice${selectedChoice === weaponOptions.length ? ' selected' : ''}${selected.id === FISTS ? ' combat-selected' : ''}`}
-              onFocus={() => setSelectedChoice(weaponOptions.length)}
-              onClick={() => {
-                setSelectedWeapon(FISTS);
-                setWeaponPicked(true);
-              }}
-            >
-              <WeaponIcon weaponId={FISTS} gameId={game.id} className="choice-weapon-icon" />
-              {combatKey(fistsNumber - 1)}. КУЛАКИ · 1d6−3{selected.id === FISTS ? ' · ВЫБРАНО' : ''}
-            </button>
-            {grenades > 0 && !grenadeUsed && (
+            {fistsAllowed && (
+              <button
+                type="button"
+                className={`choice${selectedChoice === weaponOptions.length ? ' selected' : ''}${selected.id === FISTS ? ' combat-selected' : ''}`}
+                onFocus={() => setSelectedChoice(weaponOptions.length)}
+                onClick={() => {
+                  setSelectedWeapon(FISTS);
+                  setWeaponPicked(true);
+                }}
+              >
+                <WeaponIcon weaponId={FISTS} gameId={game.id} className="choice-weapon-icon" />
+                {combatKey(fistsNumber - 1)}. КУЛАКИ · 1d6−3{selected.id === FISTS ? ' · ВЫБРАНО' : ''}
+              </button>
+            )}
+            {canUseGrenades && grenades > 0 && !grenadeUsed && (
               <button type="button" className={`choice${selectedChoice === grenadeNumber - 1 ? ' selected' : ''} combat-grenade`} onFocus={() => setSelectedChoice(grenadeNumber - 1)} onClick={throwGrenade}>
                 {combatKey(grenadeNumber - 1)}. БРОСИТЬ ГРАНАТУ ×{grenades} · 2d6+1
               </button>
@@ -779,22 +883,34 @@ export default function CombatPanel({
         </div>
 
         {hasVisual && (
-          <aside className={`combat-visual${phase === 'loadout' ? ' is-loadout' : ''}`} aria-label={phase === 'loadout' ? 'Выбор оружия' : `Игрок против ${enemy.name}, осталось ${alive}`}>
-            <div className="combat-visual-block combat-player-block">
+          <aside className={`combat-visual${phase === 'loadout' ? ' is-loadout' : ''}${boss ? ' combat-boss' : ''}`} aria-label={phase === 'loadout' ? 'Выбор оружия' : `Игрок против ${enemy.name}, осталось ${alive}`}>
+            <div className={`combat-visual-block combat-player-block${allies.length > 0 ? ' has-ally' : ''}`}>
               <div className="combat-visual-label">ИГРОК</div>
-              <div className={`combat-weapon${visual === 'player' || visual === 'dying' ? ' is-shooting' : ''}`}>
-                <WeaponIcon weaponId={selected.id} gameId={game.id} />
-                <span className="weapon-muzzle" aria-hidden="true" />
-                <div className="weapon-name">{weaponTitle}</div>
-                <div className="weapon-damage">{selectedDamage}</div>
+              <div className="combat-player-line">
+                {allies.map((ally) => (
+                  <div key={ally.id} className={`combat-ally${activeAllyId === ally.id ? ' is-shooting' : ''}`}>
+                    <WeaponIcon
+                      weaponId={ally.weapon ?? FISTS}
+                      gameId={game.id}
+                      className="combat-ally-icon"
+                    />
+                    <span className="combat-ally-name">{ally.name.toUpperCase()}</span>
+                  </div>
+                ))}
+                <div className={`combat-weapon${visual === 'player' || visual === 'dying' ? ' is-shooting' : ''}`}>
+                  <WeaponIcon weaponId={selected.id} gameId={game.id} />
+                  <span className="weapon-muzzle" aria-hidden="true" />
+                  <div className="weapon-name">{weaponTitle}</div>
+                  <div className="weapon-damage">{selectedDamage}</div>
+                </div>
               </div>
             </div>
             {phase !== 'loadout' && (
               <>
                 <div className="combat-vs" aria-hidden="true">VS</div>
-                <div className="combat-visual-block combat-enemy-block">
+                <div className={`combat-visual-block combat-enemy-block${boss ? ' is-boss' : ''}`}>
                   <div className="combat-visual-label">ПРОТИВНИК</div>
-                  <div className={`zombie-figure ${visual}`} role="img" aria-label={`${enemy.name}, осталось ${alive}`}>
+                  <div className={`zombie-figure ${visual}${boss ? ' is-boss' : ''}`} role="img" aria-label={`${enemy.name}, осталось ${alive}`}>
                     {visual !== 'dead' && (
                       <img
                         src={enemySrc}

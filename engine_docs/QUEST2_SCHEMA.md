@@ -278,10 +278,91 @@ interaction:
 ```text
 stop_at_one
 threshold
-bonus_damage
+bonus_damage       # устаревший алиас allies
 pre_damage
 pre_damage_from
 pre_stamina
+```
+
+### 7.4.1. Броски врага, союзники и ограничения
+
+Для pool-боя можно задать формулу ответного урона врага:
+
+```yaml
+enemies:
+  - name: "Юрр"
+    attack: 1          # fallback, если attack_roll не задан
+    attack_roll: "1d6-3"
+    health: 7
+```
+
+- `attack_roll` — кубик врага; при наличии `attack` не используется;
+- без `attack_roll` поведение прежнее: фиксированный `attack`;
+- `boss: true` — увеличенное боевое окно и спрайт (Конг, Юрр).
+
+Союзники бросают урон каждый раунд:
+
+```yaml
+allies:
+  - id: emi
+    name: "Эми"
+    weapon: pistol
+    damage: "1d6+2"
+```
+
+При `threshold` урон игрока и всех союзников складывается и сравнивается с порогом.
+При обычном пуле эта сумма наносится врагам. `bonus_damage` оставлен для
+старых данных, новые книги должны использовать `allies`.
+
+Ограничения игрока:
+
+```yaml
+restrictions:
+  allowed_weapons: [fists]
+  allowed_items: []
+  force_weapon: fists
+```
+
+- `allowed_weapons` — белый список id оружия; `fists` — кулаки;
+- `allowed_items` — белый список предметов; пустой список запрещает всё;
+- `force_weapon` — принудительно выбранное оружие.
+
+Пример Конга:
+
+```yaml
+interaction:
+  type: combat
+  mode: pool
+  enemies:
+    - name: "Зомби Конг"
+      attack: 6
+      health: 1
+  allies:
+    - id: emi
+      name: "Эми"
+      damage: "1d6+2"
+  options:
+    threshold: 20
+  outcomes:
+    victory: "19"
+```
+
+Пример Юрра:
+
+```yaml
+interaction:
+  type: combat
+  mode: pool
+  enemies:
+    - name: "Юрр"
+      attack: 1
+      attack_roll: "1d6-3"
+      health: 7
+  restrictions:
+    allowed_weapons: [fists]
+    allowed_items: []
+  outcomes:
+    victory: "44"
 ```
 
 ### 7.5. gamble
