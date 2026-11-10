@@ -1,0 +1,163 @@
+{
+  "source": "pic_v2/zombie art/zombie_kong.png",
+  "grid": {
+    "rows": 5,
+    "cols": 4
+  },
+  "canvas": [
+    512,
+    512
+  ],
+  "frames": [
+    {
+      "id": "zombie-kong-01",
+      "file": "assets/zombie-kong/zombie-kong-01.png",
+      "row": 1,
+      "col": 1
+    },
+    {
+      "id": "zombie-kong-02",
+      "file": "assets/zombie-kong/zombie-kong-02.png",
+      "row": 1,
+      "col": 2
+    },
+    {
+      "id": "zombie-kong-03",
+      "file": "assets/zombie-kong/zombie-kong-03.png",
+      "row": 1,
+      "col": 3
+    },
+    {
+      "id": "zombie-kong-04",
+      "file": "assets/zombie-kong/zombie-kong-04.png",
+      "row": 1,
+      "col": 4
+    },
+    {
+      "id": "zombie-kong-05",
+      "file": "assets/zombie-kong/zombie-kong-05.png",
+      "row": 2,
+      "col": 1
+    },
+    {
+      "id": "zombie-kong-06",
+      "file": "assets/zombie-kong/zombie-kong-06.png",
+      "row": 2,
+      "col": 2
+    },
+    {
+      "id": "zombie-kong-07",
+      "file": "assets/zombie-kong/zombie-kong-07.png",
+      "row": 2,
+      "col": 3
+    },
+    {
+      "id": "zombie-kong-08",
+      "file": "assets/zombie-kong/zombie-kong-08.png",
+      "row": 2,
+      "col": 4
+    },
+    {
+      "id": "zombie-kong-09",
+      "file": "assets/zombie-kong/zombie-kong-09.png",
+      "row": 3,
+      "col": 1
+    },
+    {
+      "id": "zombie-kong-10",
+      "file": "assets/zombie-kong/zombie-kong-10.png",
+      "row": 3,
+      "col": 2
+    },
+    {
+      "id": "zombie-kong-11",
+      "file": "assets/zombie-kong/zombie-kong-11.png",
+      "row": 3,
+      "col": 3
+    },
+    {
+      "id": "zombie-kong-12",
+      "file": "assets/zombie-kong/zombie-kong-12.png",
+      "row": 3,
+      "col": 4
+    },
+    {
+      "id": "zombie-kong-13",
+      "file": "assets/zombie-kong/zombie-kong-13.png",
+      "row": 4,
+      "col": 1
+    },
+    {
+      "id": "zombie-kong-14",
+      "file": "assets/zombie-kong/zombie-kong-14.png",
+      "row": 4,
+      "col": 2
+    },
+    {
+      "id": "zombie-kong-15",
+      "file": "assets/zombie-kong/zombie-kong-15.png",
+      "row": 4,
+      "col": 3
+    },
+    {
+      "id": "zombie-kong-16",
+      "file": "assets/zombie-kong/zombie-kong-16.png",
+      "row": 4,
+      "col": 4
+    },
+    {
+      "id": "zombie-kong-17",
+      "file": "assets/zombie-kong/zombie-kong-17.png",
+      "row": 5,
+      "col": 1
+    },
+    {
+      "id": "zombie-kong-18",
+      "file": "assets/zombie-kong/zombie-kong-18.png",
+      "row": 5,
+      "col": 2
+    },
+    {
+      "id": "zombie-kong-19",
+      "file": "assets/zombie-kong/zombie-kong-19.png",
+      "row": 5,
+      "col": 3
+    },
+    {
+      "id": "zombie-kong-20",
+      "file": "assets/zombie-kong/zombie-kong-20.png",
+      "row": 5,
+      "col": 4
+    }
+  ],
+  "animations": {
+    "passive": [
+      "zombie-kong-01.png",
+      "zombie-kong-02.png",
+      "zombie-kong-03.png",
+      "zombie-kong-04.png",
+      "zombie-kong-05.png",
+      "zombie-kong-06.png",
+      "zombie-kong-07.png",
+      "zombie-kong-08.png"
+    ],
+    "attack": [
+      "zombie-kong-09.png",
+      "zombie-kong-10.png",
+      "zombie-kong-11.png",
+      "zombie-kong-12.png"
+    ],
+    "death": [
+      "zombie-kong-13.png",
+      "zombie-kong-14.png",
+      "zombie-kong-15.png",
+      "zombie-kong-16.png"
+    ],
+    "extra": [
+      "zombie-kong-17.png",
+      "zombie-kong-18.png",
+      "zombie-kong-19.png",
+      "zombie-kong-20.png"
+    ]
+  }
+}

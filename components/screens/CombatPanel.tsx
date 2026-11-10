@@ -53,7 +53,7 @@ function enemySoundUrl(game: Game, name: string): string | null {
     ? 'dog.mp3'
     : lower.includes('крыс')
       ? 'rat.mp3'
-      : lower.includes('зомби')
+      : lower.includes('зомби') || lower.includes('юрр')
         ? 'zombies.mp3'
         : null;
   return file ? `/api/games/${encodeURIComponent(game.id)}/assets/sounds/enemies/${file}` : null;
@@ -82,10 +82,42 @@ function framePaths(prefix: string, count: number): string[] {
   return Array.from({ length: count }, (_, index) => `${prefix}_${index + 1}.png`);
 }
 
+/** Кадры листов, нарезанных по именам: yurr-01.png, zombie-kong-01.png… */
+function sheetFrames(prefix: string, start: number, count: number): string[] {
+  return Array.from({ length: count }, (_, index) => `${prefix}-${String(start + index).padStart(2, '0')}.png`);
+}
+
 function enemyVisualFor(game: Game, name: string): EnemyVisual | null {
   if (game.id !== 'zombie-blood') return null;
   const base = `/api/games/${game.id}/assets`;
   const lower = name.toLowerCase();
+  if (lower.includes('конг')) {
+    return {
+      key: 'zombie-kong',
+      base: `${base}/zombie-kong`,
+      passive: sheetFrames('zombie-kong', 1, 8),
+      attack: sheetFrames('zombie-kong', 9, 4),
+      death: sheetFrames('zombie-kong', 13, 4),
+    };
+  }
+  if (lower.includes('юрр')) {
+    return {
+      key: 'yurr',
+      base: `${base}/yurr`,
+      passive: sheetFrames('yurr', 1, 8),
+      attack: sheetFrames('yurr', 9, 4),
+      death: sheetFrames('yurr', 13, 4),
+    };
+  }
+  if (lower.includes('с оружием')) {
+    return {
+      key: 'zombie-axe',
+      base: `${base}/zombie-axe`,
+      passive: framePaths('zombie-axe-static', 4),
+      attack: framePaths('zombie-axe-attack', 3),
+      death: framePaths('zombie-axe-die', 3),
+    };
+  }
   if (lower.includes('собак')) {
     return {
       key: 'dogs',

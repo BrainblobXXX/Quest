@@ -1,0 +1,91 @@
+{
+  "source": "pic_v2/zombie art/zombie_axe.png",
+  "grid": {
+    "rows": 5,
+    "cols": 4
+  },
+  "canvas": [
+    512,
+    512
+  ],
+  "frames": [
+    {
+      "id": "zombie-axe-static_1",
+      "file": "assets/zombie-axe/zombie-axe-static_1.png",
+      "state": "static",
+      "number": 1
+    },
+    {
+      "id": "zombie-axe-static_2",
+      "file": "assets/zombie-axe/zombie-axe-static_2.png",
+      "state": "static",
+      "number": 2
+    },
+    {
+      "id": "zombie-axe-static_3",
+      "file": "assets/zombie-axe/zombie-axe-static_3.png",
+      "state": "static",
+      "number": 3
+    },
+    {
+      "id": "zombie-axe-static_4",
+      "file": "assets/zombie-axe/zombie-axe-static_4.png",
+      "state": "static",
+      "number": 4
+    },
+    {
+      "id": "zombie-axe-attack_1",
+      "file": "assets/zombie-axe/zombie-axe-attack_1.png",
+      "state": "attack",
+      "number": 1
+    },
+    {
+      "id": "zombie-axe-attack_2",
+      "file": "assets/zombie-axe/zombie-axe-attack_2.png",
+      "state": "attack",
+      "number": 2
+    },
+    {
+      "id": "zombie-axe-attack_3",
+      "file": "assets/zombie-axe/zombie-axe-attack_3.png",
+      "state": "attack",
+      "number": 3
+    },
+    {
+      "id": "zombie-axe-die_1",
+      "file": "assets/zombie-axe/zombie-axe-die_1.png",
+      "state": "die",
+      "number": 1
+    },
+    {
+      "id": "zombie-axe-die_2",
+      "file": "assets/zombie-axe/zombie-axe-die_2.png",
+      "state": "die",
+      "number": 2
+    },
+    {
+      "id": "zombie-axe-die_3",
+      "file": "assets/zombie-axe/zombie-axe-die_3.png",
+      "state": "die",
+      "number": 3
+    }
+  ],
+  "animations": {
+    "passive": [
+      "zombie-axe-static_1.png",
+      "zombie-axe-static_2.png",
+      "zombie-axe-static_3.png",
+      "zombie-axe-static_4.png"
+    ],
+    "attack": [
+      "zombie-axe-attack_1.png",
+      "zombie-axe-attack_2.png",
+      "zombie-axe-attack_3.png"
+    ],
+    "death": [
+      "zombie-axe-die_1.png",
+      "zombie-axe-die_2.png",
+      "zombie-axe-die_3.png"
+    ]
+  }
+}
