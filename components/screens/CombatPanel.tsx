@@ -778,8 +778,7 @@ export default function CombatPanel({
       {phase === 'rolling' && rollView && (
         <div className={`combat-roll-card actor-${rollView.actor}${rollView.rolling ? ' is-rolling' : ''}`} aria-live="polite">
           <div className="combat-roll-head">
-            <span>{rollView.actor === 'player' ? 'ИГРОК' : rollView.actor === 'ally' ? 'СОЮЗНИК' : 'ПРОТИВНИК'}</span>
-            <strong>{rollView.name}</strong>
+            <span>{rollView.actor === 'player' ? 'ИГРОК' : rollView.name}</span>
           </div>
           <div className="combat-dice-live">
             <span className="combat-dice-faces">
@@ -913,7 +912,6 @@ export default function CombatPanel({
                 <div className={`combat-weapon${playerShooting ? ' is-shooting' : ''}`}>
                   <WeaponIcon weaponId={selected.id} gameId={game.id} />
                   <span className="weapon-muzzle" aria-hidden="true" />
-                  <div className="weapon-name">{weaponTitle}</div>
                   <div className="weapon-damage">{selectedDamage}</div>
                 </div>
               </div>
