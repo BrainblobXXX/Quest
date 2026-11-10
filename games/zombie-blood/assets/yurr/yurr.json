@@ -10,154 +10,62 @@
   ],
   "frames": [
     {
-      "id": "yurr-01",
-      "file": "assets/yurr/yurr-01.png",
-      "row": 1,
-      "col": 1
+      "id": "yurr-static_1",
+      "file": "assets/yurr/yurr-static_1.png"
     },
     {
-      "id": "yurr-02",
-      "file": "assets/yurr/yurr-02.png",
-      "row": 1,
-      "col": 2
+      "id": "yurr-static_2",
+      "file": "assets/yurr/yurr-static_2.png"
     },
     {
-      "id": "yurr-03",
-      "file": "assets/yurr/yurr-03.png",
-      "row": 1,
-      "col": 3
+      "id": "yurr-static_3",
+      "file": "assets/yurr/yurr-static_3.png"
     },
     {
-      "id": "yurr-04",
-      "file": "assets/yurr/yurr-04.png",
-      "row": 1,
-      "col": 4
+      "id": "yurr-static_4",
+      "file": "assets/yurr/yurr-static_4.png"
     },
     {
-      "id": "yurr-05",
-      "file": "assets/yurr/yurr-05.png",
-      "row": 2,
-      "col": 1
+      "id": "yurr-attack_1",
+      "file": "assets/yurr/yurr-attack_1.png"
     },
     {
-      "id": "yurr-06",
-      "file": "assets/yurr/yurr-06.png",
-      "row": 2,
-      "col": 2
+      "id": "yurr-attack_2",
+      "file": "assets/yurr/yurr-attack_2.png"
     },
     {
-      "id": "yurr-07",
-      "file": "assets/yurr/yurr-07.png",
-      "row": 2,
-      "col": 3
+      "id": "yurr-attack_3",
+      "file": "assets/yurr/yurr-attack_3.png"
     },
     {
-      "id": "yurr-08",
-      "file": "assets/yurr/yurr-08.png",
-      "row": 2,
-      "col": 4
+      "id": "yurr-die_1",
+      "file": "assets/yurr/yurr-die_1.png"
     },
     {
-      "id": "yurr-09",
-      "file": "assets/yurr/yurr-09.png",
-      "row": 3,
-      "col": 1
+      "id": "yurr-die_2",
+      "file": "assets/yurr/yurr-die_2.png"
     },
     {
-      "id": "yurr-10",
-      "file": "assets/yurr/yurr-10.png",
-      "row": 3,
-      "col": 2
-    },
-    {
-      "id": "yurr-11",
-      "file": "assets/yurr/yurr-11.png",
-      "row": 3,
-      "col": 3
-    },
-    {
-      "id": "yurr-12",
-      "file": "assets/yurr/yurr-12.png",
-      "row": 3,
-      "col": 4
-    },
-    {
-      "id": "yurr-13",
-      "file": "assets/yurr/yurr-13.png",
-      "row": 4,
-      "col": 1
-    },
-    {
-      "id": "yurr-14",
-      "file": "assets/yurr/yurr-14.png",
-      "row": 4,
-      "col": 2
-    },
-    {
-      "id": "yurr-15",
-      "file": "assets/yurr/yurr-15.png",
-      "row": 4,
-      "col": 3
-    },
-    {
-      "id": "yurr-16",
-      "file": "assets/yurr/yurr-16.png",
-      "row": 4,
-      "col": 4
-    },
-    {
-      "id": "yurr-17",
-      "file": "assets/yurr/yurr-17.png",
-      "row": 5,
-      "col": 1
-    },
-    {
-      "id": "yurr-18",
-      "file": "assets/yurr/yurr-18.png",
-      "row": 5,
-      "col": 2
-    },
-    {
-      "id": "yurr-19",
-      "file": "assets/yurr/yurr-19.png",
-      "row": 5,
-      "col": 3
-    },
-    {
-      "id": "yurr-20",
-      "file": "assets/yurr/yurr-20.png",
-      "row": 5,
-      "col": 4
+      "id": "yurr-die_3",
+      "file": "assets/yurr/yurr-die_3.png"
     }
   ],
   "animations": {
     "passive": [
-      "yurr-01.png",
-      "yurr-02.png",
-      "yurr-03.png",
-      "yurr-04.png",
-      "yurr-05.png",
-      "yurr-06.png",
-      "yurr-07.png",
-      "yurr-08.png"
+      "yurr-static_1.png",
+      "yurr-static_2.png",
+      "yurr-static_3.png",
+      "yurr-static_4.png"
     ],
     "attack": [
-      "yurr-09.png",
-      "yurr-10.png",
-      "yurr-11.png",
-      "yurr-12.png"
+      "yurr-attack_1.png",
+      "yurr-attack_2.png",
+      "yurr-attack_3.png"
     ],
     "death": [
-      "yurr-13.png",
-      "yurr-14.png",
-      "yurr-15.png",
-      "yurr-16.png"
-    ],
-    "extra": [
-      "yurr-17.png",
-      "yurr-18.png",
-      "yurr-19.png",
-      "yurr-20.png"
+      "yurr-die_1.png",
+      "yurr-die_2.png",
+      "yurr-die_3.png"
     ]
   }
 }

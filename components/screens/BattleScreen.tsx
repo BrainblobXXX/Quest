@@ -5,58 +5,45 @@ import CombatPanel from '@/components/screens/CombatPanel';
 import InitialRoll from '@/components/screens/InitialRoll';
 import { STATE_VERSION, type Game, type GameState } from '@/lib/types';
 
-type BattlePhase = 'health' | 'intro' | 'combat' | 'victory';
+type BattlePhase = 'health' | 'select' | 'intro' | 'combat';
 
-function shuffle<T>(items: T[]): T[] {
-  const result = [...items];
-  for (let i = result.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
-  }
-  return result;
+type EnemyKind = 'zombie' | 'armed' | 'dogs' | 'rats' | 'kong' | 'yurr';
+
+type EnemyOption = {
+  id: EnemyKind;
+  label: string;
+  detail: string;
+};
+
+const ENEMY_OPTIONS: EnemyOption[] = [
+  { id: 'zombie', label: 'ЗОМБИ', detail: 'без оружия' },
+  { id: 'armed', label: 'ЗОМБИ С ОРУЖИЕМ', detail: 'вооружённые' },
+  { id: 'dogs', label: 'СОБАКИ', detail: 'стая' },
+  { id: 'rats', label: 'КРЫСЫ', detail: 'стая' },
+  { id: 'kong', label: 'ЗОМБИ КОНГ', detail: 'босс' },
+  { id: 'yurr', label: 'ЮРР', detail: 'босс' },
+];
+
+function enemyKindFor(name: string): EnemyKind | null {
+  const lower = name.toLowerCase();
+  if (lower.includes('конг')) return 'kong';
+  if (lower.includes('юрр')) return 'yurr';
+  if (lower.includes('собак')) return 'dogs';
+  if (lower.includes('крыс')) return 'rats';
+  if (lower.includes('с оружием')) return 'armed';
+  if (lower.includes('зомби')) return 'zombie';
+  return null;
 }
 
-/** Перемешивает, по возможности не ставя одну и ту же комнату подряд. */
-function shuffleDeck(items: string[]): string[] {
-  const result = shuffle(items);
-  for (let i = 1; i < result.length; i += 1) {
-    if (result[i] !== result[i - 1]) continue;
-    const swap = result.findIndex((id, index) => index > i && id !== result[i - 1]);
-    if (swap !== -1) [result[i], result[swap]] = [result[swap], result[i]];
-  }
-  return result;
+function scenesForEnemyKind(game: Game, kind: EnemyKind): string[] {
+  return Object.entries(game.combat ?? {})
+    .filter(([, combat]) => (combat.enemies ?? []).some((enemy) => enemyKindFor(enemy.name) === kind))
+    .map(([scene]) => scene);
 }
 
-function battleScenes(game: Game): string[] {
-  return Object.keys(game.combat ?? {}).filter((key) => {
-    const enemies = game.combat?.[key]?.enemies ?? [];
-    return !enemies.some((enemy) => {
-      const name = enemy.name.toLowerCase();
-      return name.includes('конг') || name.includes('юрр');
-    });
-  });
-}
-
-function sceneRepeats(game: Game, key: string): number {
-  const enemies = game.combat?.[key]?.enemies ?? [];
-  let repeats = 1;
-  for (const enemy of enemies) {
-    const name = enemy.name.toLowerCase();
-    if (name.includes('собак')) repeats = Math.max(repeats, 5);
-    if (name.includes('крыс')) repeats = Math.max(repeats, 10);
-    // Вооружённые зомби: атака 2 и выше.
-    if (name.includes('зомби') && Number(enemy.attack ?? 1) >= 2) repeats = Math.max(repeats, 2);
-  }
-  return repeats;
-}
-
-function buildBattleDeck(game: Game): string[] {
-  const deck: string[] = [];
-  for (const scene of battleScenes(game)) {
-    const repeats = sceneRepeats(game, scene);
-    for (let i = 0; i < repeats; i += 1) deck.push(scene);
-  }
-  return shuffleDeck(deck);
+function pickRandomScene(scenes: string[], avoid?: string): string {
+  const pool = scenes.length > 1 && avoid ? scenes.filter((scene) => scene !== avoid) : scenes;
+  return pool[Math.floor(Math.random() * pool.length)] ?? scenes[0] ?? '';
 }
 
 function healthStat(game: Game): string | null {
@@ -97,7 +84,7 @@ function makeBattleState(game: Game, scene: string, health: number, stat: string
     gamblesDone: [],
     stats,
     initialStats: { ...stats },
-    visited: [scene],
+    visited: scene ? [scene] : [],
     itemChanges: [],
     updated: new Date().toISOString(),
   };
@@ -117,50 +104,58 @@ export default function BattleScreen({
   onExit: () => void;
 }) {
   const stat = healthStat(game);
-  const initialDeck = buildBattleDeck(game);
-  const [phase, setPhase] = useState<BattlePhase>(stat ? 'health' : 'intro');
-  const [order, setOrder] = useState<string[]>(initialDeck);
-  const [index, setIndex] = useState(0);
+  const defaultHealth = Number(game.stats?.[stat ?? 'stamina']?.initial ?? 20);
+  const [phase, setPhase] = useState<BattlePhase>(stat ? 'health' : 'select');
+  const [state, setState] = useState<GameState | null>(() => (
+    stat ? null : makeBattleState(game, '', defaultHealth, null)
+  ));
+  const [battleId, setBattleId] = useState(0);
+  const [lastVictory, setLastVictory] = useState(false);
   const [liveStamina, setLiveStamina] = useState<{ value: number; max: number } | null>(null);
   const vitalTitle = stat ? game.stats?.[stat]?.title ?? 'Выносливость' : 'Выносливость';
-  const [state, setState] = useState<GameState | null>(() => {
-    if (stat) return null;
-    return makeBattleState(game, initialDeck[0] ?? '', Number(game.stats?.stamina?.initial ?? 20), null);
-  });
+  const options = ENEMY_OPTIONS.map((option) => ({
+    ...option,
+    scenes: scenesForEnemyKind(game, option.id),
+  }));
 
   const handleStaminaChange = useCallback((value: number, max: number) => {
     setLiveStamina({ value, max });
   }, []);
 
+  const chooseEnemy = (kind: EnemyKind) => {
+    const scenes = scenesForEnemyKind(game, kind);
+    const scene = pickRandomScene(scenes, state?.scene || undefined);
+    if (!scene) return;
+    setLiveStamina(null);
+    setState((previous) => {
+      const base = previous ?? makeBattleState(game, '', defaultHealth, null);
+      return { ...base, scene, visited: [scene] };
+    });
+    setBattleId((value) => value + 1);
+    setLastVictory(false);
+    setPhase('intro');
+  };
+
   const beginRun = () => {
     setLiveStamina(null);
-    const nextDeck = buildBattleDeck(game);
-    setOrder(nextDeck);
-    setIndex(0);
-    setState(stat ? null : makeBattleState(game, nextDeck[0] ?? '', Number(game.stats?.stamina?.initial ?? 20), null));
-    setPhase(stat ? 'health' : 'intro');
+    setLastVictory(false);
+    setBattleId((value) => value + 1);
+    setState(stat ? null : makeBattleState(game, '', defaultHealth, null));
+    setPhase(stat ? 'health' : 'select');
   };
 
   const finishHealthRoll = (value: number) => {
     setLiveStamina(null);
-    const nextDeck = buildBattleDeck(game);
-    setOrder(nextDeck);
-    setIndex(0);
-    setState(makeBattleState(game, nextDeck[0] ?? '', value, stat));
-    setPhase('intro');
+    setLastVictory(false);
+    setState(makeBattleState(game, '', value, stat));
+    setPhase('select');
   };
 
   const handleWin = (result: GameState) => {
-    const next = index + 1;
-    if (next >= order.length) {
-      setPhase('victory');
-      return;
-    }
-    const nextScene = order[next];
     setLiveStamina(null);
-    setIndex(next);
-    setState({ ...result, scene: nextScene, visited: [...result.visited, nextScene] });
-    setPhase('intro');
+    setState({ ...result, scene: '', visited: [] });
+    setLastVictory(true);
+    setPhase('select');
   };
 
   const currentCombat = state ? game.combat?.[state.scene] : null;
@@ -180,15 +175,28 @@ export default function BattleScreen({
     return () => window.removeEventListener('keydown', onKey, true);
   }, [phase]);
 
+  useEffect(() => {
+    if (phase !== 'select') return;
+    const onKey = (event: KeyboardEvent) => {
+      const number = Number(event.key);
+      if (!Number.isInteger(number) || number < 1 || number > ENEMY_OPTIONS.length) return;
+      event.preventDefault();
+      const buttons = document.querySelectorAll<HTMLButtonElement>('.battle-select-choices .choice');
+      buttons[number - 1]?.click();
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [phase]);
+
   return (
     <div className="battle-screen">
       <div className="battle-topbar">
-        <span className="battle-title">СРАЖЕНИЕ С ЗОМБИ</span>
+        <span className="battle-title">{phase === 'select' ? 'БОЕВОЙ РЕЖИМ' : `СРАЖЕНИЕ: ${currentCombat?.enemies?.[0]?.name?.toUpperCase() ?? 'БОЙ'}`}</span>
         <div className="battle-top-right">
           <span className="battle-progress">
-            {phase === 'victory' ? 'ПОБЕДА' : phase === 'health' ? 'ПОДГОТОВКА' : `КОМНАТА ${index + 1} / ${order.length}`}
+            {phase === 'health' ? 'ПОДГОТОВКА' : phase === 'select' ? 'ВЫБОР ПРОТИВНИКА' : 'БОЙ'}
           </span>
-          {stat && state && (phase === 'intro' || phase === 'combat') && (
+          {stat && state && (phase === 'select' || phase === 'intro' || phase === 'combat') && (
             <div className="vital-hud battle-vital" aria-label={`${vitalTitle}: ${liveStamina?.value ?? state.stats[stat] ?? 0}`}>
               <span
                 className={`vital-chip${(liveStamina?.value ?? state.stats[stat] ?? 0) <= 0 ? ' is-low' : ''}`}
@@ -211,10 +219,34 @@ export default function BattleScreen({
         </div>
       )}
 
+      {phase === 'select' && (
+        <div className="battle-select">
+          <div className="battle-kicker">{lastVictory ? 'ПРОТИВНИК ПОБЕЖДЁН' : 'ПЕРЕД БОЕМ'}</div>
+          <h2 className="battle-select-title">ВЫБЕРИ ПРОТИВНИКА</h2>
+          <div className="choices battle-select-choices">
+            {options.map((option, index) => (
+              <button
+                key={option.id}
+                type="button"
+                className={`choice${index === 0 ? ' selected' : ''}`}
+                disabled={option.scenes.length === 0}
+                onClick={() => chooseEnemy(option.id)}
+                title={option.detail}
+              >
+                {index + 1}. {option.label} · {option.scenes.length}
+              </button>
+            ))}
+          </div>
+          <div className="battle-select-note">
+            {lastVictory ? 'Выбери следующего противника.' : 'Для обычных врагов сцена выбирается случайно.'}
+          </div>
+        </div>
+      )}
+
       {phase === 'intro' && state && currentCombat && currentScene && (
         <div className="battle-room battle-intro">
           <div className="battle-room-head">
-            <span>БОЙ {index + 1} / {order.length}</span>
+            <span>ВЫБРАННЫЙ ПРОТИВНИК</span>
           </div>
           {currentImage && (
             <figure className="battle-room-image">
@@ -233,10 +265,10 @@ export default function BattleScreen({
       {phase === 'combat' && state && currentCombat && currentScene && (
         <div className="battle-room">
           <div className="battle-room-head">
-            <span>БОЙ {index + 1} / {order.length}</span>
+            <span>ВЫБРАННЫЙ ПРОТИВНИК</span>
           </div>
           <CombatPanel
-            key={`${index}:${state.scene}`}
+            key={`${battleId}:${state.scene}`}
             game={game}
             state={state}
             combat={currentCombat}
@@ -250,29 +282,6 @@ export default function BattleScreen({
 
       {phase === 'combat' && (!state || !currentCombat) && (
         <div className="battle-error">БОЕВЫЕ СЦЕНЫ НЕ НАЙДЕНЫ</div>
-      )}
-
-      {phase === 'victory' && (
-        <div className="battle-victory">
-          <div className="battle-kicker">ВСЕ КОМНАТЫ ПРОЙДЕНЫ</div>
-          <h1>МИР СПАСЁН</h1>
-          <p>
-            Последний зомби падает. Вы стоите среди обломков и тишины, и постепенно
-            понимаете, что больше никто не идёт на вас.
-          </p>
-          <p>
-            Люди выходят из укрытий. Вас чествуют как спасителя мира, а история
-            о человеке, который пережил все комнаты, передаётся из уст в уста.
-          </p>
-          <div className="choices battle-victory-choices">
-            <button type="button" className="choice selected" onClick={beginRun}>
-              1. НАЧАТЬ ЗАНОВО
-            </button>
-            <button type="button" className="choice" onClick={onExit}>
-              2. В БИБЛИОТЕКУ
-            </button>
-          </div>
-        </div>
       )}
     </div>
   );

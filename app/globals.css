@@ -1996,14 +1996,14 @@ body {
   width: 122px;
   height: 146px;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
 }
 .zombie-figure img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  object-position: bottom center;
+  object-position: center center;
   filter: drop-shadow(0 0 10px rgba(255, 150, 20, 0.16));
   animation: zombie-idle 3.2s ease-in-out infinite;
   user-select: none;
@@ -2562,4 +2562,56 @@ body {
   .vital-chip { height: 27px; padding: 0 6px; }
   .vital-heart { width: 15px; height: 15px; flex-basis: 15px; }
   .vital-value { font-size: 14px; }
+}
+
+/* общая сцена боя: подписи и визуальные окна на одной линии */
+.combat-visual-block {
+  height: 170px;
+  justify-content: flex-start;
+}
+.combat-player-block .combat-weapon {
+  flex: 1 1 auto;
+  justify-content: center;
+}
+.combat-enemy-block .zombie-figure {
+  flex: 0 0 146px;
+}
+@media (max-width: 760px) {
+  .combat-visual-block { height: 142px; }
+  .combat-enemy-block .zombie-figure { flex-basis: 118px; }
+}
+
+/* выбор противника в боевом режиме */
+.battle-select {
+  max-width: 620px;
+  margin: 24px auto 0;
+}
+.battle-select-title {
+  margin: 8px 0 14px;
+  color: var(--green);
+  font-family: var(--mono);
+  font-size: clamp(20px, 3vw, 30px);
+  letter-spacing: 3px;
+  text-align: center;
+  text-shadow: 0 0 14px rgba(51, 255, 0, 0.35);
+}
+.battle-select-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.battle-select-choices .choice {
+  width: 100%;
+  text-align: left;
+}
+.battle-select-note {
+  margin-top: 12px;
+  color: #8a6a2f;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-align: center;
+}
+@media (max-width: 760px) {
+  .battle-select { margin-top: 12px; }
+  .battle-select-title { font-size: 18px; letter-spacing: 2px; }
 }

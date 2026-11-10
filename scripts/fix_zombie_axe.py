@@ -19,6 +19,7 @@ SRC = Path('/home/vlad/DeepSeekHome2/pic_v2/zombie art/zombie_axe.png')
 OUT = ROOT / 'games/zombie-blood/assets/zombie-axe'
 CANVAS = 512
 BASELINE = 496
+TARGET_HEIGHT = 447
 COLS = [0, 512, 1024, 1536, 2048]
 # Начала/концы рядов, чтобы не зацепить соседние кадры.
 ROWS = [0, 467, 861, 1246, 1638, 2048]
@@ -117,6 +118,16 @@ def remove_detached(img: Image.Image) -> Image.Image:
     return out.crop(box) if box else out
 
 
+def scale_around_baseline(canvas: Image.Image, scale: float) -> Image.Image:
+    scaled = canvas.resize(
+        (max(1, round(CANVAS * scale)), max(1, round(CANVAS * scale))),
+        Resampling.LANCZOS,
+    )
+    out = Image.new('RGBA', (CANVAS, CANVAS), (0, 0, 0, 0))
+    out.alpha_composite(scaled, (round(CANVAS / 2 - CANVAS / 2 * scale), round(BASELINE - BASELINE * scale)))
+    return out
+
+
 def main() -> None:
     source = Image.open(SRC).convert('RGB')
     images: list[Image.Image] = []
@@ -139,6 +150,8 @@ def main() -> None:
             for im in images
         ]
 
+    ref_box = images[0].getbbox()
+    char_scale = TARGET_HEIGHT / max(1, ref_box[3] - ref_box[1]) if ref_box else 1.0
     finals: list[Image.Image] = []
     for name, cut in zip(names, images):
         box = cut.getbbox()
@@ -178,6 +191,7 @@ def main() -> None:
                 shifted = Image.new('RGBA', (CANVAS, CANVAS), (0, 0, 0, 0))
                 shifted.alpha_composite(canvas, (0, BASELINE - box[3]))
                 canvas = shifted
+        canvas = scale_around_baseline(canvas, char_scale)
         canvas.save(OUT / name, 'PNG', optimize=True)
         finals.append(canvas)
         print(name, canvas.getbbox())

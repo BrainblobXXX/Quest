@@ -95,18 +95,18 @@ function enemyVisualFor(game: Game, name: string): EnemyVisual | null {
     return {
       key: 'zombie-kong',
       base: `${base}/zombie-kong`,
-      passive: sheetFrames('zombie-kong', 1, 8),
-      attack: sheetFrames('zombie-kong', 9, 4),
-      death: sheetFrames('zombie-kong', 13, 4),
+      passive: framePaths('zombie-kong--static', 4),
+      attack: framePaths('zombie-kong--attack', 6),
+      death: framePaths('zombie-kong--die', 3),
     };
   }
   if (lower.includes('юрр')) {
     return {
       key: 'yurr',
       base: `${base}/yurr`,
-      passive: sheetFrames('yurr', 1, 8),
-      attack: sheetFrames('yurr', 9, 4),
-      death: sheetFrames('yurr', 13, 4),
+      passive: framePaths('yurr-static', 4),
+      attack: framePaths('yurr-attack', 3),
+      death: framePaths('yurr-die', 3),
     };
   }
   if (lower.includes('с оружием')) {
