@@ -255,6 +255,7 @@ export default function CombatPanel({
   const [grenadeUsed, setGrenadeUsed] = useState(false);
   const [rollView, setRollView] = useState<RollView | null>(null);
   const [activeAllyId, setActiveAllyId] = useState<string | null>(null);
+  const [playerShooting, setPlayerShooting] = useState(false);
   const [log, setLog] = useState<string[]>(setup.log);
   const [selectedChoice, setSelectedChoice] = useState(0);
   const [visual, setVisual] = useState<VisualPhase>(setup.phase === 'victory' ? 'dead' : 'idle');
@@ -303,6 +304,8 @@ export default function CombatPanel({
   }, [phase, weaponPicked, grenadeUsed, log.length]);
 
   const alive = enemies.filter((hp) => hp > 0).length;
+  const enemyMaxHealth = Math.max(1, Number(enemy.health ?? 1));
+  const enemyCurrentHealth = enemies.reduce((total, hp) => total + Math.max(0, hp), 0);
   const initialAlive = setup.enemies.filter((hp) => hp > 0).length;
   const enemyTotal = Math.max(1, initialAlive);
   const allies = combat.allies ?? [];
@@ -543,9 +546,12 @@ export default function CombatPanel({
     const playerRoll = rollDamage(selectedDamage);
     const playerName = selected.id === FISTS ? 'КУЛАКИ' : selected.title.toUpperCase();
     await animateRoll('player', playerName, playerRoll);
+    setPlayerShooting(true);
     setVisual('player');
     await wait(450);
+    setPlayerShooting(false);
     setVisual('idle');
+    setRollView(null);
     addLog(`ИГРОК: ${playerName} · ${rollLabel(playerRoll)}`);
 
     const attackAllies = [...allies];
@@ -561,6 +567,7 @@ export default function CombatPanel({
       await wait(450);
       setVisual('idle');
       setActiveAllyId(null);
+      setRollView(null);
       allyTotal += allyRoll.total;
       addLog(`${ally.name.toUpperCase()}: ${rollLabel(allyRoll)}`);
     }
@@ -595,9 +602,6 @@ export default function CombatPanel({
     }
 
     await wait(PLAYER_PAUSE_MS);
-    setVisual('enemy');
-    const enemySound = enemySoundUrl(game, enemy.name);
-    if (enemySound) audio.sfx(enemySound, ENEMY_SFX_VOLUME);
 
     let enemyRoll: DamageRoll | null = null;
     let enemyDamage = 0;
@@ -605,9 +609,18 @@ export default function CombatPanel({
     if (enemy.attackRoll) {
       enemyRoll = rollDamage(enemy.attackRoll);
       await animateRoll('enemy', enemy.name.toUpperCase(), enemyRoll);
+      setRollView(null);
+      // Рывок/удар врага начинается только после завершения его броска.
+      setVisual('enemy');
+      const enemySound = enemySoundUrl(game, enemy.name);
+      if (enemySound) audio.sfx(enemySound, ENEMY_SFX_VOLUME);
       enemyDamage = enemyRoll.total * counterFactor;
       addLog(`ПРОТИВНИК: ${enemy.name.toUpperCase()} · ${rollLabel(enemyRoll)}`);
+      await wait(ATTACK_ANIM_MS);
     } else {
+      setVisual('enemy');
+      const enemySound = enemySoundUrl(game, enemy.name);
+      if (enemySound) audio.sfx(enemySound, ENEMY_SFX_VOLUME);
       enemyDamage = Number(enemy.attack) * counterFactor;
       await wait(ATTACK_ANIM_MS);
     }
@@ -897,7 +910,7 @@ export default function CombatPanel({
                     <span className="combat-ally-name">{ally.name.toUpperCase()}</span>
                   </div>
                 ))}
-                <div className={`combat-weapon${visual === 'player' || visual === 'dying' ? ' is-shooting' : ''}`}>
+                <div className={`combat-weapon${playerShooting ? ' is-shooting' : ''}`}>
                   <WeaponIcon weaponId={selected.id} gameId={game.id} />
                   <span className="weapon-muzzle" aria-hidden="true" />
                   <div className="weapon-name">{weaponTitle}</div>
@@ -920,9 +933,16 @@ export default function CombatPanel({
                         decoding="async"
                       />
                     )}
-                    <span className="zombie-count" aria-label={`Количество: ${alive}`}>
-                      × {alive}
-                    </span>
+                    <div className="zombie-badges">
+                      <span className="zombie-count" aria-label={`Количество: ${alive}`}>
+                        × {alive}
+                      </span>
+                      {enemyMaxHealth > 1 && alive > 0 && (
+                        <span className="zombie-health" aria-label={`Текущие жизни: ${enemyCurrentHealth}`}>
+                          ♥ {enemyCurrentHealth}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </>
