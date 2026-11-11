@@ -280,8 +280,8 @@ class AudioEngine {
   }
 
   /** Короткий звуковой эффект (например, выстрел оружия). */
-  sfx(url: string, volume = 0.7): void {
-    if (!this.enabled || typeof window === 'undefined') return;
+  sfx(url: string, volume = 0.7): HTMLAudioElement | null {
+    if (!this.enabled || typeof window === 'undefined') return null;
     try {
       const clip = new Audio(url);
       clip.volume = Math.min(1, Math.max(0, this.soundVolume * volume));
@@ -291,8 +291,10 @@ class AudioEngine {
       void clip.play().catch(() => {
         // браузер мог заблокировать автозапуск — не ломаем бой
       });
+      return clip;
     } catch {
       // звук не критичен для игрового процесса
+      return null;
     }
   }
 }

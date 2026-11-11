@@ -70,13 +70,14 @@ function migrateZombieBlood(game: Game, state: GameState): GameState {
 }
 
 export function migrateState(game: Game, input: GameState): GameState {
-  let state = input;
+  let state: GameState = { ...input, effects: input.effects ?? [] };
   if ((state.version ?? 0) < STATE_VERSION) {
     // Сейвы до версии 2: нормализуем журналы и прогоняем известные миграции.
     state = {
       ...state,
       knownCodes: state.knownCodes ?? [],
       gamblesDone: state.gamblesDone ?? [],
+      effects: state.effects ?? [],
       version: 1,
     };
     state = migrateZombieBlood(game, state);

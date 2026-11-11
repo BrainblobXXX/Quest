@@ -47,7 +47,8 @@
         "draft",
         "alpha",
         "beta",
-        "stable"
+        "stable",
+        "release"
       ]
     },
     "author": {
@@ -101,6 +102,9 @@
     },
     "items": {
       "$ref": "#/$defs/items"
+    },
+    "effects": {
+      "$ref": "#/$defs/effectDefs"
     },
     "flags": {
       "type": "array",
@@ -419,6 +423,9 @@
         },
         "redirect": {
           "$ref": "#/$defs/sceneId"
+        },
+        "apply_effect": {
+          "$ref": "#/$defs/effectId"
         }
       },
       "oneOf": [
@@ -470,6 +477,11 @@
         {
           "required": [
             "redirect"
+          ]
+        },
+        {
+          "required": [
+            "apply_effect"
           ]
         }
       ]
@@ -684,7 +696,11 @@
         },
         "pre_damage_kind": {
           "type": "string",
-          "enum": ["browning", "grenade", "damage"]
+          "enum": [
+            "browning",
+            "grenade",
+            "damage"
+          ]
         },
         "pre_damage_item": {
           "type": "string"
@@ -1213,6 +1229,69 @@
             "$ref": "#/$defs/sceneId"
           }
         }
+      }
+    },
+    "effectId": {
+      "type": "string",
+      "pattern": "^[a-z_][a-z0-9_]*$"
+    },
+    "effectDef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title",
+        "duration"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "buff",
+            "debuff"
+          ]
+        },
+        "icon": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "duration": {
+          "oneOf": [
+            {
+              "const": "next_combat"
+            },
+            {
+              "type": "integer",
+              "minimum": 1
+            }
+          ]
+        },
+        "stacking": {
+          "type": "string",
+          "enum": [
+            "refresh",
+            "stack",
+            "ignore"
+          ],
+          "default": "refresh"
+        },
+        "modifiers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "effectDefs": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/effectDef"
       }
     }
   }

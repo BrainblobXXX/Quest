@@ -1,4 +1,4 @@
-import { STATE_VERSION, type CheckDef, type Choice, type CombatDef, type CombatEnemy, type Game, type GameState, type GambleDef, type ItemDef, type ParseProblem, type RollOutcome, type Scene, type SceneEffect, type StatDef, type CodeDef } from './types';
+import { STATE_VERSION, type CheckDef, type Choice, type CombatDef, type CombatEnemy, type EffectDef, type Game, type GameState, type GambleDef, type ItemDef, type ParseProblem, type RollOutcome, type Scene, type SceneEffect, type StatDef, type CodeDef } from './types';
 
 type Json = Record<string, unknown>;
 type Q2Condition = Record<string, unknown>;
@@ -70,6 +70,39 @@ function itemSpec(value: unknown): { item: string; count: number } | null {
   return { item: str(obj.item), count: Math.max(1, num(obj.count, 1)) };
 }
 
+function effectDefinitions(value: unknown, problems: ParseProblem[]): Record<string, EffectDef> {
+  const result: Record<string, EffectDef> = {};
+  for (const [id, raw] of Object.entries(asRecord(value) ?? {})) {
+    const def = asRecord(raw);
+    if (!def) continue;
+    const durationRaw = def.duration;
+    const duration = durationRaw === 'next_combat'
+      ? 'next_combat'
+      : Math.max(1, num(durationRaw, 1));
+    const modifiersRaw = asRecord(def.modifiers);
+    const modifiers = modifiersRaw
+      ? Object.fromEntries(Object.entries(modifiersRaw).map(([key, value]) => [key, num(value)]))
+      : undefined;
+    const stackingRaw = str(def.stacking, 'refresh');
+    const stacking = (['refresh', 'stack', 'ignore'] as const).includes(stackingRaw as 'refresh' | 'stack' | 'ignore')
+      ? stackingRaw as 'refresh' | 'stack' | 'ignore'
+      : undefined;
+    result[id] = {
+      title: str(def.title, id),
+      ...(def.kind === 'buff' || def.kind === 'debuff' ? { kind: def.kind } : {}),
+      ...(def.icon ? { icon: str(def.icon) } : {}),
+      ...(def.description ? { description: str(def.description) } : {}),
+      duration,
+      ...(stacking ? { stacking } : {}),
+      ...(modifiers ? { modifiers } : {}),
+    };
+    if (durationRaw !== 'next_combat' && (typeof durationRaw !== 'number' || !Number.isFinite(durationRaw) || durationRaw < 1)) {
+      problems.push({ level: 'warn', code: 'Q2_EFFECT_DURATION', message: `эффект ${id}: duration должен быть next_combat или целым числом боёв` });
+    }
+  }
+  return result;
+}
+
 function effects(value: unknown, problems: ParseProblem[], scene: string): SceneEffect[] {
   const out: SceneEffect[] = [];
   for (const raw of asArray(value)) {
@@ -104,12 +137,13 @@ function effects(value: unknown, problems: ParseProblem[], scene: string): Scene
       if (spec) out.push({ ...base, statRoll: { [str(spec.stat)]: str(spec.formula) } });
     }
     if (effect.redirect) out.push({ ...base, goto: str(effect.redirect) });
+    if (effect.apply_effect) out.push({ ...base, applyEffect: str(effect.apply_effect) });
   }
   return out;
 }
 
-function choiceEffects(value: unknown): Pick<Choice, 'take' | 'use' | 'useCount' | 'drop' | 'dropCount' | 'set' | 'stat' | 'learn_code'> {
-  const out: Pick<Choice, 'take' | 'use' | 'useCount' | 'drop' | 'dropCount' | 'set' | 'stat' | 'learn_code'> = {};
+function choiceEffects(value: unknown): Pick<Choice, 'take' | 'use' | 'useCount' | 'drop' | 'dropCount' | 'set' | 'stat' | 'learn_code' | 'applyEffect'> {
+  const out: Pick<Choice, 'take' | 'use' | 'useCount' | 'drop' | 'dropCount' | 'set' | 'stat' | 'learn_code' | 'applyEffect'> = {};
   const take: Record<string, number> = {};
   for (const raw of asArray(value)) {
     const effect = asRecord(raw);
@@ -132,6 +166,7 @@ function choiceEffects(value: unknown): Pick<Choice, 'take' | 'use' | 'useCount'
       if (spec) out.stat = { ...(out.stat ?? {}), [str(spec.stat)]: num(spec.delta) };
     }
     if (effect.learn_code) out.learn_code = str(effect.learn_code);
+    if (effect.apply_effect) out.applyEffect = str(effect.apply_effect);
   }
   if (Object.keys(take).length) out.take = take;
   return out;
@@ -296,6 +331,7 @@ export function parseQuest2(id: string, raw: Json): { game: Game; problems: Pars
     } : {}),
     ...(raw.items ? { items: raw.items as Record<string, ItemDef> } : {}),
     ...(raw.codes ? { codes: raw.codes as Record<string, CodeDef> } : {}),
+    ...(raw.effects ? { effects: effectDefinitions(raw.effects, problems) } : {}),
   };
 
   for (const [key, rawScene] of Object.entries(rawScenes)) {

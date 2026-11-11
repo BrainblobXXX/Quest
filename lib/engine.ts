@@ -1,5 +1,6 @@
 import { STATE_VERSION, type Choice, type Game, type GameState, type ItemChange, type ItemDef, type Scene, type SceneEffect } from './types';
 import { rollDie, type Rng } from './rng';
+import { addEffect } from './effects';
 
 export function newState(game: Game, rng: Rng = Math.random): GameState {
   const stats: Record<string, number> = {};
@@ -17,6 +18,7 @@ export function newState(game: Game, rng: Rng = Math.random): GameState {
     flags: [],
     knownCodes: [],
     gamblesDone: [],
+    effects: [],
     stats,
     initialStats: { ...stats },
     visited: [game.start],
@@ -258,6 +260,7 @@ function applyOnEnter(game: Game, state: GameState, scene?: Scene, rng: Rng = Ma
   let stats = state.stats;
   let flags = state.flags;
   let knownCodes = [...(state.knownCodes ?? [])];
+  let effects = [...(state.effects ?? [])];
   let goTo: string | null = null;
   const repeatVisit = state.visited.filter((key) => key === scene.key).length > 1;
   for (const effect of scene.onEnter) {
@@ -274,12 +277,13 @@ function applyOnEnter(game: Game, state: GameState, scene?: Scene, rng: Rng = Ma
     }
     if (effect.stat) stats = applyStatDeltas(game, stats, effect.stat);
     if (effect.statRoll) stats = applyRollStatDeltas(game, stats, effect.statRoll, rng);
+    if (effect.applyEffect) effects = addEffect(game, effects, effect.applyEffect);
     if (effect.goto && game.scenes[effect.goto]) {
       goTo = effect.goto;
       break;
     }
   }
-  const moved = { ...state, inventory, stats, flags, knownCodes };
+  const moved = { ...state, inventory, stats, flags, knownCodes, effects };
   if (goTo) {
     return applyOnEnter(game, {
       ...moved,
@@ -308,7 +312,8 @@ function applyMods(game: Game, state: GameState, choice: Choice): GameState {
     choice.learn_code && !(state.knownCodes ?? []).includes(choice.learn_code)
       ? [...(state.knownCodes ?? []), choice.learn_code]
       : state.knownCodes;
-  return { ...state, inventory, stats, flags, knownCodes };
+  const effects = choice.applyEffect ? addEffect(game, state.effects, choice.applyEffect) : state.effects;
+  return { ...state, inventory, stats, flags, knownCodes, effects };
 }
 
 /* ── ходы ────────────────────────────────────────────────── */

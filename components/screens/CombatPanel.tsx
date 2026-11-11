@@ -7,7 +7,9 @@ import { usePanelKeys } from '@/lib/usePanelKeys';
 import { combatKey, combatKeyIndex } from '@/components/screens/combatKeys';
 import { rollDie } from '@/lib/rng';
 import { applyPoolDamage, resolvePoolAttack, resolvePoolCounter } from '@/lib/combat';
+import { expireCombatEffects, playerDamageModifier } from '@/lib/effects';
 import { WeaponIcon } from '@/components/screens/WeaponIcon';
+import PreBattleAnimation, { type PreBattleAnimationKind } from '@/components/screens/PreBattleAnimation';
 import type { CombatDef, Game, GameState } from '@/lib/types';
 
 type Phase = 'prebattle' | 'prebattle-choice' | 'loadout' | 'round' | 'rolling' | 'victory' | 'defeat';
@@ -204,12 +206,6 @@ function rollLabel(roll: DamageRoll): string {
   return `${rollExpression(roll)} = ${roll.total}`;
 }
 
-function preBattleLabel(kind: PreBattleEffect['kind'] | undefined): string | null {
-  if (kind === 'grenade') return 'ВЗРЫВ';
-  if (kind === 'browning') return 'ОЧЕРЕДЬ ПУЛЕМЕТА';
-  return null;
-}
-
 function preBattleName(kind: PreBattleEffect['kind'] | undefined): string {
   if (kind === 'grenade') return 'ГРАНАТА';
   if (kind === 'browning') return 'ПУЛЕМЁТ';
@@ -326,7 +322,7 @@ export default function CombatPanel({
   const [activeAllyId, setActiveAllyId] = useState<string | null>(null);
   const [playerShooting, setPlayerShooting] = useState(false);
   const [log, setLog] = useState<string[]>(setup.log);
-  const [preBattleLabelText, setPreBattleLabelText] = useState<string | null>(null);
+  const [preBattleAnimation, setPreBattleAnimation] = useState<PreBattleAnimationKind | null>(null);
   const [selectedChoice, setSelectedChoice] = useState(0);
   const [visual, setVisual] = useState<VisualPhase>(setup.phase === 'victory' ? 'dead' : 'idle');
   const [hitFlash, setHitFlash] = useState(false);
@@ -494,12 +490,12 @@ export default function CombatPanel({
         setRollView(null);
       }
       if (setup.preEffect && setup.preEffect.kind !== 'damage') {
-        setPreBattleLabelText(preBattleLabel(setup.preEffect.kind));
+        setPreBattleAnimation(setup.preEffect.kind);
         setVisual('player');
         await wait(PRE_EFFECT_MS);
         if (!active) return;
         setVisual('idle');
-        setPreBattleLabelText(null);
+        setPreBattleAnimation(null);
       }
       if (setup.preStaminaApplied !== undefined) {
         // Предбоевой удар зомби: сначала анимация атаки, затем глитч.
@@ -675,6 +671,8 @@ export default function CombatPanel({
     setPhase('rolling');
     setRollView(null);
     const playerRoll = rollDamage(selectedDamage);
+    const damageModifier = playerDamageModifier(game, state);
+    const playerTotal = Math.max(0, playerRoll.total + damageModifier);
     const playerName = selected.id === FISTS ? 'КУЛАКИ' : selected.title.toUpperCase();
     await animateRoll('player', playerName, playerRoll);
     const hitSound = weaponSoundUrl(game, selected.id);
@@ -685,7 +683,10 @@ export default function CombatPanel({
     setPlayerShooting(false);
     setVisual('idle');
     setRollView(null);
-    addLog(`ИГРОК: ${playerName} · ${rollLabel(playerRoll)}`);
+    addLog(
+      `ИГРОК: ${playerName} · ${rollLabel(playerRoll)}`,
+      ...(damageModifier !== 0 ? [`ЭФФЕКТ: ${damageModifier > 0 ? '+' : ''}${damageModifier} к урону.`] : []),
+    );
 
     const attackAllies = [...allies];
     if (attackAllies.length === 0 && combat.bonusDamage) {
@@ -710,8 +711,8 @@ export default function CombatPanel({
       allyTotal += allyRoll.total;
       addLog(`${ally.name.toUpperCase()}: ${rollLabel(allyRoll)}`);
     }
-    const total = playerRoll.total + allyTotal;
-    if (attackAllies.length > 0) addLog(`СУММА: ${playerRoll.total} + ${allyTotal} = ${total}`);
+    const total = playerTotal + allyTotal;
+    if (attackAllies.length > 0) addLog(`СУММА: ${playerTotal} + ${allyTotal} = ${total}`);
 
     const offense = resolvePoolAttack({ enemies, total, threshold: combat.threshold });
     setEnemies(offense.enemies);
@@ -798,11 +799,11 @@ export default function CombatPanel({
     setRollView(null);
     await animateRoll('player', 'ГРАНАТА', result);
     setRollView(null);
-    setPreBattleLabelText('ВЗРЫВ');
+    setPreBattleAnimation('grenade');
     setVisual('player');
     await wait(PRE_EFFECT_MS);
     setVisual('idle');
-    setPreBattleLabelText(null);
+    setPreBattleAnimation(null);
     setPreBattleBusy(false);
     if (next.every((hp) => hp <= 0)) {
       setVisual('dead');
@@ -835,6 +836,7 @@ export default function CombatPanel({
   const finish = () => {
     onWin({
       ...state,
+      effects: expireCombatEffects(state.effects),
       stats: { ...state.stats, [staminaId]: stamina },
       inventory,
     });
@@ -904,12 +906,6 @@ export default function CombatPanel({
           </span>
         )}
       </div>
-
-      {(phase === 'prebattle' || phase === 'prebattle-choice') && preBattleLabelText && (
-        <div className="combat-prebattle-overlay" role="status" aria-live="assertive">
-          <span>{preBattleLabelText}</span>
-        </div>
-      )}
 
       <div className="combat-log" aria-live="polite" ref={logRef}>
         {log.map((line, index) => (
@@ -1081,7 +1077,13 @@ export default function CombatPanel({
                 <div className="combat-fighter combat-player-fighter">
                   <div className="combat-fighter-label">ИГРОК</div>
                   <div className="combat-fighter-stage">
-                    {phase !== 'prebattle' && phase !== 'prebattle-choice' && (
+                    {(phase === 'prebattle' || phase === 'prebattle-choice') ? (
+                      preBattleAnimation ? (
+                        <div className="combat-weapon combat-prebattle-weapon">
+                          <PreBattleAnimation game={game} kind={preBattleAnimation} />
+                        </div>
+                      ) : null
+                    ) : (
                       <div className={`combat-weapon${playerShooting ? ' is-shooting' : ''}`}>
                         <WeaponIcon weaponId={selected.id} gameId={game.id} />
                         <span className="weapon-muzzle" aria-hidden="true" />

@@ -7,6 +7,7 @@ import { audio } from '@/lib/audio';
 import InteractionHost from '@/components/screens/InteractionHost';
 import ShopPanel from '@/components/screens/ShopPanel';
 import SceneItemChanges from '@/components/screens/SceneItemChanges';
+import EffectChips from '@/components/screens/EffectChips';
 import { itemIconUrl } from '@/lib/itemIcons';
 import { DieFace } from '@/components/screens/Dice';
 import { combatMode } from '@/lib/combat';
@@ -83,13 +84,14 @@ function isVitalStat(id: string, def: { vital?: boolean }): boolean {
   return def.vital === true || ['hp', 'health', 'life', 'stamina'].includes(id);
 }
 
-function VitalHud({ stats }: { stats: StatView[] }) {
-  if (stats.length === 0) return null;
+function VitalHud({ stats, game, effects }: { stats: StatView[]; game: Game; effects?: GameState['effects'] }) {
+  if (stats.length === 0 && !effects?.length) return null;
   return (
     <div
       className="vital-hud"
       aria-label={`Жизненные показатели: ${stats.map((stat) => `${stat.title} ${stat.value}`).join(', ')}`}
     >
+      <EffectChips game={game} effects={effects} />
       {stats.map((stat) => (
         <span
           key={stat.id}
@@ -189,6 +191,7 @@ export default function GameScreen({
   const hasCombat = Boolean(combat?.enemy.count && combat.enemy.count > 0);
   const mode = combatMode(game, combat);
   const [combatStarted, setCombatStarted] = useState(false);
+  const [liveStamina, setLiveStamina] = useState<number | null>(null);
   const combatActive = hasCombat && combatStarted;
   const [rulesOpen, setRulesOpen] = useState(false);
   const instruction = instructionFor(game);
@@ -206,14 +209,16 @@ export default function GameScreen({
 
   useEffect(() => {
     setCombatStarted(false);
+    setLiveStamina(null);
   }, [scene.key]);
   const choices = availableChoices(game, state);
+  const liveVitalId = Object.entries(game.stats ?? {}).find(([id, def]) => isVitalStat(id, def))?.[0];
   const allStats = Object.entries(game.stats ?? {})
     .filter(([, def]) => def.show !== false)
     .map(([id, def]) => ({
       id,
       title: def.title || id,
-      value: state.stats[id] ?? def.initial ?? 0,
+      value: liveStamina !== null && id === liveVitalId ? liveStamina : state.stats[id] ?? def.initial ?? 0,
       vital: isVitalStat(id, def),
     }));
   const vitalStats = allStats.filter((stat) => stat.vital);
@@ -575,7 +580,7 @@ export default function GameScreen({
           <HeaderIcon kind="rules" />
         </button>
         <span className="title-text">{scene.title.toUpperCase()}</span>
-        <VitalHud stats={vitalStats} />
+        <VitalHud stats={vitalStats} game={game} effects={state.effects} />
         {(compactStats || compactItems) && (
           <div
             className="hud-inline"
@@ -752,6 +757,7 @@ export default function GameScreen({
           onCombatWin={onCombatWin}
           onCombatExit={onCombatExit}
           onRestart={onRestart}
+          onStaminaChange={setLiveStamina}
         />
       </div>
 

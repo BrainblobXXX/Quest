@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import CombatPanel from '@/components/screens/CombatPanel';
 import InitialRoll from '@/components/screens/InitialRoll';
+import EffectChips from '@/components/screens/EffectChips';
 import { STATE_VERSION, type Game, type GameState } from '@/lib/types';
 
-type BattlePhase = 'health' | 'select' | 'intro' | 'combat';
+type BattlePhase = 'health' | 'select' | 'effects' | 'intro' | 'combat';
 
 type EnemyKind = 'zombie' | 'armed' | 'dogs' | 'rats' | 'kong' | 'yurr';
 
@@ -39,6 +40,36 @@ function scenesForEnemyKind(game: Game, kind: EnemyKind): string[] {
   return Object.entries(game.combat ?? {})
     .filter(([, combat]) => (combat.enemies ?? []).some((enemy) => enemyKindFor(enemy.name) === kind))
     .map(([scene]) => scene);
+}
+
+type EffectSceneOption = {
+  scene: string;
+  kind: 'browning' | 'grenade';
+  optional: boolean;
+  formula: string;
+  enemy: string;
+  count: number;
+};
+
+function effectSceneOptions(game: Game): EffectSceneOption[] {
+  return Object.entries(game.combat ?? {})
+    .flatMap(([scene, combat]) => {
+      const kind = combat.preDamageKind;
+      if (kind !== 'browning' && kind !== 'grenade') return [];
+      const enemy = combat.enemies?.[0] ?? combat.enemy;
+      return [{
+        scene,
+        kind,
+        optional: combat.preDamageOptional === true,
+        formula: combat.preDamage ?? '—',
+        enemy: enemy?.name ?? 'Противник',
+        count: Math.max(1, Number(enemy?.count ?? 1)),
+      }];
+    })
+    .sort((a, b) => {
+      const order = { browning: 0, grenade: 1 };
+      return order[a.kind] - order[b.kind] || Number(a.scene) - Number(b.scene);
+    });
 }
 
 function pickRandomScene(scenes: string[], avoid?: string): string {
@@ -121,6 +152,7 @@ export default function BattleScreen({
     ...option,
     scenes: scenesForEnemyKind(game, option.id),
   }));
+  const effectOptions = effectSceneOptions(game);
 
   const handleStaminaChange = useCallback((value: number, max: number) => {
     setLiveStamina({ value, max });
@@ -134,6 +166,18 @@ export default function BattleScreen({
     setState((previous) => {
       const base = previous ?? makeBattleState(game, '', defaultHealth, null);
       return { ...base, scene, visited: [scene] };
+    });
+    setBattleId((value) => value + 1);
+    setLastVictory(false);
+    setPhase('intro');
+  };
+
+  const chooseEffectScene = (scene: string) => {
+    if (!game.combat?.[scene]) return;
+    setLiveStamina(null);
+    setState((previous) => {
+      const base = previous ?? makeBattleState(game, '', defaultHealth, null);
+      return { ...base, scene, visited: [scene], effects: [] };
     });
     setBattleId((value) => value + 1);
     setLastVictory(false);
@@ -192,16 +236,34 @@ export default function BattleScreen({
     return () => window.removeEventListener('keydown', onKey, true);
   }, [phase]);
 
+  useEffect(() => {
+    if (phase !== 'effects') return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setPhase('select');
+        return;
+      }
+      const number = Number(event.key);
+      if (!Number.isInteger(number) || number < 1 || number > effectOptions.length) return;
+      event.preventDefault();
+      document.querySelectorAll<HTMLButtonElement>('.battle-effect-choices .choice')[number - 1]?.click();
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [phase, effectOptions.length]);
+
   return (
     <div className="battle-screen">
       <div className="battle-topbar">
-        <span className="battle-title">{phase === 'select' ? 'БОЕВОЙ РЕЖИМ' : `СРАЖЕНИЕ: ${currentCombat?.enemies?.[0]?.name?.toUpperCase() ?? 'БОЙ'}`}</span>
+        <span className="battle-title">{(phase === 'select' || phase === 'effects') ? 'БОЕВОЙ РЕЖИМ' : `СРАЖЕНИЕ: ${currentCombat?.enemies?.[0]?.name?.toUpperCase() ?? 'БОЙ'}`}</span>
         <div className="battle-top-right">
           <span className="battle-progress">
-            {phase === 'health' ? 'ПОДГОТОВКА' : phase === 'select' ? 'ВЫБОР ПРОТИВНИКА' : 'БОЙ'}
+            {phase === 'health' ? 'ПОДГОТОВКА' : phase === 'select' ? 'ВЫБОР ПРОТИВНИКА' : phase === 'effects' ? 'ПРЕДБОЕВЫЕ ЭФФЕКТЫ' : 'БОЙ'}
           </span>
-          {stat && state && (phase === 'select' || phase === 'intro' || phase === 'combat') && (
+          {stat && state && (phase === 'select' || phase === 'effects' || phase === 'intro' || phase === 'combat') && (
             <div className="vital-hud battle-vital" aria-label={`${vitalTitle}: ${liveStamina?.value ?? state.stats[stat] ?? 0}`}>
+              <EffectChips game={game} effects={state.effects} />
               <span
                 className={`vital-chip${(liveStamina?.value ?? state.stats[stat] ?? 0) <= 0 ? ' is-low' : ''}`}
                 title={`${vitalTitle}: ${liveStamina?.value ?? state.stats[stat] ?? 0}`}
@@ -241,8 +303,32 @@ export default function BattleScreen({
               </button>
             ))}
           </div>
+          <button type="button" className="battle-effects-toggle" onClick={() => setPhase('effects')} disabled={effectOptions.length === 0}>
+            ЭФФЕКТЫ ПРЕДБОЯ · {effectOptions.length}
+          </button>
           <div className="battle-select-note">
             {lastVictory ? 'Выбери следующего противника.' : 'Для обычных врагов сцена выбирается случайно.'}
+          </div>
+        </div>
+      )}
+
+      {phase === 'effects' && (
+        <div className="battle-select battle-effects-select">
+          <div className="battle-kicker">ОТЛАДКА ПРЕДБОЕВЫХ ЭФФЕКТОВ</div>
+          <h2 className="battle-select-title">ВЫБЕРИ СТРАНИЦУ</h2>
+          <div className="choices battle-effect-choices">
+            {effectOptions.map((option, index) => (
+              <button key={option.scene} type="button" className={`choice${index === 0 ? ' selected' : ''}`} onClick={() => chooseEffectScene(option.scene)}>
+                {index + 1}. §{option.scene} · {option.kind === 'browning' ? 'БРАУНИНГ' : 'ГРАНАТА'}
+                {option.optional ? ' · ВЫБОР' : ' · АВТО'} · {option.formula} · {option.enemy} × {option.count}
+              </button>
+            ))}
+          </div>
+          <button type="button" className="battle-effects-back" onClick={() => setPhase('select')}>
+            НАЗАД К ВЫБОРУ ПРОТИВНИКА
+          </button>
+          <div className="battle-select-note">
+            Сцена запускается с соответствующей предбоевой анимацией и эффектом.
           </div>
         </div>
       )}

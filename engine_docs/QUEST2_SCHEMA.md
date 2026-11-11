@@ -52,7 +52,7 @@ scenes: {}
 
 ```yaml
 features: [checks, combat.rpg, codes, shop]
-status: alpha | beta | stable | draft
+status: release | alpha | beta | stable | draft
 author, genre, annotation, language, year, edition, source, cover
 moods
 stats
@@ -60,6 +60,7 @@ items
 start_items
 flags
 codes
+effects
 ```
 
 `profile`:
@@ -142,6 +143,7 @@ JSON Schema проверяет запрет `ending + interaction`; осталь
 - learn_code: anna
 - drop_best_weapon: true
 - roll: { stat: stamina, formula: "-2d6" }
+- apply_effect: concussion
 - redirect: "218_death"
 ```
 
@@ -155,9 +157,48 @@ JSON Schema проверяет запрет `ending + interaction`; осталь
 - `learn_code` добавляет код в известные;
 - `drop_best_weapon` удаляет лучшее оружие по среднему урону;
 - `roll` бросает формулу и применяет знаковую дельту к статусу;
+- `apply_effect` накладывает временный эффект из верхнеуровневого `effects`;
 - `redirect` немедленно переводит в сцену и прекращает остальные эффекты.
 
 Для `grant` в книгах-выдачах обычно нужен `once: true`; это ответственность данных.
+
+### 5.1. Временные эффекты книги
+
+Верхнеуровневый `effects` — словарь эффектов конкретной книги. Именно здесь
+книга задаёт длительность и правила повторного наложения; они могут отличаться
+от другой книги.
+
+```yaml
+effects:
+  concussion:
+    title: "Контузия"
+    kind: debuff
+    icon: concussion
+    description: "−4 к урону в следующем бою"
+    duration: next_combat
+    stacking: refresh
+    modifiers:
+      player_damage: -4
+```
+
+Поля:
+
+| Поле | Смысл |
+|---|---|
+| `title` | подпись и tooltip |
+| `kind` | `buff` или `debuff` (цвет) |
+| `icon` | семантический id иконки; неизвестный получает общий значок |
+| `description` | пояснение для игрока |
+| `duration` | `next_combat` или число боёв |
+| `stacking` | `refresh`, `stack` или `ignore` |
+| `modifiers` | числовые модификаторы; runtime понимает `player_damage` |
+
+`apply_effect` накладывает эффект при входе в сцену или на выборе. Активные
+эффекты хранятся в сейве, показываются иконками **слева от здоровья** и
+списываются после боя согласно `duration`.
+
+`player_damage` прибавляется к броску игрока до сложения с уроном союзников;
+итог не может быть меньше нуля. Урон союзников не модифицируется.
 
 ## 6. Условия
 
@@ -288,7 +329,7 @@ pre_damage_optional # спросить перед боем: применить �
 ```
 
 `pre_damage` уменьшает пул врагов до боя; `pre_damage_item` проверяется и расходуется.
-`pre_damage_optional` используется для гранаты: в бою граната не применяется, только отдельным предбоевым выбором. `banned_weapons` задаётся в `restrictions` и запрещает конкретное оружие (например, `browning`).
+`pre_damage_optional` используется для гранаты: в бою граната не применяется, только отдельным предбоевым выбором. `banned_weapons` задаётся в `restrictions` и запрещает конкретное оружие; если запрета нет в данных, UI не должен показывать предупреждение.
 
 ### 7.4.1. Броски врага, союзники и ограничения
 

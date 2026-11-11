@@ -27,6 +27,7 @@ export default function InteractionHost({
   onCombatWin,
   onCombatExit,
   onRestart,
+  onStaminaChange,
 }: {
   game: Game;
   state: GameState;
@@ -39,6 +40,7 @@ export default function InteractionHost({
   onCombatWin: (result: GameState) => void;
   onCombatExit: () => void;
   onRestart: () => void;
+  onStaminaChange?: (value: number) => void;
 }) {
   if (combat) {
     if (combatMode === 'contest') {
@@ -73,6 +75,7 @@ export default function InteractionHost({
         onWin={onCombatWin}
         onExit={onCombatExit}
         onRestart={onRestart}
+        onStaminaChange={onStaminaChange}
       />
     );
   }

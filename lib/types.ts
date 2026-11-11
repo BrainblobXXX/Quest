@@ -1,4 +1,4 @@
-export const STATE_VERSION = 2;
+export const STATE_VERSION = 3;
 
 export type ItemDef = {
   title: string;
@@ -48,6 +48,8 @@ export type Choice = {
   stat?: Record<string, number>;
   /** изучить код при выборе */
   learn_code?: string;
+  /** наложить временный эффект при выборе */
+  applyEffect?: string;
 };
 
 export type RollOutcome = { min?: number; max?: number; goto: string };
@@ -74,6 +76,8 @@ export type SceneEffect = {
   learn_code?: string;
   /** условный переход в другую сцену (например, смерть без предмета) */
   goto?: string;
+  /** наложить временный эффект из game.effects */
+  applyEffect?: string;
   drop?: string | string[];
   dropCount?: number;
   set?: string | string[];
@@ -218,6 +222,33 @@ export type CombatDef = {
   stopAtOne?: boolean;
 };
 
+export type EffectDuration = number | 'next_combat';
+
+/** Временный эффект, объявленный в rules/quest2.yaml конкретной книги. */
+export type EffectDef = {
+  title: string;
+  /** buff/debuff влияет только на цвет и подпись, не на механику */
+  kind?: 'buff' | 'debuff';
+  /** семантический id иконки; неизвестный id получает общий значок */
+  icon?: string;
+  description?: string;
+  /** число боёв или next_combat */
+  duration: EffectDuration;
+  /** как ведёт себя повторное наложение */
+  stacking?: 'refresh' | 'stack' | 'ignore';
+  /** числовые модификаторы; сейчас runtime понимает player_damage */
+  modifiers?: Record<string, number>;
+};
+
+/** Активный эффект в сейве. */
+export type ActiveEffect = {
+  id: string;
+  /** сколько боёв ещё действует */
+  remaining: number;
+  /** число наложений; для stacking: refresh всегда 1 */
+  stacks: number;
+};
+
 export type Game = {
   format: string;
   id: string;
@@ -232,6 +263,8 @@ export type Game = {
   stats?: Record<string, StatDef>;
   /** объявленные в flags.yaml флаги; начальное состояние — пустое */
   flags?: string[];
+  /** временные эффекты, объявленные в rules/quest2.yaml книги */
+  effects?: Record<string, EffectDef>;
   /** бои из mechanics.yaml по ключу сцены */
   combat?: Record<string, CombatDef>;
   /** коды «параграф ± число» */
@@ -261,6 +294,8 @@ export type GameState = {
   flags: string[];
   /** изученные коды (не расходуются) */
   knownCodes?: string[];
+  /** активные временные эффекты */
+  effects?: ActiveEffect[];
   /** сцены, где ставка уже сделана */
   gamblesDone?: string[];
   /** предметы, полученные/потерянные при входе в текущую сцену или действием в ней */
