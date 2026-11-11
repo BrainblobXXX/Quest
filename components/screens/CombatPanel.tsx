@@ -10,7 +10,7 @@ import { applyPoolDamage, resolvePoolAttack, resolvePoolCounter } from '@/lib/co
 import { WeaponIcon } from '@/components/screens/WeaponIcon';
 import type { CombatDef, Game, GameState } from '@/lib/types';
 
-type Phase = 'loadout' | 'round' | 'rolling' | 'victory' | 'defeat';
+type Phase = 'prebattle' | 'prebattle-choice' | 'loadout' | 'round' | 'rolling' | 'victory' | 'defeat';
 
 type DamageRoll = {
   formula: string;
@@ -31,11 +31,21 @@ type RollView = {
   rolling: boolean;
 };
 
+type PreBattleEffect = {
+  kind: 'browning' | 'grenade' | 'damage';
+  roll: DamageRoll;
+  killed: number;
+};
+
 type CombatSetup = {
   enemies: number[];
   stamina: number;
   log: string[];
   phase: Phase;
+  inventory: Record<string, number>;
+  preEffect?: PreBattleEffect;
+  preStaminaApplied?: number;
+  preChoice?: boolean;
 };
 
 const ALIASES: Record<string, string> = { automatic: 'submachine' };
@@ -61,19 +71,28 @@ function weaponSoundUrl(game: Game, id: string): string | null {
 function enemySoundUrl(game: Game, name: string): string | null {
   if (game.id !== 'zombie-blood') return null;
   const lower = name.toLowerCase();
-  const file = lower.includes('собак')
-    ? 'dog.mp3'
-    : lower.includes('крыс')
-      ? 'rat.mp3'
-      : lower.includes('зомби') || lower.includes('юрр')
-        ? 'zombies.mp3'
-        : null;
+  const file = lower.includes('конг')
+    ? 'kong-zombie.mp3'
+    : lower.includes('юрр')
+      ? 'yurr.mp3'
+      : lower.includes('с оружием') || lower.includes('топор')
+        ? 'zombie-axe.mp3'
+        : lower.includes('собак')
+          ? 'dog.mp3'
+          : lower.includes('крыс')
+            ? 'rat.mp3'
+            : lower.includes('зомби')
+              ? 'zombies.mp3'
+              : null;
   return file ? `/api/games/${encodeURIComponent(game.id)}/assets/sounds/enemies/${file}` : null;
 }
 const ACTOR_ROLL_MS = 1400;
 const ACTOR_ROLL_TICK_MS = 80;
 const FISTS = 'fists';
 const PLAYER_PAUSE_MS = 650;
+const PRE_EFFECT_MS = 3900;
+const PRE_STAMINA_GLITCH_MS = 520;
+const PRE_STAMINA_ATTACK_MS = 2600;
 const ATTACK_ANIM_MS = 1300;
 // Боевые эффекты на 15% тише предыдущих значений.
 const WEAPON_SFX_VOLUME = 0.56 * 0.85;
@@ -185,6 +204,18 @@ function rollLabel(roll: DamageRoll): string {
   return `${rollExpression(roll)} = ${roll.total}`;
 }
 
+function preBattleLabel(kind: PreBattleEffect['kind'] | undefined): string | null {
+  if (kind === 'grenade') return 'ВЗРЫВ';
+  if (kind === 'browning') return 'ОЧЕРЕДЬ ПУЛЕМЕТА';
+  return null;
+}
+
+function preBattleName(kind: PreBattleEffect['kind'] | undefined): string {
+  if (kind === 'grenade') return 'ГРАНАТА';
+  if (kind === 'browning') return 'ПУЛЕМЁТ';
+  return 'УРОН';
+}
+
 
 export default function CombatPanel({
   game,
@@ -222,25 +253,63 @@ export default function CombatPanel({
     const preDamageAllowed =
       !combat.preDamageFrom || (previous !== null && combat.preDamageFrom.includes(previous));
     const next = Array.from({ length: count }, () => enemy.health);
+    const setupInventory = { ...initialInventory };
     const lines = [`ВСТРЕЧА: ${enemy.name.toUpperCase()} × ${count}`];
+    let preEffect: PreBattleEffect | undefined;
+    let preChoice = false;
+
     if (combat.preDamage && preDamageAllowed) {
-      const prepared = rollDamage(combat.preDamage);
-      const damage = applyPoolDamage(next, prepared.total);
-      next.splice(0, next.length, ...damage.enemies);
-      lines.push(`ДО БОЯ: ${rollLabel(prepared)}. Убито ${damage.killed}.`);
+      const itemId = combat.preDamageItem;
+      const itemOk = !itemId
+        || ((setupInventory[itemId] ?? 0) > 0
+          && (!combat.restrictions?.allowedItems || combat.restrictions.allowedItems.includes(itemId)));
+      if (itemOk && combat.preDamageOptional && combat.preDamageKind === 'grenade') {
+        // §8: граната предлагается как отдельное предбоевое решение.
+        preChoice = true;
+        lines.push('ДО БОЯ: МОЖНО БРОСИТЬ ГРАНАТУ.');
+      } else if (itemOk) {
+        const prepared = rollDamage(combat.preDamage);
+        const damage = applyPoolDamage(next, prepared.total);
+        next.splice(0, next.length, ...damage.enemies);
+        const kind = combat.preDamageKind ?? 'damage';
+        preEffect = { kind, roll: prepared, killed: damage.killed };
+        lines.push(`ДО БОЯ: ${preBattleName(kind)} ${rollLabel(prepared)}. Убито ${damage.killed}.`);
+        if (itemId) {
+          const left = (setupInventory[itemId] ?? 0) - 1;
+          if (left > 0) setupInventory[itemId] = left;
+          else delete setupInventory[itemId];
+        }
+      } else if (itemId) {
+        lines.push(`ДО БОЯ: НЕТ ${itemId === 'grenade' ? 'ГРАНАТЫ' : itemId.toUpperCase()}.`);
+      }
     }
+
     let currentStamina = initialStamina;
-    if (combat.preStamina !== undefined) {
-      currentStamina = Math.max(0, currentStamina - Math.max(0, Number(combat.preStamina)));
-      lines.push(`ДО БОЯ: −${combat.preStamina} Выносливости.`);
+    let preStaminaApplied: number | undefined;
+    if (combat.preStamina !== undefined && Number(combat.preStamina) > 0) {
+      preStaminaApplied = Math.max(0, Number(combat.preStamina));
+      currentStamina = Math.max(0, currentStamina - preStaminaApplied);
+      lines.push(`ДО БОЯ: −${preStaminaApplied} Выносливости.`);
     }
-    let initialPhase: Phase = 'loadout';
-    if (next.every((hp) => hp <= 0)) initialPhase = 'victory';
-    else if (currentStamina <= 0) initialPhase = 'defeat';
-    return { enemies: next, stamina: currentStamina, log: lines, phase: initialPhase };
+    const hasPreBattle = Boolean(preEffect) || preStaminaApplied !== undefined;
+    let initialPhase: Phase = preChoice ? 'prebattle-choice' : hasPreBattle ? 'prebattle' : 'loadout';
+    if (!hasPreBattle && !preChoice) {
+      if (next.every((hp) => hp <= 0)) initialPhase = 'victory';
+      else if (currentStamina <= 0) initialPhase = 'defeat';
+    }
+    return {
+      enemies: next,
+      stamina: currentStamina,
+      log: lines,
+      phase: initialPhase,
+      inventory: setupInventory,
+      ...(preEffect ? { preEffect } : {}),
+      ...(preStaminaApplied !== undefined ? { preStaminaApplied } : {}),
+      ...(preChoice ? { preChoice: true } : {}),
+    };
   });
   const [enemies, setEnemies] = useState<number[]>(setup.enemies);
-  const [inventory, setInventory] = useState<Record<string, number>>(() => ({ ...initialInventory }));
+  const [inventory, setInventory] = useState<Record<string, number>>(() => ({ ...setup.inventory }));
   const [stamina, setStamina] = useState(setup.stamina);
 
   useEffect(() => {
@@ -252,11 +321,12 @@ export default function CombatPanel({
   const [round, setRound] = useState(1);
   const [selectedWeapon, setSelectedWeapon] = useState<string>(FISTS);
   const [weaponPicked, setWeaponPicked] = useState(false);
-  const [grenadeUsed, setGrenadeUsed] = useState(false);
+  const [preBattleBusy, setPreBattleBusy] = useState(false);
   const [rollView, setRollView] = useState<RollView | null>(null);
   const [activeAllyId, setActiveAllyId] = useState<string | null>(null);
   const [playerShooting, setPlayerShooting] = useState(false);
   const [log, setLog] = useState<string[]>(setup.log);
+  const [preBattleLabelText, setPreBattleLabelText] = useState<string | null>(null);
   const [selectedChoice, setSelectedChoice] = useState(0);
   const [visual, setVisual] = useState<VisualPhase>(setup.phase === 'victory' ? 'dead' : 'idle');
   const [hitFlash, setHitFlash] = useState(false);
@@ -264,6 +334,7 @@ export default function CombatPanel({
   const [idleFrame, setIdleFrame] = useState(0);
   const [deathFrame, setDeathFrame] = useState(0);
   const sequence = useRef<number[]>([]);
+  const preBattleStarted = useRef(false);
   const faceTimer = useRef<number | null>(null);
   const diceInterval = useRef<number | null>(null);
   const logRef = useRef<HTMLDivElement | null>(null);
@@ -301,11 +372,12 @@ export default function CombatPanel({
       const first = buttons.findIndex((button) => !button.disabled);
       return first >= 0 ? first : 0;
     });
-  }, [phase, weaponPicked, grenadeUsed, log.length]);
+  }, [phase, weaponPicked, preBattleBusy, log.length]);
 
   const alive = enemies.filter((hp) => hp > 0).length;
   const enemyMaxHealth = Math.max(1, Number(enemy.health ?? 1));
-  const enemyCurrentHealth = enemies.reduce((total, hp) => total + Math.max(0, hp), 0);
+  const enemyCurrentHealth = Math.max(0, ...enemies);
+  const enemyArmor = Math.max(0, Number(enemy.armor ?? 0));
   const initialAlive = setup.enemies.filter((hp) => hp > 0).length;
   const enemyTotal = Math.max(1, initialAlive);
   const allies = combat.allies ?? [];
@@ -315,7 +387,15 @@ export default function CombatPanel({
   const allowedItemIds = combat.restrictions?.allowedItems
     ? new Set(combat.restrictions.allowedItems)
     : null;
-  const weaponAllowed = (id: string) => !allowedWeaponIds || allowedWeaponIds.has(ALIASES[id] ?? id);
+  const bannedWeaponIds = combat.restrictions?.bannedWeapons
+    ? new Set(combat.restrictions.bannedWeapons.map((id) => ALIASES[id] ?? id))
+    : null;
+  const weaponAllowed = (id: string) => {
+    const normalized = ALIASES[id] ?? id;
+    if (allowedWeaponIds && !allowedWeaponIds.has(normalized)) return false;
+    if (bannedWeaponIds?.has(normalized)) return false;
+    return true;
+  };
   const itemAllowed = (id: string) => !allowedItemIds || allowedItemIds.has(id);
   const fistsAllowed = weaponAllowed(FISTS);
   const damageWeapons = Object.entries(game.items ?? {})
@@ -352,8 +432,6 @@ export default function CombatPanel({
     weaponOptions.find((option) => option.id === selectedWeapon) ??
     { id: FISTS, title: 'Кулаки', damage: '1d6-3', usable: true, note: null };
   const selectedDamage = selected.id === FISTS ? '1d6-3' : selected.damage;
-  const grenades = inventory.grenade ?? 0;
-  const canUseGrenades = itemAllowed('grenade');
   const canUseMedkit = itemAllowed('medkit') && (inventory.medkit ?? 0) > 0 && stamina < staminaInitial;
   const weaponTitle = selected.id === FISTS ? 'КУЛАКИ' : selected.title.toUpperCase();
   const restrictionNotes: string[] = [];
@@ -362,6 +440,12 @@ export default function CombatPanel({
   }
   if (allowedItemIds && allowedItemIds.size === 0) {
     restrictionNotes.push('ПРЕДМЕТЫ НЕДОСТУПНЫ');
+  }
+  if (bannedWeaponIds && bannedWeaponIds.size > 0) {
+    const titles = [...bannedWeaponIds].map((id) =>
+      id === 'browning' ? 'ПУЛЕМЁТ БРАУНИНГА' : (game.items?.[id]?.title ?? id).toUpperCase(),
+    );
+    restrictionNotes.push(`ЗАПРЕЩЕНО: ${titles.join(', ')}`);
   }
 
   useEffect(() => {
@@ -396,6 +480,53 @@ export default function CombatPanel({
     }, ms);
     sequence.current.push(id);
   });
+
+  useEffect(() => {
+    if (phase !== 'prebattle' || preBattleStarted.current) return;
+    preBattleStarted.current = true;
+    let active = true;
+    const run = async () => {
+      if (setup.preEffect?.kind === 'browning' || setup.preEffect?.kind === 'grenade') {
+        // Браунинг и граната: сначала бросок кубиков цвета игрока, затем эффект.
+        const rollName = setup.preEffect.kind === 'grenade' ? 'ГРАНАТА' : 'ПУЛЕМЁТ';
+        await animateRoll('player', rollName, setup.preEffect.roll);
+        if (!active) return;
+        setRollView(null);
+      }
+      if (setup.preEffect && setup.preEffect.kind !== 'damage') {
+        setPreBattleLabelText(preBattleLabel(setup.preEffect.kind));
+        setVisual('player');
+        await wait(PRE_EFFECT_MS);
+        if (!active) return;
+        setVisual('idle');
+        setPreBattleLabelText(null);
+      }
+      if (setup.preStaminaApplied !== undefined) {
+        // Предбоевой удар зомби: сначала анимация атаки, затем глитч.
+        setVisual('enemy');
+        const enemySound = enemySoundUrl(game, enemy.name);
+        if (enemySound) audio.sfx(enemySound, ENEMY_SFX_VOLUME);
+        await wait(PRE_STAMINA_ATTACK_MS);
+        if (!active) return;
+        setVisual('idle');
+        setHitFlash(true);
+        await wait(PRE_STAMINA_GLITCH_MS);
+        if (!active) return;
+        setHitFlash(false);
+      }
+      if (!active) return;
+      if (setup.enemies.every((hp) => hp <= 0)) {
+        setVisual('dead');
+        setPhase('victory');
+      } else if (setup.stamina <= 0) {
+        setPhase('defeat');
+      } else {
+        setPhase('loadout');
+      }
+    };
+    void run();
+    return () => { active = false; };
+  }, [phase, setup]);
 
   const animateRoll = (
     actor: RollActor,
@@ -546,6 +677,8 @@ export default function CombatPanel({
     const playerRoll = rollDamage(selectedDamage);
     const playerName = selected.id === FISTS ? 'КУЛАКИ' : selected.title.toUpperCase();
     await animateRoll('player', playerName, playerRoll);
+    const hitSound = weaponSoundUrl(game, selected.id);
+    if (hitSound) audio.sfx(hitSound, WEAPON_SFX_VOLUME);
     setPlayerShooting(true);
     setVisual('player');
     await wait(450);
@@ -560,14 +693,20 @@ export default function CombatPanel({
     }
     let allyTotal = 0;
     for (const ally of attackAllies) {
-      setActiveAllyId(ally.id);
+      setActiveAllyId(null);
       const allyRoll = rollDamage(ally.damage);
       await animateRoll('ally', ally.name.toUpperCase(), allyRoll);
+      // Сначала заканчиваются и исчезают кости, только затем — выстрел.
+      setRollView(null);
+      setActiveAllyId(ally.id);
+      if (ally.weapon) {
+        const allySound = weaponSoundUrl(game, ally.weapon);
+        if (allySound) audio.sfx(allySound, WEAPON_SFX_VOLUME);
+      }
       setVisual('player');
       await wait(450);
       setVisual('idle');
       setActiveAllyId(null);
-      setRollView(null);
       allyTotal += allyRoll.total;
       addLog(`${ally.name.toUpperCase()}: ${rollLabel(allyRoll)}`);
     }
@@ -593,8 +732,6 @@ export default function CombatPanel({
       return;
     }
 
-    const hitSound = weaponSoundUrl(game, selected.id);
-    if (hitSound) audio.sfx(hitSound, WEAPON_SFX_VOLUME);
     if (combat.threshold !== undefined) {
       addLog(`РАУНД ${round}: ${total}. Порог ${combat.threshold} не пройден.`);
     } else {
@@ -643,10 +780,13 @@ export default function CombatPanel({
     }
   };
 
-  const throwGrenade = () => {
-    if (phase !== 'loadout' || grenadeUsed || grenades <= 0 || !canUseGrenades) return;
-    const result = rollDamage('2d6+1');
+  const usePreBattleGrenade = async () => {
+    if (phase !== 'prebattle-choice' || preBattleBusy || !combat.preDamage) return;
+    if ((inventory.grenade ?? 0) <= 0) return;
+    setPreBattleBusy(true);
+    const result = rollDamage(combat.preDamage);
     const { enemies: next, killed } = applyPoolDamage(enemies, result.total);
+    setEnemies(next);
     setInventory((current) => {
       const left = (current.grenade ?? 0) - 1;
       const updated = { ...current };
@@ -654,28 +794,27 @@ export default function CombatPanel({
       else delete updated.grenade;
       return updated;
     });
-    setGrenadeUsed(true);
-    setEnemies(next);
-    setRollView({
-      actor: 'player',
-      name: 'ГРАНАТА',
-      formula: result.formula,
-      faces: result.rolls,
-      bonus: result.bonus,
-      total: result.total,
-      rolling: false,
-    });
-    addLog(`ГРАНАТА: ${rollLabel(result)}. Убито ${killed}.`);
-    audio.click();
+    addLog(`ДО БОЯ: ГРАНАТА ${rollLabel(result)}. Убито ${killed}.`);
+    setRollView(null);
+    await animateRoll('player', 'ГРАНАТА', result);
+    setRollView(null);
+    setPreBattleLabelText('ВЗРЫВ');
+    setVisual('player');
+    await wait(PRE_EFFECT_MS);
+    setVisual('idle');
+    setPreBattleLabelText(null);
+    setPreBattleBusy(false);
     if (next.every((hp) => hp <= 0)) {
-      setPhase('rolling');
-      setVisual('dying');
-      later(DEATH_ANIM_MS, () => {
-        setVisual('dead');
-        setPhase('victory');
-        audio.beep();
-      });
+      setVisual('dead');
+      setPhase('victory');
+    } else {
+      setPhase('loadout');
     }
+  };
+
+  const skipPreBattleGrenade = () => {
+    if (phase !== 'prebattle-choice' || preBattleBusy) return;
+    setPhase('loadout');
   };
 
   const useMedkit = () => {
@@ -749,11 +888,10 @@ export default function CombatPanel({
   usePanelKeys(onKey);
 
   const fistsNumber = weaponOptions.length + (fistsAllowed ? 1 : 0);
-  const grenadeNumber = fistsNumber + 1;
-  const startNumber = fistsNumber + (canUseGrenades && grenades > 0 && !grenadeUsed ? 2 : 1);
+  const startNumber = fistsNumber + 1;
 
   return (
-    <div className={`combat-panel${hasVisual ? ' combat-with-visual' : ''}${hitFlash ? ' combat-player-hit' : ''}`} role="region" aria-label={`Бой: ${enemy.name}`} ref={panelRef}>
+    <div className={`combat-panel${hasVisual ? ' combat-with-visual' : ''}${phase === 'prebattle' ? ' is-prebattle' : ''}${hitFlash ? ' combat-player-hit' : ''}`} role="region" aria-label={`Бой: ${enemy.name}`} ref={panelRef}>
       <div className={`combat-hit-flash${hitFlash ? ' is-hit' : ''}`} aria-hidden="true" />
       <div className={`combat-layout${hasVisual ? ' combat-layout-with-visual' : ''}`}>
         <div className="combat-main">
@@ -767,6 +905,12 @@ export default function CombatPanel({
         )}
       </div>
 
+      {(phase === 'prebattle' || phase === 'prebattle-choice') && preBattleLabelText && (
+        <div className="combat-prebattle-overlay" role="status" aria-live="assertive">
+          <span>{preBattleLabelText}</span>
+        </div>
+      )}
+
       <div className="combat-log" aria-live="polite" ref={logRef}>
         {log.map((line, index) => (
           <div key={`${line}-${index}`} className={index === log.length - 1 ? 'combat-log-last' : ''}>
@@ -775,7 +919,7 @@ export default function CombatPanel({
         ))}
       </div>
 
-      {phase === 'rolling' && rollView && (
+      {(phase === 'rolling' || phase === 'prebattle' || phase === 'prebattle-choice') && rollView && (
         <div className={`combat-roll-card actor-${rollView.actor}${rollView.rolling ? ' is-rolling' : ''}`} aria-live="polite">
           <div className="combat-roll-head">
             <span>{rollView.actor === 'player' ? 'ИГРОК' : rollView.name}</span>
@@ -791,6 +935,32 @@ export default function CombatPanel({
             </span>
           </div>
         </div>
+      )}
+
+      {phase === 'prebattle-choice' && !preBattleBusy && (
+        <>
+          <div className="combat-note">
+            ГРАНАТА В ИНВЕНТАРЕ · БРОСИТЬ ДО БОЯ?
+          </div>
+          <div className="choices combat-choices">
+            <button
+              type="button"
+              className={`choice${selectedChoice === 0 ? ' selected' : ''}`}
+              onFocus={() => setSelectedChoice(0)}
+              onClick={usePreBattleGrenade}
+            >
+              A. БРОСИТЬ ГРАНАТУ ×{inventory.grenade ?? 0} · {combat.preDamage ?? '2d6+1'}
+            </button>
+            <button
+              type="button"
+              className={`choice${selectedChoice === 1 ? ' selected' : ''}`}
+              onFocus={() => setSelectedChoice(1)}
+              onClick={skipPreBattleGrenade}
+            >
+              B. НЕ БРОСАТЬ
+            </button>
+          </div>
+        </>
       )}
 
       {phase === 'loadout' && (
@@ -833,11 +1003,6 @@ export default function CombatPanel({
               >
                 <WeaponIcon weaponId={FISTS} gameId={game.id} className="choice-weapon-icon" />
                 {combatKey(fistsNumber - 1)}. КУЛАКИ · 1d6−3{selected.id === FISTS ? ' · ВЫБРАНО' : ''}
-              </button>
-            )}
-            {canUseGrenades && grenades > 0 && !grenadeUsed && (
-              <button type="button" className={`choice${selectedChoice === grenadeNumber - 1 ? ' selected' : ''} combat-grenade`} onFocus={() => setSelectedChoice(grenadeNumber - 1)} onClick={throwGrenade}>
-                {combatKey(grenadeNumber - 1)}. БРОСИТЬ ГРАНАТУ ×{grenades} · 2d6+1
               </button>
             )}
             <button type="button" className={`choice${selectedChoice === startNumber - 1 ? ' selected' : ''}`} onFocus={() => setSelectedChoice(startNumber - 1)} onClick={start}>
@@ -897,54 +1062,74 @@ export default function CombatPanel({
         {hasVisual && (
           <aside className={`combat-visual${phase === 'loadout' ? ' is-loadout' : ''}${boss ? ' combat-boss' : ''}`} aria-label={phase === 'loadout' ? 'Выбор оружия' : `Игрок против ${enemy.name}, осталось ${alive}`}>
             <div className={`combat-visual-block combat-player-block${allies.length > 0 ? ' has-ally' : ''}`}>
-              <div className="combat-visual-label">ИГРОК</div>
               <div className="combat-player-line">
                 {allies.map((ally) => (
-                  <div key={ally.id} className={`combat-ally${activeAllyId === ally.id ? ' is-shooting' : ''}`}>
-                    <WeaponIcon
-                      weaponId={ally.weapon ?? FISTS}
-                      gameId={game.id}
-                      className="combat-ally-icon"
-                    />
-                    <span className="combat-ally-name">{ally.name.toUpperCase()}</span>
+                  <div key={ally.id} className={`combat-fighter combat-ally${activeAllyId === ally.id ? ' is-shooting' : ''}`}>
+                    <div className="combat-fighter-label">{ally.name.toUpperCase()}</div>
+                    <div className="combat-fighter-stage">
+                      <div className={`combat-weapon${activeAllyId === ally.id ? ' is-shooting' : ''}`}>
+                        <WeaponIcon
+                          weaponId={ally.weapon ?? FISTS}
+                          gameId={game.id}
+                          className="combat-ally-icon"
+                        />
+                        <div className="weapon-damage">{ally.damage}</div>
+                      </div>
+                    </div>
                   </div>
                 ))}
-                <div className={`combat-weapon${playerShooting ? ' is-shooting' : ''}`}>
-                  <WeaponIcon weaponId={selected.id} gameId={game.id} />
-                  <span className="weapon-muzzle" aria-hidden="true" />
-                  <div className="weapon-damage">{selectedDamage}</div>
+                <div className="combat-fighter combat-player-fighter">
+                  <div className="combat-fighter-label">ИГРОК</div>
+                  <div className="combat-fighter-stage">
+                    {phase !== 'prebattle' && phase !== 'prebattle-choice' && (
+                      <div className={`combat-weapon${playerShooting ? ' is-shooting' : ''}`}>
+                        <WeaponIcon weaponId={selected.id} gameId={game.id} />
+                        <span className="weapon-muzzle" aria-hidden="true" />
+                        <div className="weapon-damage">{selectedDamage}</div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
-            {phase !== 'loadout' && (
-              <>
-                <div className="combat-vs" aria-hidden="true">VS</div>
-                <div className={`combat-visual-block combat-enemy-block${boss ? ' is-boss' : ''}`}>
-                  <div className="combat-visual-label">ПРОТИВНИК</div>
-                  <div className={`zombie-figure ${visual}${boss ? ' is-boss' : ''}`} role="img" aria-label={`${enemy.name}, осталось ${alive}`}>
-                    {visual !== 'dead' && (
-                      <img
-                        src={enemySrc}
-                        alt=""
-                        draggable={false}
-                        loading="eager"
-                        decoding="async"
-                      />
-                    )}
+            <>
+              <div className="combat-vs" aria-hidden="true">VS</div>
+              <div className={`combat-visual-block combat-enemy-block${boss ? ' is-boss' : ''}`}>
+                  <div className="combat-fighter combat-enemy-fighter">
+                    <div className="combat-fighter-label">{enemy.name.toUpperCase()}</div>
+                    <div className="combat-fighter-stage">
+                      <div className={`zombie-figure ${visual}${boss ? ' is-boss' : ''}`} role="img" aria-label={`${enemy.name}, осталось ${alive}`}>
+                        {visual !== 'dead' && (
+                          <img
+                            src={enemySrc}
+                            alt=""
+                            draggable={false}
+                            loading="eager"
+                            decoding="async"
+                          />
+                        )}
+                      </div>
+                    </div>
                     <div className="zombie-badges">
-                      <span className="zombie-count" aria-label={`Количество: ${alive}`}>
-                        × {alive}
-                      </span>
-                      {enemyMaxHealth > 1 && alive > 0 && (
-                        <span className="zombie-health" aria-label={`Текущие жизни: ${enemyCurrentHealth}`}>
+                      {alive > 1 && (
+                        <span className="zombie-count" aria-label={`Количество: ${alive}`}>
+                          × {alive}
+                        </span>
+                      )}
+                      {alive > 0 && (
+                        <span className="zombie-health" aria-label={`Жизни одной особи: ${enemyCurrentHealth}`}>
                           ♥ {enemyCurrentHealth}
+                        </span>
+                      )}
+                      {enemyArmor > 0 && (
+                        <span className="zombie-armor" aria-label={`Броня: ${enemyArmor}`}>
+                          БР {enemyArmor}
                         </span>
                       )}
                     </div>
                   </div>
                 </div>
-              </>
-            )}
+            </>
           </aside>
         )}
       </div>

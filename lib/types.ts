@@ -155,6 +155,8 @@ export type CombatEnemy = {
   attackRoll?: string;
   /** босс: увеличенное боевое окно */
   boss?: boolean;
+  /** броня врага (показывается только при наличии) */
+  armor?: number;
   /** защита — сложность атаки игрока */
   defense?: number;
   health: number;
@@ -178,6 +180,8 @@ export type CombatRestrictions = {
   allowedItems?: string[];
   /** оружие, выбранное принудительно */
   forceWeapon?: string;
+  /** чёрный список оружия */
+  bannedWeapons?: string[];
 };
 
 export type CombatDef = {
@@ -196,6 +200,12 @@ export type CombatDef = {
   preDamageFrom?: string[];
   /** фиксированная потеря Выносливости до боя */
   preStamina?: number;
+  /** вид предбоевого эффекта: граната, пулемёт или просто урон */
+  preDamageKind?: 'browning' | 'grenade' | 'damage';
+  /** предмет, который требуется и расходуется для pre_damage */
+  preDamageItem?: string;
+  /** гранату можно применить только отдельным выбором перед боем */
+  preDamageOptional?: boolean;
   /** особый бой: нужно нанести не меньше порога за раунд */
   threshold?: number;
   /** @deprecated используйте allies; дополнительный бросок к урону */
@@ -237,7 +247,7 @@ export type Game = {
   scenes: Record<string, Scene>;
 };
 
-export type ItemChange = { id: string; delta: number };
+export type ItemChange = { id: string; delta: number; reason?: 'shop' };
 
 export type GameState = {
   game: string;

@@ -34,24 +34,40 @@ export function sceneOf(game: Game, state: GameState): Scene {
 }
 
 /** Разница инвентаря: только реально изменившиеся предметы. */
-export function inventoryDiff(before: Record<string, number>, after: Record<string, number>): ItemChange[] {
+export function inventoryDiff(
+  before: Record<string, number>,
+  after: Record<string, number>,
+  reason?: 'shop',
+): ItemChange[] {
   const ids = new Set([...Object.keys(before), ...Object.keys(after)]);
   return [...ids]
-    .map((id) => ({ id, delta: Number(after[id] ?? 0) - Number(before[id] ?? 0) }))
+    .map((id) => ({
+      id,
+      delta: Number(after[id] ?? 0) - Number(before[id] ?? 0),
+      ...(reason ? { reason } : {}),
+    }))
     .filter((change) => change.delta !== 0)
     .sort((a, b) => a.id.localeCompare(b.id));
 }
 
 export function mergeItemChanges(...groups: Array<ItemChange[] | undefined>): ItemChange[] {
-  const totals = new Map<string, number>();
+  const totals = new Map<string, { delta: number; shop: number; count: number }>();
   for (const group of groups) {
     for (const change of group ?? []) {
-      totals.set(change.id, (totals.get(change.id) ?? 0) + change.delta);
+      const current = totals.get(change.id) ?? { delta: 0, shop: 0, count: 0 };
+      current.delta += change.delta;
+      current.count += 1;
+      if (change.reason === 'shop') current.shop += 1;
+      totals.set(change.id, current);
     }
   }
   return [...totals.entries()]
-    .filter(([, delta]) => delta !== 0)
-    .map(([id, delta]) => ({ id, delta }))
+    .filter(([, value]) => value.delta !== 0)
+    .map(([id, value]) => ({
+      id,
+      delta: value.delta,
+      ...(value.shop === value.count ? { reason: 'shop' as const } : {}),
+    }))
     .sort((a, b) => a.id.localeCompare(b.id));
 }
 

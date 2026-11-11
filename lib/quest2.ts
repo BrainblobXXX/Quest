@@ -181,6 +181,7 @@ function combatFromInteraction(value: Q2Interaction, scene: string): CombatDef |
     health: num(enemy.health, 1),
     ...(enemy.attack_roll ? { attackRoll: str(enemy.attack_roll) } : {}),
     ...(enemy.boss === true ? { boss: true } : {}),
+    ...(enemy.armor !== undefined ? { armor: num(enemy.armor) } : {}),
     ...(enemy.weapon ? { weapon: str(enemy.weapon) } : {}),
   });
   const mapped = enemies.map(mapEnemy);
@@ -205,8 +206,16 @@ function combatFromInteraction(value: Q2Interaction, scene: string): CombatDef |
     ? restrictionsRaw.allowed_items.map((item) => str(item)).filter(Boolean)
     : undefined;
   const forceWeapon = restrictionsRaw.force_weapon ? str(restrictionsRaw.force_weapon) : undefined;
-  const restrictions = allowedWeapons || allowedItems || forceWeapon
-    ? { ...(allowedWeapons ? { allowedWeapons } : {}), ...(allowedItems ? { allowedItems } : {}), ...(forceWeapon ? { forceWeapon } : {}) }
+  const bannedWeapons = Array.isArray(restrictionsRaw.banned_weapons)
+    ? restrictionsRaw.banned_weapons.map((item) => str(item)).filter(Boolean)
+    : undefined;
+  const restrictions = allowedWeapons || allowedItems || forceWeapon || bannedWeapons
+    ? {
+        ...(allowedWeapons ? { allowedWeapons } : {}),
+        ...(allowedItems ? { allowedItems } : {}),
+        ...(forceWeapon ? { forceWeapon } : {}),
+        ...(bannedWeapons ? { bannedWeapons } : {}),
+      }
     : undefined;
   return {
     scene,
@@ -222,6 +231,9 @@ function combatFromInteraction(value: Q2Interaction, scene: string): CombatDef |
     ...(options.pre_damage ? { preDamage: str(options.pre_damage) } : {}),
     ...(Array.isArray(options.pre_damage_from) ? { preDamageFrom: options.pre_damage_from.map((x) => str(x)) } : {}),
     ...(options.pre_stamina !== undefined ? { preStamina: num(options.pre_stamina) } : {}),
+    ...(options.pre_damage_kind ? { preDamageKind: str(options.pre_damage_kind) as 'browning' | 'grenade' | 'damage' } : {}),
+    ...(options.pre_damage_item ? { preDamageItem: str(options.pre_damage_item) } : {}),
+    ...(options.pre_damage_optional === true ? { preDamageOptional: true } : {}),
   };
 }
 

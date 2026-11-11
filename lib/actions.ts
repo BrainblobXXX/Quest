@@ -88,7 +88,7 @@ export function applyAction(
         return {
           ...state,
           inventory,
-          itemChanges: mergeItemChanges(state.itemChanges, inventoryDiff(state.inventory, inventory)),
+          itemChanges: mergeItemChanges(state.itemChanges, inventoryDiff(state.inventory, inventory, 'shop')),
           updated: new Date().toISOString(),
         };
       }
@@ -98,7 +98,7 @@ export function applyAction(
         ...state,
         stats: { ...state.stats, money: Number(state.stats.money ?? 0) - cost },
         inventory,
-        itemChanges: mergeItemChanges(state.itemChanges, inventoryDiff(state.inventory, inventory)),
+        itemChanges: mergeItemChanges(state.itemChanges, inventoryDiff(state.inventory, inventory, 'shop')),
         updated: new Date().toISOString(),
       };
     }

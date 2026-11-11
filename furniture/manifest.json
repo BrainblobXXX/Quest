@@ -1,0 +1,809 @@
+{
+  "source": "/home/vlad/DeepSeekHome2/pic_v2/furniture",
+  "grid": {
+    "rows": 5,
+    "cols": 4
+  },
+  "assets": [
+    {
+      "type": "bag",
+      "name": "bag-leather-closed",
+      "file": "bags/bag-leather-closed.png",
+      "source": "bag.png",
+      "row": 1,
+      "col": 1,
+      "width": 383,
+      "height": 308
+    },
+    {
+      "type": "bag",
+      "name": "bag-leather-open-loot",
+      "file": "bags/bag-leather-open-loot.png",
+      "source": "bag.png",
+      "row": 1,
+      "col": 2,
+      "width": 353,
+      "height": 358
+    },
+    {
+      "type": "bag",
+      "name": "bag-leather-open-empty",
+      "file": "bags/bag-leather-open-empty.png",
+      "source": "bag.png",
+      "row": 1,
+      "col": 3,
+      "width": 344,
+      "height": 338
+    },
+    {
+      "type": "bag",
+      "name": "bag-leather-supplies",
+      "file": "bags/bag-leather-supplies.png",
+      "source": "bag.png",
+      "row": 1,
+      "col": 4,
+      "width": 362,
+      "height": 365
+    },
+    {
+      "type": "bag",
+      "name": "backpack-tactical-closed",
+      "file": "bags/backpack-tactical-closed.png",
+      "source": "bag.png",
+      "row": 2,
+      "col": 1,
+      "width": 319,
+      "height": 355
+    },
+    {
+      "type": "bag",
+      "name": "backpack-tactical-tools",
+      "file": "bags/backpack-tactical-tools.png",
+      "source": "bag.png",
+      "row": 2,
+      "col": 2,
+      "width": 342,
+      "height": 358
+    },
+    {
+      "type": "bag",
+      "name": "backpack-tactical-empty",
+      "file": "bags/backpack-tactical-empty.png",
+      "source": "bag.png",
+      "row": 2,
+      "col": 3,
+      "width": 317,
+      "height": 357
+    },
+    {
+      "type": "bag",
+      "name": "backpack-tactical-supplies",
+      "file": "bags/backpack-tactical-supplies.png",
+      "source": "bag.png",
+      "row": 2,
+      "col": 4,
+      "width": 356,
+      "height": 366
+    },
+    {
+      "type": "bag",
+      "name": "bag-canvas-closed",
+      "file": "bags/bag-canvas-closed.png",
+      "source": "bag.png",
+      "row": 3,
+      "col": 1,
+      "width": 399,
+      "height": 328
+    },
+    {
+      "type": "bag",
+      "name": "bag-canvas-tools",
+      "file": "bags/bag-canvas-tools.png",
+      "source": "bag.png",
+      "row": 3,
+      "col": 2,
+      "width": 382,
+      "height": 337
+    },
+    {
+      "type": "bag",
+      "name": "bag-canvas-empty",
+      "file": "bags/bag-canvas-empty.png",
+      "source": "bag.png",
+      "row": 3,
+      "col": 3,
+      "width": 376,
+      "height": 333
+    },
+    {
+      "type": "bag",
+      "name": "bag-canvas-supplies",
+      "file": "bags/bag-canvas-supplies.png",
+      "source": "bag.png",
+      "row": 3,
+      "col": 4,
+      "width": 409,
+      "height": 347
+    },
+    {
+      "type": "bag",
+      "name": "case-tech-closed",
+      "file": "bags/case-tech-closed.png",
+      "source": "bag.png",
+      "row": 4,
+      "col": 1,
+      "width": 343,
+      "height": 319
+    },
+    {
+      "type": "bag",
+      "name": "case-tech-open-loot",
+      "file": "bags/case-tech-open-loot.png",
+      "source": "bag.png",
+      "row": 4,
+      "col": 2,
+      "width": 353,
+      "height": 334
+    },
+    {
+      "type": "bag",
+      "name": "case-tech-open-empty",
+      "file": "bags/case-tech-open-empty.png",
+      "source": "bag.png",
+      "row": 4,
+      "col": 3,
+      "width": 348,
+      "height": 328
+    },
+    {
+      "type": "bag",
+      "name": "case-tech-supplies",
+      "file": "bags/case-tech-supplies.png",
+      "source": "bag.png",
+      "row": 4,
+      "col": 4,
+      "width": 355,
+      "height": 335
+    },
+    {
+      "type": "bag",
+      "name": "bag-worn-closed",
+      "file": "bags/bag-worn-closed.png",
+      "source": "bag.png",
+      "row": 5,
+      "col": 1,
+      "width": 408,
+      "height": 349
+    },
+    {
+      "type": "bag",
+      "name": "bag-worn-coins",
+      "file": "bags/bag-worn-coins.png",
+      "source": "bag.png",
+      "row": 5,
+      "col": 2,
+      "width": 388,
+      "height": 351
+    },
+    {
+      "type": "bag",
+      "name": "bag-worn-empty",
+      "file": "bags/bag-worn-empty.png",
+      "source": "bag.png",
+      "row": 5,
+      "col": 3,
+      "width": 381,
+      "height": 352
+    },
+    {
+      "type": "bag",
+      "name": "bag-worn-loot",
+      "file": "bags/bag-worn-loot.png",
+      "source": "bag.png",
+      "row": 5,
+      "col": 4,
+      "width": 388,
+      "height": 370
+    },
+    {
+      "type": "chest",
+      "name": "chest-wood-closed",
+      "file": "chests/chest-wood-closed.png",
+      "source": "chest.png",
+      "row": 1,
+      "col": 1,
+      "width": 416,
+      "height": 350
+    },
+    {
+      "type": "chest",
+      "name": "chest-wood-loot",
+      "file": "chests/chest-wood-loot.png",
+      "source": "chest.png",
+      "row": 1,
+      "col": 2,
+      "width": 427,
+      "height": 393
+    },
+    {
+      "type": "chest",
+      "name": "chest-wood-open",
+      "file": "chests/chest-wood-open.png",
+      "source": "chest.png",
+      "row": 1,
+      "col": 3,
+      "width": 414,
+      "height": 377
+    },
+    {
+      "type": "chest",
+      "name": "chest-wood-chained",
+      "file": "chests/chest-wood-chained.png",
+      "source": "chest.png",
+      "row": 1,
+      "col": 4,
+      "width": 445,
+      "height": 362
+    },
+    {
+      "type": "chest",
+      "name": "chest-simple-closed",
+      "file": "chests/chest-simple-closed.png",
+      "source": "chest.png",
+      "row": 2,
+      "col": 1,
+      "width": 404,
+      "height": 321
+    },
+    {
+      "type": "chest",
+      "name": "chest-simple-loot",
+      "file": "chests/chest-simple-loot.png",
+      "source": "chest.png",
+      "row": 2,
+      "col": 2,
+      "width": 409,
+      "height": 347
+    },
+    {
+      "type": "chest",
+      "name": "chest-simple-open",
+      "file": "chests/chest-simple-open.png",
+      "source": "chest.png",
+      "row": 2,
+      "col": 3,
+      "width": 405,
+      "height": 339
+    },
+    {
+      "type": "chest",
+      "name": "chest-code-lock",
+      "file": "chests/chest-code-lock.png",
+      "source": "chest.png",
+      "row": 2,
+      "col": 4,
+      "width": 407,
+      "height": 332
+    },
+    {
+      "type": "chest",
+      "name": "chest-metal-closed",
+      "file": "chests/chest-metal-closed.png",
+      "source": "chest.png",
+      "row": 3,
+      "col": 1,
+      "width": 417,
+      "height": 353
+    },
+    {
+      "type": "chest",
+      "name": "chest-metal-loot",
+      "file": "chests/chest-metal-loot.png",
+      "source": "chest.png",
+      "row": 3,
+      "col": 2,
+      "width": 423,
+      "height": 386
+    },
+    {
+      "type": "chest",
+      "name": "chest-metal-open",
+      "file": "chests/chest-metal-open.png",
+      "source": "chest.png",
+      "row": 3,
+      "col": 3,
+      "width": 413,
+      "height": 375
+    },
+    {
+      "type": "chest",
+      "name": "chest-metal-chained",
+      "file": "chests/chest-metal-chained.png",
+      "source": "chest.png",
+      "row": 3,
+      "col": 4,
+      "width": 452,
+      "height": 361
+    },
+    {
+      "type": "chest",
+      "name": "chest-tech-closed",
+      "file": "chests/chest-tech-closed.png",
+      "source": "chest.png",
+      "row": 4,
+      "col": 1,
+      "width": 405,
+      "height": 338
+    },
+    {
+      "type": "chest",
+      "name": "chest-tech-loot",
+      "file": "chests/chest-tech-loot.png",
+      "source": "chest.png",
+      "row": 4,
+      "col": 2,
+      "width": 414,
+      "height": 383
+    },
+    {
+      "type": "chest",
+      "name": "chest-tech-open",
+      "file": "chests/chest-tech-open.png",
+      "source": "chest.png",
+      "row": 4,
+      "col": 3,
+      "width": 415,
+      "height": 383
+    },
+    {
+      "type": "chest",
+      "name": "chest-tech-device",
+      "file": "chests/chest-tech-device.png",
+      "source": "chest.png",
+      "row": 4,
+      "col": 4,
+      "width": 482,
+      "height": 352
+    },
+    {
+      "type": "chest",
+      "name": "chest-ornate-closed",
+      "file": "chests/chest-ornate-closed.png",
+      "source": "chest.png",
+      "row": 5,
+      "col": 1,
+      "width": 416,
+      "height": 372
+    },
+    {
+      "type": "chest",
+      "name": "chest-ornate-fire",
+      "file": "chests/chest-ornate-fire.png",
+      "source": "chest.png",
+      "row": 5,
+      "col": 2,
+      "width": 415,
+      "height": 404
+    },
+    {
+      "type": "chest",
+      "name": "chest-ornate-open",
+      "file": "chests/chest-ornate-open.png",
+      "source": "chest.png",
+      "row": 5,
+      "col": 3,
+      "width": 406,
+      "height": 402
+    },
+    {
+      "type": "chest",
+      "name": "chest-ornate-locked",
+      "file": "chests/chest-ornate-locked.png",
+      "source": "chest.png",
+      "row": 5,
+      "col": 4,
+      "width": 436,
+      "height": 368
+    },
+    {
+      "type": "closet",
+      "name": "closet-wood-closed",
+      "file": "closets/closet-wood-closed.png",
+      "source": "closet.png",
+      "row": 1,
+      "col": 1,
+      "width": 310,
+      "height": 394
+    },
+    {
+      "type": "closet",
+      "name": "closet-wood-open-empty",
+      "file": "closets/closet-wood-open-empty.png",
+      "source": "closet.png",
+      "row": 1,
+      "col": 2,
+      "width": 361,
+      "height": 387
+    },
+    {
+      "type": "closet",
+      "name": "closet-wood-carved",
+      "file": "closets/closet-wood-carved.png",
+      "source": "closet.png",
+      "row": 1,
+      "col": 3,
+      "width": 306,
+      "height": 397
+    },
+    {
+      "type": "closet",
+      "name": "closet-wood-supplies",
+      "file": "closets/closet-wood-supplies.png",
+      "source": "closet.png",
+      "row": 1,
+      "col": 4,
+      "width": 363,
+      "height": 395
+    },
+    {
+      "type": "closet",
+      "name": "closet-metal-closed",
+      "file": "closets/closet-metal-closed.png",
+      "source": "closet.png",
+      "row": 2,
+      "col": 1,
+      "width": 281,
+      "height": 367
+    },
+    {
+      "type": "closet",
+      "name": "closet-metal-open-empty",
+      "file": "closets/closet-metal-open-empty.png",
+      "source": "closet.png",
+      "row": 2,
+      "col": 2,
+      "width": 361,
+      "height": 374
+    },
+    {
+      "type": "closet",
+      "name": "closet-metal-handles",
+      "file": "closets/closet-metal-handles.png",
+      "source": "closet.png",
+      "row": 2,
+      "col": 3,
+      "width": 283,
+      "height": 367
+    },
+    {
+      "type": "closet",
+      "name": "closet-metal-medical",
+      "file": "closets/closet-metal-medical.png",
+      "source": "closet.png",
+      "row": 2,
+      "col": 4,
+      "width": 367,
+      "height": 376
+    },
+    {
+      "type": "closet",
+      "name": "closet-rust-closed",
+      "file": "closets/closet-rust-closed.png",
+      "source": "closet.png",
+      "row": 3,
+      "col": 1,
+      "width": 301,
+      "height": 374
+    },
+    {
+      "type": "closet",
+      "name": "closet-rust-open-empty",
+      "file": "closets/closet-rust-open-empty.png",
+      "source": "closet.png",
+      "row": 3,
+      "col": 2,
+      "width": 356,
+      "height": 372
+    },
+    {
+      "type": "closet",
+      "name": "closet-rust-damaged",
+      "file": "closets/closet-rust-damaged.png",
+      "source": "closet.png",
+      "row": 3,
+      "col": 3,
+      "width": 318,
+      "height": 377
+    },
+    {
+      "type": "closet",
+      "name": "closet-rust-loot",
+      "file": "closets/closet-rust-loot.png",
+      "source": "closet.png",
+      "row": 3,
+      "col": 4,
+      "width": 371,
+      "height": 383
+    },
+    {
+      "type": "closet",
+      "name": "closet-tech-closed",
+      "file": "closets/closet-tech-closed.png",
+      "source": "closet.png",
+      "row": 4,
+      "col": 1,
+      "width": 284,
+      "height": 360
+    },
+    {
+      "type": "closet",
+      "name": "closet-tech-open-lit",
+      "file": "closets/closet-tech-open-lit.png",
+      "source": "closet.png",
+      "row": 4,
+      "col": 2,
+      "width": 369,
+      "height": 363
+    },
+    {
+      "type": "closet",
+      "name": "closet-tech-panels",
+      "file": "closets/closet-tech-panels.png",
+      "source": "closet.png",
+      "row": 4,
+      "col": 3,
+      "width": 294,
+      "height": 363
+    },
+    {
+      "type": "closet",
+      "name": "closet-tech-supplies",
+      "file": "closets/closet-tech-supplies.png",
+      "source": "closet.png",
+      "row": 4,
+      "col": 4,
+      "width": 376,
+      "height": 366
+    },
+    {
+      "type": "closet",
+      "name": "closet-bandit-closed",
+      "file": "closets/closet-bandit-closed.png",
+      "source": "closet.png",
+      "row": 5,
+      "col": 1,
+      "width": 309,
+      "height": 379
+    },
+    {
+      "type": "closet",
+      "name": "closet-bandit-open-empty",
+      "file": "closets/closet-bandit-open-empty.png",
+      "source": "closet.png",
+      "row": 5,
+      "col": 2,
+      "width": 358,
+      "height": 374
+    },
+    {
+      "type": "closet",
+      "name": "closet-bandit-locked",
+      "file": "closets/closet-bandit-locked.png",
+      "source": "closet.png",
+      "row": 5,
+      "col": 3,
+      "width": 302,
+      "height": 382
+    },
+    {
+      "type": "closet",
+      "name": "closet-bandit-loot",
+      "file": "closets/closet-bandit-loot.png",
+      "source": "closet.png",
+      "row": 5,
+      "col": 4,
+      "width": 359,
+      "height": 383
+    },
+    {
+      "type": "crate",
+      "name": "crate-wood-closed",
+      "file": "crates/crate-wood-closed.png",
+      "source": "crate.png",
+      "row": 1,
+      "col": 1,
+      "width": 406,
+      "height": 382
+    },
+    {
+      "type": "crate",
+      "name": "crate-wood-loot",
+      "file": "crates/crate-wood-loot.png",
+      "source": "crate.png",
+      "row": 1,
+      "col": 2,
+      "width": 418,
+      "height": 428
+    },
+    {
+      "type": "crate",
+      "name": "crate-wood-open",
+      "file": "crates/crate-wood-open.png",
+      "source": "crate.png",
+      "row": 1,
+      "col": 3,
+      "width": 382,
+      "height": 419
+    },
+    {
+      "type": "crate",
+      "name": "crate-wood-broken",
+      "file": "crates/crate-wood-broken.png",
+      "source": "crate.png",
+      "row": 1,
+      "col": 4,
+      "width": 404,
+      "height": 374
+    },
+    {
+      "type": "crate",
+      "name": "crate-orange-closed",
+      "file": "crates/crate-orange-closed.png",
+      "source": "crate.png",
+      "row": 2,
+      "col": 1,
+      "width": 403,
+      "height": 339
+    },
+    {
+      "type": "crate",
+      "name": "crate-orange-tools",
+      "file": "crates/crate-orange-tools.png",
+      "source": "crate.png",
+      "row": 2,
+      "col": 2,
+      "width": 405,
+      "height": 380
+    },
+    {
+      "type": "crate",
+      "name": "crate-orange-open",
+      "file": "crates/crate-orange-open.png",
+      "source": "crate.png",
+      "row": 2,
+      "col": 3,
+      "width": 414,
+      "height": 336
+    },
+    {
+      "type": "crate",
+      "name": "crate-orange-damaged",
+      "file": "crates/crate-orange-damaged.png",
+      "source": "crate.png",
+      "row": 2,
+      "col": 4,
+      "width": 408,
+      "height": 340
+    },
+    {
+      "type": "crate",
+      "name": "crate-metal-closed",
+      "file": "crates/crate-metal-closed.png",
+      "source": "crate.png",
+      "row": 3,
+      "col": 1,
+      "width": 390,
+      "height": 344
+    },
+    {
+      "type": "crate",
+      "name": "crate-metal-wire",
+      "file": "crates/crate-metal-wire.png",
+      "source": "crate.png",
+      "row": 3,
+      "col": 2,
+      "width": 411,
+      "height": 370
+    },
+    {
+      "type": "crate",
+      "name": "crate-metal-open",
+      "file": "crates/crate-metal-open.png",
+      "source": "crate.png",
+      "row": 3,
+      "col": 3,
+      "width": 394,
+      "height": 333
+    },
+    {
+      "type": "crate",
+      "name": "crate-metal-broken",
+      "file": "crates/crate-metal-broken.png",
+      "source": "crate.png",
+      "row": 3,
+      "col": 4,
+      "width": 381,
+      "height": 332
+    },
+    {
+      "type": "crate",
+      "name": "crate-tech-closed",
+      "file": "crates/crate-tech-closed.png",
+      "source": "crate.png",
+      "row": 4,
+      "col": 1,
+      "width": 391,
+      "height": 352
+    },
+    {
+      "type": "crate",
+      "name": "crate-tech-loot",
+      "file": "crates/crate-tech-loot.png",
+      "source": "crate.png",
+      "row": 4,
+      "col": 2,
+      "width": 391,
+      "height": 390
+    },
+    {
+      "type": "crate",
+      "name": "crate-tech-open",
+      "file": "crates/crate-tech-open.png",
+      "source": "crate.png",
+      "row": 4,
+      "col": 3,
+      "width": 390,
+      "height": 354
+    },
+    {
+      "type": "crate",
+      "name": "crate-tech-damaged",
+      "file": "crates/crate-tech-damaged.png",
+      "source": "crate.png",
+      "row": 4,
+      "col": 4,
+      "width": 409,
+      "height": 347
+    },
+    {
+      "type": "crate",
+      "name": "crate-worn-closed",
+      "file": "crates/crate-worn-closed.png",
+      "source": "crate.png",
+      "row": 5,
+      "col": 1,
+      "width": 382,
+      "height": 370
+    },
+    {
+      "type": "crate",
+      "name": "crate-worn-loot",
+      "file": "crates/crate-worn-loot.png",
+      "source": "crate.png",
+      "row": 5,
+      "col": 2,
+      "width": 409,
+      "height": 380
+    },
+    {
+      "type": "crate",
+      "name": "crate-worn-empty",
+      "file": "crates/crate-worn-empty.png",
+      "source": "crate.png",
+      "row": 5,
+      "col": 3,
+      "width": 393,
+      "height": 369
+    },
+    {
+      "type": "crate",
+      "name": "crate-worn-broken",
+      "file": "crates/crate-worn-broken.png",
+      "source": "crate.png",
+      "row": 5,
+      "col": 4,
+      "width": 438,
+      "height": 359
+    }
+  ]
+}

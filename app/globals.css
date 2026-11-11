@@ -1970,7 +1970,7 @@ body {
   gap: 2px;
 }
 .combat-player-block { width: 130px; }
-.combat-enemy-block { width: 130px; }
+.combat-enemy-block { width: 118px; }
 .combat-visual-label {
   color: #8a6a2f;
   opacity: 0.85;
@@ -1993,8 +1993,8 @@ body {
 }
 .zombie-figure {
   position: relative;
-  width: 122px;
-  height: 146px;
+  width: 110px;
+  height: 124px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2566,7 +2566,7 @@ body {
 
 /* общая сцена боя: подписи и визуальные окна на одной линии */
 .combat-visual-block {
-  height: 170px;
+  height: 150px;
   justify-content: flex-start;
 }
 .combat-player-block .combat-weapon {
@@ -2574,11 +2574,12 @@ body {
   justify-content: center;
 }
 .combat-enemy-block .zombie-figure {
-  flex: 0 0 146px;
+  flex: 0 0 124px;
 }
 @media (max-width: 760px) {
-  .combat-visual-block { height: 142px; }
-  .combat-enemy-block .zombie-figure { flex-basis: 118px; }
+  .combat-visual-block { height: 124px; }
+  .combat-enemy-block { width: 100px; }
+  .combat-enemy-block .zombie-figure { flex-basis: 102px; }
 }
 
 /* выбор противника в боевом режиме */
@@ -2659,20 +2660,20 @@ body {
 
 /* боссы: боевое окно и спрайт на 50% больше */
 .combat-visual.combat-boss .combat-visual-block {
-  height: 243px;
+  height: 219px;
 }
 .combat-visual.combat-boss .combat-enemy-block {
-  width: 183px;
+  width: 177px;
 }
 .combat-visual.combat-boss .zombie-figure {
-  width: 183px;
-  height: 219px;
-  flex-basis: 219px;
+  width: 165px;
+  height: 186px;
+  flex-basis: 186px;
 }
 @media (max-width: 760px) {
-  .combat-visual.combat-boss .combat-visual-block { height: 190px; }
-  .combat-visual.combat-boss .combat-enemy-block { width: 168px; }
-  .combat-visual.combat-boss .zombie-figure { width: 147px; height: 177px; flex-basis: 177px; }
+  .combat-visual.combat-boss .combat-visual-block { height: 180px; }
+  .combat-visual.combat-boss .combat-enemy-block { width: 150px; }
+  .combat-visual.combat-boss .zombie-figure { width: 135px; height: 153px; flex-basis: 153px; }
 }
 
 /* союзник в боевой сцене: слева от оружия игрока */
@@ -2721,12 +2722,15 @@ body {
 /* текущие жизни противника рядом с количеством */
 .zombie-badges {
   position: absolute;
-  top: 2px;
-  right: -2px;
+  bottom: 2px;
+  left: 50%;
+  right: auto;
+  top: auto;
+  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  gap: 3px;
+  align-items: center;
+  gap: 2px;
   pointer-events: none;
 }
 .zombie-badges .zombie-count {
@@ -2746,4 +2750,243 @@ body {
   letter-spacing: 1px;
   text-align: center;
   text-shadow: 0 0 7px rgba(255, 70, 70, 0.55);
+}
+
+/* колонка союзника в масштабе оружия игрока */
+.combat-player-block.has-ally { width: 250px; }
+.combat-ally {
+  width: 112px;
+  flex: 0 0 112px;
+  gap: 1px;
+}
+.combat-ally-icon {
+  width: 112px;
+  height: 48px;
+  object-fit: contain;
+}
+.combat-ally-name {
+  font-size: 10px;
+  letter-spacing: 0.6px;
+}
+.combat-ally-damage {
+  color: #7dd3ff;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  line-height: 1.1;
+}
+@media (max-width: 760px) {
+  .combat-player-block.has-ally { width: 190px; }
+  .combat-ally { width: 88px; flex-basis: 88px; }
+  .combat-ally-icon { width: 88px; height: 38px; }
+  .combat-ally-name { font-size: 9px; }
+  .combat-ally-damage { font-size: 9px; }
+}
+
+/* компактная пара «союзник + игрок»: обе иконки одного размера */
+.combat-player-block.has-ally {
+  width: 176px;
+  flex: 0 0 176px;
+}
+.combat-player-block.has-ally .combat-ally,
+.combat-player-block.has-ally .combat-weapon {
+  flex-shrink: 0;
+}
+.combat-player-block.has-ally .combat-ally {
+  width: 80px;
+  flex-basis: 80px;
+}
+.combat-player-block.has-ally .combat-ally-icon,
+.combat-player-block.has-ally .combat-weapon .weapon-icon,
+.combat-player-block.has-ally .combat-weapon .weapon-icon-image {
+  width: 80px;
+  height: 38px;
+}
+.combat-player-block.has-ally .combat-ally-name { font-size: 9px; }
+.combat-player-block.has-ally .combat-ally-damage,
+.combat-player-block.has-ally .combat-weapon .weapon-damage { font-size: 9px; }
+@media (max-width: 760px) {
+  .combat-player-block.has-ally { width: 140px; flex-basis: 140px; }
+  .combat-player-block.has-ally .combat-ally { width: 66px; flex-basis: 66px; }
+  .combat-player-block.has-ally .combat-ally-icon,
+  .combat-player-block.has-ally .combat-weapon .weapon-icon,
+  .combat-player-block.has-ally .combat-weapon .weapon-icon-image {
+    width: 66px;
+    height: 32px;
+  }
+}
+
+/* единая сетка бойца: подпись, иконка, урон */
+.combat-visual { --fighter-stage: 124px; --fighter-gap: 2px; }
+.combat-visual.combat-boss { --fighter-stage: 186px; }
+.combat-visual-block {
+  height: auto;
+  justify-content: flex-start;
+}
+.combat-player-block { width: 130px; }
+.combat-player-block.has-ally { width: 168px; flex: 0 0 168px; }
+.combat-player-line {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+.combat-fighter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--fighter-gap);
+  min-width: 0;
+}
+.combat-player-line .combat-fighter { width: 80px; flex: 0 0 80px; }
+.combat-player-block:not(.has-ally) .combat-player-fighter { width: 130px; flex-basis: 130px; }
+.combat-fighter-label {
+  width: 100%;
+  color: #8a6a2f;
+  opacity: 0.85;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 2px;
+  line-height: 1.2;
+  text-align: center;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.combat-fighter-stage {
+  width: 100%;
+  height: var(--fighter-stage);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.combat-player-line .combat-weapon {
+  width: 100%;
+  height: 100%;
+  flex: 1 1 auto;
+  justify-content: center;
+}
+.combat-player-line .combat-weapon .weapon-muzzle { top: 50%; }
+.combat-enemy-block { width: 110px; }
+.combat-visual.combat-boss .combat-enemy-block { width: 165px; }
+.combat-enemy-block .combat-fighter { width: 100%; }
+.combat-enemy-block .combat-fighter-label { color: #ff9b3d; }
+.combat-enemy-block .zombie-figure { width: 100%; height: 100%; flex: 0 0 auto; }
+@media (max-width: 760px) {
+  .combat-visual { --fighter-stage: 102px; }
+  .combat-visual.combat-boss { --fighter-stage: 153px; }
+  .combat-player-block { width: 108px; }
+  .combat-player-block.has-ally { width: 140px; flex-basis: 140px; }
+  .combat-player-line { gap: 8px; }
+  .combat-player-line .combat-fighter { width: 66px; flex-basis: 66px; }
+  .combat-player-block:not(.has-ally) .combat-player-fighter { width: 108px; flex-basis: 108px; }
+  .combat-fighter-label { font-size: 8px; letter-spacing: 1.5px; }
+  .combat-enemy-block { width: 92px; }
+  .combat-visual.combat-boss .combat-enemy-block { width: 138px; }
+}
+
+/* спрайт врага прижат к верхней части окна: подпись ближе к персонажу */
+.combat-enemy-block .zombie-figure img {
+  object-position: center top;
+}
+
+/* спрайт босса не должен вылезать из своего окна */
+.combat-visual.combat-boss .combat-enemy-block .zombie-figure {
+  width: 100%;
+  height: 100%;
+  flex: 0 0 auto;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* предбоевые эффекты: граната/пулемёт и потеря Выносливости */
+.combat-prebattle-overlay {
+  margin: 18px 0;
+  padding: 22px 16px;
+  border: 1px solid rgba(255, 120, 40, 0.55);
+  background: rgba(35, 8, 2, 0.55);
+  color: #ffd27a;
+  font-family: var(--mono);
+  font-size: clamp(22px, 4vw, 34px);
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-align: center;
+  text-shadow: 0 0 12px rgba(255, 110, 30, 0.8);
+  animation: combat-prebattle-pulse 0.7s steps(2, end) infinite alternate;
+}
+@keyframes combat-prebattle-pulse {
+  from { opacity: 0.7; transform: scale(0.985); }
+  to { opacity: 1; transform: scale(1); }
+}
+.zombie-armor {
+  min-width: 32px;
+  padding: 2px 5px;
+  border: 1px solid rgba(125, 190, 255, 0.65);
+  background: rgba(5, 18, 30, 0.92);
+  color: #a9d8ff;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 1px;
+  text-align: center;
+  text-shadow: 0 0 7px rgba(100, 180, 255, 0.55);
+}
+
+/* плашки под существом, а не поверх рисунка */
+.combat-visual { align-items: flex-start; }
+.combat-vs { align-self: center; }
+.zombie-badges {
+  position: static;
+  top: auto;
+  right: auto;
+  bottom: auto;
+  left: auto;
+  transform: none;
+  margin-top: 2px;
+  pointer-events: none;
+}
+
+/* плашки прижаты к ногам существа */
+.zombie-badges {
+  margin-top: -14px;
+}
+@media (max-width: 760px) {
+  .zombie-badges { margin-top: -10px; }
+}
+
+/* все плашки существа одного размера */
+.zombie-badges .zombie-count,
+.zombie-badges .zombie-health,
+.zombie-badges .zombie-armor {
+  width: 64px;
+  min-width: 64px;
+  height: 22px;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  font-size: 13px;
+  line-height: 1;
+  text-align: center;
+}
+@media (max-width: 760px) {
+  .zombie-badges .zombie-count,
+  .zombie-badges .zombie-health,
+  .zombie-badges .zombie-armor {
+    width: 54px;
+    min-width: 54px;
+    height: 20px;
+    font-size: 12px;
+  }
+}
+
+/* у боссов окно выше, поэтому плашки поднимаем к ногам сильнее */
+.combat-visual.combat-boss .zombie-badges {
+  margin-top: -42px;
+}
+@media (max-width: 760px) {
+  .combat-visual.combat-boss .zombie-badges {
+    margin-top: -37px;
+  }
 }

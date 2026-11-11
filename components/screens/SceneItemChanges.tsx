@@ -13,6 +13,10 @@ export default function SceneItemChanges({ game, state }: { game: Game; state: G
 
   const found = changes.filter((change) => change.delta > 0);
   const lost = changes.filter((change) => change.delta < 0);
+  const foundShop = found.filter((change) => change.reason === 'shop');
+  const foundOther = found.filter((change) => change.reason !== 'shop');
+  const lostShop = lost.filter((change) => change.reason === 'shop');
+  const lostOther = lost.filter((change) => change.reason !== 'shop');
 
   const renderRow = (label: string, list: typeof changes, kind: 'found' | 'lost') => (
     <div className="item-change-row">
@@ -44,8 +48,10 @@ export default function SceneItemChanges({ game, state }: { game: Game; state: G
       aria-label="Изменения предметов в этой сцене"
       aria-live="polite"
     >
-      {found.length > 0 && renderRow('НАШЁЛ', found, 'found')}
-      {lost.length > 0 && renderRow('ПОТЕРЯЛ', lost, 'lost')}
+      {foundOther.length > 0 && renderRow('НАШЁЛ', foundOther, 'found')}
+      {foundShop.length > 0 && renderRow('КУПИЛ', foundShop, 'found')}
+      {lostOther.length > 0 && renderRow('ПОТЕРЯЛ', lostOther, 'lost')}
+      {lostShop.length > 0 && renderRow('ОТДАЛ', lostShop, 'lost')}
     </section>
   );
 }

@@ -504,6 +504,7 @@ export function parsePackage(
               ? String(enemyRaw.attackRoll ?? enemyRaw.attack_roll)
               : undefined,
             boss: enemyRaw.boss === true,
+            armor: enemyRaw.armor !== undefined ? Number(enemyRaw.armor) : undefined,
             defense: enemyRaw.defense === undefined ? undefined : Math.max(0, Number(enemyRaw.defense) || 0),
             health: Math.max(1, Number(enemyRaw.health ?? 1) || 1),
             weapon: enemyRaw.weapon ? String(enemyRaw.weapon) : undefined,
@@ -524,6 +525,9 @@ export function parsePackage(
                 ? item.preDamageFrom.map(String)
                 : undefined,
               preStamina: item.preStamina === undefined ? undefined : Number(item.preStamina),
+              preDamageKind: item.preDamageKind ? String(item.preDamageKind) as 'browning' | 'grenade' | 'damage' : undefined,
+              preDamageItem: item.preDamageItem ? String(item.preDamageItem) : undefined,
+              preDamageOptional: item.preDamageOptional === true,
               threshold: item.threshold === undefined ? undefined : Number(item.threshold),
               bonusDamage: item.bonusDamage ? String(item.bonusDamage) : undefined,
               allies: Array.isArray(item.allies)
@@ -547,6 +551,9 @@ export function parsePackage(
                       : undefined,
                     forceWeapon: (item.restrictions as Record<string, unknown>).forceWeapon
                       ? String((item.restrictions as Record<string, unknown>).forceWeapon)
+                      : undefined,
+                    bannedWeapons: Array.isArray((item.restrictions as Record<string, unknown>).bannedWeapons)
+                      ? ((item.restrictions as Record<string, unknown>).bannedWeapons as unknown[]).map(String)
                       : undefined,
                   }
                 : undefined,

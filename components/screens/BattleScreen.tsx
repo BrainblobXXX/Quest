@@ -20,7 +20,7 @@ const ENEMY_OPTIONS: EnemyOption[] = [
   { id: 'armed', label: 'ЗОМБИ С ОРУЖИЕМ', detail: 'вооружённые' },
   { id: 'dogs', label: 'СОБАКИ', detail: 'стая' },
   { id: 'rats', label: 'КРЫСЫ', detail: 'стая' },
-  { id: 'kong', label: 'ЗОМБИ КОНГ', detail: 'босс' },
+  { id: 'kong', label: 'ЗОМБИ-КОНГ', detail: 'босс' },
   { id: 'yurr', label: 'ЮРР', detail: 'босс' },
 ];
 
@@ -56,7 +56,11 @@ function healthStat(game: Game): string | null {
 function battleInventory(game: Game): Record<string, number> {
   const inventory: Record<string, number> = {};
   for (const [id, item] of Object.entries(game.items ?? {})) {
-    if (id === 'grenade') continue;
+    if (id === 'grenade') {
+      // В боевом режиме Zombie Blood даём одну гранату для демонстрации эффекта.
+      if (game.id === 'zombie-blood') inventory.grenade = 1;
+      continue;
+    }
     if (item.damage) inventory[id] = 1;
   }
   for (const id of ['ammo', 'shotgun_ammo']) {
