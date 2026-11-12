@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import type { Game } from '@/lib/types';
 
 function coverUrl(game: Game, path: string): string {
@@ -9,6 +10,17 @@ function coverUrl(game: Game, path: string): string {
 
 /** Первая страница книги: обложка, если она объявлена в пакете. */
 export default function CoverPage({ game, onStart }: { game: Game; onStart: () => void }) {
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.repeat) return;
+      if (event.key !== '1' && event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      onStart();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onStart]);
+
   if (!game.cover) return null;
   return (
     <div className="cover-screen">
