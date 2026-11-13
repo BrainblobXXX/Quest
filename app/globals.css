@@ -2418,10 +2418,10 @@ body {
 
 /* ── реакции на удары ─────────────────────────────────────── */
 .combat-panel { position: relative; }
-.combat-player-hit { animation: combat-player-shake 0.3s steps(2, end); }
+.combat-player-hit > .combat-layout { animation: combat-player-shake 0.3s steps(2, end); }
 
 .combat-hit-flash {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 1000;
   pointer-events: none;
@@ -2479,7 +2479,7 @@ body {
   100% { opacity: 0; transform: scale(0.25); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .combat-player-hit { animation: none; }
+  .combat-player-hit > .combat-layout { animation: none; }
   .combat-hit-flash.is-hit { animation: none; opacity: 0; }
   .combat-weapon.is-shooting .weapon-icon,
   .combat-weapon.is-shooting .weapon-muzzle { animation: none; opacity: 0; }
@@ -3258,4 +3258,57 @@ body {
 }
 @media (prefers-reduced-motion: reduce) {
   .scene-prop img { animation: none; }
+}
+
+/* ── мобильный бой: короче и стабильнее ───────────────────── */
+@media (max-width: 760px), (hover: none) and (pointer: coarse) {
+  .combat-player-hit > .combat-layout { animation-duration: 220ms; }
+  .combat-hit-flash.is-hit { animation-duration: 300ms; }
+  .combat-weapon.is-shooting .weapon-icon { animation-duration: 280ms; }
+  .combat-weapon.is-shooting .weapon-muzzle { animation-duration: 260ms; }
+}
+
+/* Reduce Motion: убираем тряску/смещение, но оставляем красный отклик. */
+@media (prefers-reduced-motion: reduce) {
+  .combat-player-hit > .combat-layout { animation: none; }
+  .combat-hit-flash.is-hit {
+    animation: combat-hit-flash-reduced 0.42s ease-out;
+    opacity: 0;
+  }
+  .combat-weapon.is-shooting .weapon-icon,
+  .combat-weapon.is-shooting .weapon-muzzle { animation: none; opacity: 0; }
+}
+@keyframes combat-hit-flash-reduced {
+  0%, 100% { opacity: 0; transform: none; }
+  12% { opacity: 0.82; transform: none; }
+  55% { opacity: 0.32; transform: none; }
+}
+
+/* Мобильный глитч: без дорогого mix-blend-mode и без transform —
+   только прозрачность, чтобы не тормозить на слабых GPU. */
+@media (max-width: 760px), (hover: none) and (pointer: coarse) {
+  .combat-hit-flash {
+    z-index: 1000;
+    mix-blend-mode: normal;
+    background-color: rgba(145, 0, 0, 0.46);
+    background-image:
+      repeating-linear-gradient(0deg, rgba(255, 0, 0, 0.5) 0 2px, transparent 2px 5px),
+      radial-gradient(circle at center, rgba(255, 30, 0, 0.5), rgba(120, 0, 0, 0.7));
+  }
+  /* На мобильных не полагаемся на дорогой keyframe-глитч:
+     сам красный оверлей — уже эффект, а opacity гарантированно виден. */
+  .combat-hit-flash.is-hit {
+    animation: none;
+    opacity: 0.86;
+    background-color: #b00000;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .combat-hit-flash.is-hit {
+    animation: none;
+    opacity: 0.82;
+    transform: none;
+    background-color: #b00000;
+  }
 }

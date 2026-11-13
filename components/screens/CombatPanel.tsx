@@ -9,6 +9,7 @@ import { rollDie } from '@/lib/rng';
 import { applyPoolDamage, resolvePoolAttack, resolvePoolCounter } from '@/lib/combat';
 import { expireCombatEffects, playerDamageModifier } from '@/lib/effects';
 import { preBattleMs } from '@/lib/preBattleTiming';
+import { combatMs } from '@/lib/combatTiming';
 import { WeaponIcon } from '@/components/screens/WeaponIcon';
 import PreBattleAnimation, { type PreBattleAnimationKind } from '@/components/screens/PreBattleAnimation';
 import type { CombatDef, Game, GameState } from '@/lib/types';
@@ -571,7 +572,7 @@ export default function CombatPanel({
         rolling: false,
       });
       resolve();
-    }, ACTOR_ROLL_MS);
+    }, combatMs(ACTOR_ROLL_MS));
   });
 
   useEffect(() => {
@@ -591,7 +592,7 @@ export default function CombatPanel({
     setAttackFrame(0);
     if (length === 1) return;
     let frame = 0;
-    const step = Math.max(120, Math.round(ATTACK_ANIM_MS / length));
+    const step = Math.max(90, Math.round(combatMs(ATTACK_ANIM_MS) / length));
     const id = window.setInterval(() => {
       frame += 1;
       if (frame >= length) {
@@ -633,7 +634,7 @@ export default function CombatPanel({
     setDeathFrame(0);
     if (length === 1) return;
     let frame = 0;
-    const step = Math.max(120, Math.round(DEATH_ANIM_MS / length));
+    const step = Math.max(90, Math.round(combatMs(DEATH_ANIM_MS) / length));
     const id = window.setInterval(() => {
       frame += 1;
       if (frame >= length) {
@@ -686,7 +687,7 @@ export default function CombatPanel({
     if (hitSound) audio.sfx(hitSound, WEAPON_SFX_VOLUME);
     setPlayerShooting(true);
     setVisual('player');
-    await wait(450);
+    await wait(combatMs(450));
     setPlayerShooting(false);
     setVisual('idle');
     setRollView(null);
@@ -712,7 +713,7 @@ export default function CombatPanel({
         if (allySound) audio.sfx(allySound, WEAPON_SFX_VOLUME);
       }
       setVisual('player');
-      await wait(450);
+      await wait(combatMs(450));
       setVisual('idle');
       setActiveAllyId(null);
       allyTotal += allyRoll.total;
@@ -731,7 +732,7 @@ export default function CombatPanel({
           ? `РАУНД ${round}: ${total}. Порог ${combat.threshold} пройден.`
           : `РАУНД ${round}: ${total} урона. Убито ${offense.killed}. Все противники уничтожены.`,
       );
-      await wait(DEATH_ANIM_MS);
+      await wait(combatMs(DEATH_ANIM_MS));
       setVisual('dead');
       addLog(`ИТОГ РАУНДА ${round}: противников 0, ${healthTitle} ${stamina}/${staminaMax}.`);
       setPhase('victory');
@@ -746,7 +747,7 @@ export default function CombatPanel({
       addLog(`РАУНД ${round}: ${total} урона. Убито ${offense.killed}.`);
     }
 
-    await wait(PLAYER_PAUSE_MS);
+    await wait(combatMs(PLAYER_PAUSE_MS));
 
     let enemyRoll: DamageRoll | null = null;
     let enemyDamage = 0;
@@ -761,13 +762,13 @@ export default function CombatPanel({
       if (enemySound) audio.sfx(enemySound, ENEMY_SFX_VOLUME);
       enemyDamage = enemyRoll.total * counterFactor;
       addLog(`ПРОТИВНИК: ${enemy.name.toUpperCase()} · ${rollLabel(enemyRoll)}`);
-      await wait(ATTACK_ANIM_MS);
+      await wait(combatMs(ATTACK_ANIM_MS));
     } else {
       setVisual('enemy');
       const enemySound = enemySoundUrl(game, enemy.name);
       if (enemySound) audio.sfx(enemySound, ENEMY_SFX_VOLUME);
       enemyDamage = Number(enemy.attack) * counterFactor;
-      await wait(ATTACK_ANIM_MS);
+      await wait(combatMs(ATTACK_ANIM_MS));
     }
 
     const counter = resolvePoolCounter({ stamina, damage: enemyDamage });
@@ -777,7 +778,7 @@ export default function CombatPanel({
       `ИТОГ РАУНДА ${round}: противников ${offense.after}, ${healthTitle} ${counter.stamina}/${staminaMax}.`,
     );
     setHitFlash(true);
-    await wait(520);
+    await wait(combatMs(800));
     setHitFlash(false);
     setRollView(null);
     if (counter.outcome === 'defeat') {
