@@ -80,6 +80,7 @@ checks
 combat.pool
 combat.contest
 combat.rpg
+combat.duel
 gambles
 shop
 codes
@@ -191,7 +192,7 @@ effects:
 | `description` | пояснение для игрока |
 | `duration` | `next_combat` или число боёв |
 | `stacking` | `refresh`, `stack` или `ignore` |
-| `modifiers` | числовые модификаторы; runtime понимает `player_damage` |
+| `modifiers` | числовые модификаторы; runtime понимает `player_damage` и `skill` |
 
 `apply_effect` накладывает эффект при входе в сцену или на выборе. Активные
 эффекты хранятся в сейве, показываются иконками **слева от здоровья** и
@@ -199,6 +200,16 @@ effects:
 
 `player_damage` прибавляется к броску игрока до сложения с уроном союзников;
 итог не может быть меньше нуля. Урон союзников не модифицируется.
+
+`skill` прибавляется к Мастерству игрока в режиме `duel`; складывается со
+`skill_bonus` выбранного оружия. Несколько наложений с `stacking: stack`
+складываются, `refresh` даёт одно значение.
+
+`enemy_skill_per_round` снижает Мастерство врага на указанное значение за каждый
+следующий раунд (`-2` — щит WOK).
+
+`skill_multiplier` задаёт прибавку к множителю Мастерства: `1` означает ×2
+(§411, заклинание роста).
 
 ## 6. Условия
 
@@ -312,7 +323,32 @@ interaction:
 
 - `pool` — классический пул Здоровья;
 - `contest` — FF-контест;
-- `rpg` — Fallout-подобный бой.
+- `rpg` — Fallout-подобный бой;
+- `duel` — FF-раунд: оба бросают `2d6 + Мастерство`, раненый теряет урон.
+
+Пример `duel`:
+
+```yaml
+interaction:
+  type: combat
+  mode: duel
+  enemies:
+    - name: "Змей"
+      attack: 2        # урон в pool-совместимых данных
+      skill: 7         # Мастерство в duel
+      health: 8
+      damage: 2        # урон врага за ранение
+  options:
+    player_damage: 2   # урон игрока за ранение
+    luck: true         # разрешить проверку Удачи
+    steal_luck: true   # каждая проверка стоит 1 Удачи
+    capture_if:        # §117: пощада при ранении
+      enemy_health_at_most: 3
+      player_health_at_least: 6
+  outcomes:
+    victory: "105"
+    capture: "187"     # альтернативный исход
+```
 
 `options`:
 
@@ -320,6 +356,10 @@ interaction:
 stop_at_one
 threshold
 bonus_damage       # устаревший алиас allies
+player_damage      # duel: урон игрока за ранение, по умолчанию 2
+luck               # duel: разрешить проверку Удачи
+steal_luck         # duel: списывать 1 Удачи за проверку
+capture_if         # условие пощады: enemy_health_at_most / player_health_at_least
 pre_damage
 pre_damage_from
 pre_stamina
@@ -345,6 +385,17 @@ enemies:
 
 - `attack_roll` — кубик врага; при наличии `attack` не используется;
 - без `attack_roll` поведение прежнее: фиксированный `attack`;
+- `skill` — Мастерство врага в `duel`; без него используется `attack`;
+- `damage` — урон врага за ранение в `duel`; по умолчанию 2;
+- `phases` — изменения Мастерства по раундам:
+  - `from_round`, `to_round` — границы;
+  - `skill` — абсолютное Мастерство в фазе;
+  - `even_skill` — Мастерство на раунд, если d6 чётный;
+- `on_hit` — особый эффект при ранении игрока:
+  - `roll` — проверка (по умолчанию `1d6`);
+  - `min` — минимальный результат срабатывания;
+  - `damage` — урон эффекта;
+  - `luck_damage` — урон при успешной Удаче;
 - `boss: true` — увеличенное боевое окно и спрайт (Конг, Юрр);
 - `armor` — броня врага; показывается только при наличии (у Конга `armor: 19` (19 брони + 1 жизнь = порог 20)).
 
@@ -522,7 +573,9 @@ items:
 ```
 
 `kind` — необязательная семантическая подсказка.
-`damage`, `weapon_rating`, `armor_rating`, `ammo`, `restore` — данные механик.
+`damage` — формула или число (число означает постоянный урон);
+`skill_bonus` — бонус к Мастерству в `duel`;
+`weapon_rating`, `armor_rating`, `ammo`, `restore` — данные механик.
 
 ## 10. Коды
 
@@ -618,6 +671,61 @@ python3 scripts/quest2_validate.py path/to/package --json
 2. семантические проверки: ссылки, формулы, инварианты, достижимость.
 
 Коды `W_*` — предупреждения, `E_*` — ошибки.
+
+## 16. Encounter и attrition
+
+Для встречи с группой врагов, растянутой на несколько сцен, используется
+`encounter` в сцене и `attrition` для броска урона без боя.
+
+```yaml
+'339':
+  title: "Толпа"
+  text: "..."
+  encounter:
+    id: horde-17
+    name: "Зомби без оружия"
+    count: 27
+    item: grenade
+  interaction:
+    type: choices
+    options: [...]
+
+'200':
+  title: "Граната"
+  text: "..."
+  interaction:
+    type: attrition
+    encounter: horde-17
+    formula: "2d6+1"
+    consume: grenade
+    animation: grenade
+    options: [...]
+
+'17':
+  title: "Бой"
+  text: "..."
+  interaction:
+    type: combat
+    mode: pool
+    encounter: horde-17
+    enemies:
+      - name: "Зомби без оружия"
+        count: 27
+        attack: 1
+        health: 1
+    empty: "215"
+    outcomes:
+      victory: "215"
+```
+
+- `encounter.count` задаёт стартовое количество; при входе в сцену создаётся
+  `GameState.encounters`.
+- `attrition` вычитает результат броска из encounter.
+- `consume` списывает предмет в момент броска.
+- `to` переходит после броска; `options` показывает выборы после броска.
+- `empty` — ветка, если encounter дошёл до нуля.
+- у `combat` с `encounter` количество врагов берётся из состояния, а не из
+  статического `enemies[].count`; `count` остаётся fallback.
 
 ## 17. Минимальный пример
 

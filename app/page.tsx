@@ -330,6 +330,28 @@ export default function Page() {
     [game, state],
   );
 
+  const handleAttrition = useCallback(
+    (damage: number) => {
+      if (!game || !state) return;
+      const next = applyAction(game, state, { type: 'attrition', damage });
+      if (!next) return;
+      setState(next);
+      saveState(next);
+    },
+    [game, state],
+  );
+
+  const handleCombatOutcome = useCallback(
+    (result: GameState, target: string) => {
+      if (!game || !state) return;
+      const next = applyAction(game, state, { type: 'combat-outcome', result, target });
+      if (!next) return;
+      setState(next);
+      saveState(next);
+    },
+    [game, state],
+  );
+
   const handleCombatExit = useCallback(() => {
     // смерть в бою не должна оставлять сейв на той же сцене
     if (game) clearSave(game.id);
@@ -643,6 +665,8 @@ export default function Page() {
           onAdvance={handleAdvance}
           onRestart={handleRestart}
           onCombatWin={handleCombatWin}
+          onCombatOutcome={handleCombatOutcome}
+          onAttrition={handleAttrition}
           onCombatExit={handleCombatExit}
           onBack={handleBack}
           onCode={handleCode}

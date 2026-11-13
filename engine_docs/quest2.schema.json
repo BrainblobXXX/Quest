@@ -566,6 +566,9 @@
         },
         "retreat": {
           "$ref": "#/$defs/sceneId"
+        },
+        "capture": {
+          "$ref": "#/$defs/sceneId"
         }
       }
     },
@@ -613,6 +616,56 @@
         },
         "weapon": {
           "type": "string"
+        },
+        "skill": {
+          "type": "number"
+        },
+        "damage": {
+          "type": "number",
+          "minimum": 0
+        },
+        "phases": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "from_round": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "to_round": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "skill": {
+                "type": "number"
+              },
+              "even_skill": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "on_hit": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "roll": {
+              "type": "string"
+            },
+            "min": {
+              "type": "number"
+            },
+            "damage": {
+              "type": "number",
+              "minimum": 0
+            },
+            "luck_damage": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
         }
       }
     },
@@ -708,6 +761,32 @@
         "pre_damage_optional": {
           "type": "boolean",
           "default": false
+        },
+        "player_damage": {
+          "type": "number",
+          "minimum": 0
+        },
+        "luck": {
+          "type": "boolean",
+          "default": false
+        },
+        "steal_luck": {
+          "type": "boolean",
+          "default": true
+        },
+        "capture_if": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enemy_health_at_most": {
+              "type": "number",
+              "minimum": 0
+            },
+            "player_health_at_least": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
         }
       }
     },
@@ -849,7 +928,8 @@
               "enum": [
                 "pool",
                 "contest",
-                "rpg"
+                "rpg",
+                "duel"
               ]
             },
             "enemies": {
@@ -873,6 +953,13 @@
             },
             "outcomes": {
               "$ref": "#/$defs/combatOutcomes"
+            },
+            "encounter": {
+              "type": "string",
+              "minLength": 1
+            },
+            "empty": {
+              "$ref": "#/$defs/sceneId"
             }
           }
         },
@@ -1025,6 +1112,50 @@
               "const": "codebook"
             }
           }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "encounter",
+            "formula"
+          ],
+          "properties": {
+            "type": {
+              "const": "attrition"
+            },
+            "encounter": {
+              "type": "string",
+              "minLength": 1
+            },
+            "formula": {
+              "type": "string",
+              "minLength": 1
+            },
+            "consume": {
+              "type": "string"
+            },
+            "animation": {
+              "enum": [
+                "grenade",
+                "browning"
+              ]
+            },
+            "to": {
+              "$ref": "#/$defs/sceneId"
+            },
+            "options": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/choice"
+              }
+            },
+            "empty": {
+              "$ref": "#/$defs/sceneId"
+            }
+          }
         }
       ]
     },
@@ -1096,6 +1227,32 @@
         },
         "after": {
           "$ref": "#/$defs/interaction"
+        },
+        "encounter": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "name",
+            "count"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "count": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "item": {
+              "type": "string"
+            }
+          }
         }
       },
       "allOf": [
@@ -1191,7 +1348,11 @@
             "type": "boolean"
           },
           "damage": {
-            "type": "string"
+            "type": [
+              "string",
+              "number"
+            ],
+            "minimum": 0
           },
           "ammo": {
             "$ref": "#/$defs/itemId"
@@ -1204,6 +1365,12 @@
           },
           "restore": {
             "$ref": "#/$defs/statId"
+          },
+          "skill_bonus": {
+            "type": "number"
+          },
+          "skill_bonus_weapon": {
+            "type": "string"
           }
         }
       }

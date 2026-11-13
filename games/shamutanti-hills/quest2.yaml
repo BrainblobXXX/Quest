@@ -8,7 +8,6 @@ genre: фэнтези
 language: ru
 source: Холмы Шамутанти.pdf
 annotation: 'Первая книга серии «Волшебство!»: вы идёте из Аналэнда через Холмы Шамутанти к крепости Мампанг, чтобы вернуть Корону Королей. Можно играть воином или волшебником.'
-cover: assets/cover.jpg
 start: intro
 features:
 - choices
@@ -108,18 +107,20 @@ items:
   sword:
     title: Меч
     kind: weapon
-    damage: 2d1
+    damage: 2
     description: 'Книжное оружие: 2 очка урона за удар.'
   axe:
     title: Топор Гландрагора
     kind: weapon
-    damage: 2d1
+    damage: 2
     description: На лезвии вырезано число 233; в бою −1 к Мастерству.
+    skill_bonus: -1
   sword_good:
     title: Меч тонкой работы
     kind: weapon
-    damage: 2d1
+    damage: 3
     description: 'Книжный меч из лавки (§214): +1 к силе атаки, в пакете не выражается.'
+    skill_bonus: 1
   teeth_bag:
     title: Сумка с зубами
     description: Зубы гончих смерти, обезьяны, гоблинов и великана.
@@ -185,6 +186,12 @@ items:
     countable: true
     consumable: true
     description: На одно применение заклинания MUD.
+  armband:
+    title: Повязка Рагнара
+    kind: misc
+    skill_bonus: 2
+    skill_bonus_weapon: sword
+    description: +2 к Мастерству в бою с мечом.
 start_items:
   sword: 1
   provision: 2
@@ -232,14 +239,20 @@ scenes:
         delta: -1
     interaction:
       type: combat
-      mode: pool
+      mode: duel
       enemies:
       - name: Змей
         count: 1
         attack: 2
         health: 8
+        damage: 2
+        skill: 7
       outcomes:
         victory: '105'
+      options:
+        player_damage: 2
+        luck: true
+        steal_luck: true
     mood: danger
     image: assets/2.jpg
   '3':
@@ -479,15 +492,23 @@ scenes:
       Из-за чудовищного запаха вам придется снижать в этом бою свою силу атаки на 2 очка. Если одолеете зверя.
     interaction:
       type: combat
-      mode: pool
+      mode: duel
       enemies:
       - name: Скунсомедведь
         count: 1
         attack: 2
         health: 5
+        damage: 2
+        skill: 7
       outcomes:
         victory: '193'
+      options:
+        player_damage: 2
+        luck: true
+        steal_luck: true
     mood: danger
+    entry:
+    - apply_effect: smell
   '21':
     title: Параграф 21
     text: Вы находите подходящее место для отдыха в стороне от деревни. Вдалеке от шумного фестиваля вы сможете неплохо выспаться. Минимит сворачивается клубочком рядом с вами. Можете поесть, если хотите. Пища восстановит вам 2 очка Выносливости, если уже ели сегодня, то только 1 очко. Ночной отдых восстанавливает вам еще 3 очка Выносливости.
@@ -888,14 +909,20 @@ scenes:
       Мастерство 7 Выносливость 6
     interaction:
       type: combat
-      mode: pool
+      mode: duel
       enemies:
       - name: Гоблин
         count: 1
         attack: 2
         health: 6
+        damage: 2
+        skill: 7
       outcomes:
         victory: '186'
+      options:
+        player_damage: 2
+        luck: true
+        steal_luck: true
     mood: danger
   '48':
     title: Параграф 48
@@ -1238,14 +1265,20 @@ scenes:
       Мастерство 7 Выносливость 6
     interaction:
       type: combat
-      mode: pool
+      mode: duel
       enemies:
       - name: Волкодав
         count: 1
         attack: 2
         health: 6
+        damage: 2
+        skill: 7
       outcomes:
         victory: '50'
+      options:
+        player_damage: 2
+        luck: true
+        steal_luck: true
     mood: danger
   '75':
     title: Параграф 75
@@ -1432,14 +1465,20 @@ scenes:
       Мастерство 8 Выносливость 6
     interaction:
       type: combat
-      mode: pool
+      mode: duel
       enemies:
       - name: Деревянный голем
         count: 1
         attack: 2
         health: 6
+        damage: 2
+        skill: 8
       outcomes:
         victory: '169'
+      options:
+        player_damage: 2
+        luck: true
+        steal_luck: true
     mood: danger
   '88':
     title: Параграф 88
@@ -1610,14 +1649,20 @@ scenes:
       Мастерство 8 Выносливость 7
     interaction:
       type: combat
-      mode: pool
+      mode: duel
       enemies:
       - name: Тролль
         count: 1
         attack: 2
         health: 7
+        damage: 2
+        skill: 8
       outcomes:
         victory: '177'
+      options:
+        player_damage: 2
+        luck: true
+        steal_luck: true
     mood: danger
   '100':
     title: Параграф 100
@@ -1712,18 +1757,26 @@ scenes:
       Мастерство 7 Выносливость 8
     interaction:
       type: combat
-      mode: pool
+      mode: duel
       enemies:
       - name: Первый бандит
         count: 1
         attack: 2
         health: 6
+        damage: 2
+        skill: 7
       - name: Второй бандит
         count: 1
         attack: 2
         health: 8
+        damage: 2
+        skill: 7
       outcomes:
         victory: '56'
+      options:
+        player_damage: 2
+        luck: true
+        steal_luck: true
     mood: danger
   '105':
     title: Параграф 105
@@ -1939,14 +1992,24 @@ scenes:
       Мастерство 8 Выносливость 6
     interaction:
       type: combat
-      mode: pool
+      mode: duel
       enemies:
       - name: Ассасин
         count: 1
         attack: 2
         health: 6
+        damage: 2
+        skill: 8
       outcomes:
         victory: '153'
+        capture: '187'
+      options:
+        player_damage: 2
+        luck: true
+        steal_luck: true
+        capture_if:
+          enemy_health_at_most: 3
+          player_health_at_least: 6
     mood: danger
   '118':
     title: Параграф 118
@@ -1999,6 +2062,10 @@ scenes:
       type: continue
       to: '87'
     mood: danger
+    entry:
+    - grant:
+        item: armband
+        count: 1
   '123':
     title: Параграф 123
     text: |-
@@ -2668,14 +2735,20 @@ scenes:
       Мастерство 9 Выносливость 11
     interaction:
       type: combat
-      mode: pool
+      mode: duel
       enemies:
       - name: Великан
         count: 1
         attack: 2
         health: 11
+        damage: 2
+        skill: 9
       outcomes:
         victory: '265'
+      options:
+        player_damage: 2
+        luck: true
+        steal_luck: true
     mood: danger
   '163':
     title: Параграф 163
@@ -3278,15 +3351,23 @@ scenes:
       Мастерство 6 Выносливость 4
     interaction:
       type: combat
-      mode: pool
+      mode: duel
       enemies:
       - name: Эльвин
         count: 1
         attack: 2
         health: 4
+        damage: 2
+        skill: 6
       outcomes:
         victory: '121'
+      options:
+        player_damage: 2
+        luck: true
+        steal_luck: true
     mood: danger
+    entry:
+    - apply_effect: elf_speed
   '204':
     title: Параграф 204
     text: Если у вас нет пропуска, вы отдаете 3 золотых, а взамен получаете кусок ткани, чтобы использовать в качестве полотенца. Вместе с двумя другими посетителями - и, конечно, вместе с минимитом Жаном - вы раздеваетесь и становитесь под струи водопада. Холодная вода освежает и бодрит, а ваша кожа аж начинает светиться. Вы купаетесь и просто смываете все свои раны и ушибы. Вода водопада обладает волшебными лечебными свойствами, восстановите свою Выносливость, Мастерство и Удачу до начального уровня, вода также исцелит вас от любых болезней, которые вы могли подцепить, но не от проклятий. Вы возвращаетесь в деревню и идете на постоялый двор.
@@ -3352,14 +3433,20 @@ scenes:
       Мастерство 9 Выносливость 11
     interaction:
       type: combat
-      mode: pool
+      mode: duel
       enemies:
       - name: Великан
         count: 1
         attack: 2
         health: 11
+        damage: 2
+        skill: 9
       outcomes:
         victory: '265'
+      options:
+        player_damage: 2
+        luck: true
+        steal_luck: true
     mood: danger
   '208':
     title: Параграф 208
@@ -3530,22 +3617,32 @@ scenes:
       Мастерство 5 Выносливость 5
     interaction:
       type: combat
-      mode: pool
+      mode: duel
       enemies:
       - name: Первый гоблин
         count: 1
         attack: 2
         health: 4
+        damage: 2
+        skill: 5
       - name: Второй гоблин
         count: 1
         attack: 2
         health: 4
+        damage: 2
+        skill: 5
       - name: Третий гоблин
         count: 1
         attack: 2
         health: 5
+        damage: 2
+        skill: 5
       outcomes:
         victory: '155'
+      options:
+        player_damage: 2
+        luck: true
+        steal_luck: true
     mood: danger
   '218':
     title: Параграф 218
@@ -3674,14 +3771,29 @@ scenes:
       Если существо ранит вас, бросьте кубик. Если выпадет 5 или 6, она ранит вас своим ядовитым хвостом, и вы теряете 6 очков Выносливости. Чтобы снизить урон до 2 очков, можете проверять Удачу. Если выпадет 1-4, урон обычный. Если убьете чудовище.
     interaction:
       type: combat
-      mode: pool
+      mode: duel
       enemies:
       - name: Мантикора
         count: 1
         attack: 2
         health: 18
+        damage: 2
+        skill: 6
+        phases:
+        - from_round: 1
+          to_round: 4
+          skill: 12
+        on_hit:
+          roll: 1d6
+          min: 5
+          damage: 6
+          luck_damage: 2
       outcomes:
         victory: '456'
+      options:
+        player_damage: 2
+        luck: true
+        steal_luck: true
     mood: danger
   '228':
     title: Параграф 228
@@ -4586,14 +4698,20 @@ scenes:
       Мастерство 8 Выносливость 7
     interaction:
       type: combat
-      mode: pool
+      mode: duel
       enemies:
       - name: Огр
         count: 1
         attack: 2
         health: 7
+        damage: 2
+        skill: 8
       outcomes:
         victory: '15'
+      options:
+        player_damage: 2
+        luck: true
+        steal_luck: true
     mood: danger
   '286':
     title: Параграф 286
@@ -4978,14 +5096,23 @@ scenes:
         delta: -4
     interaction:
       type: combat
-      mode: pool
+      mode: duel
       enemies:
       - name: Тролль
         count: 1
         attack: 2
         health: 7
+        damage: 2
+        skill: 4
+        phases:
+        - from_round: 5
+          even_skill: 8
       outcomes:
         victory: '177'
+      options:
+        player_damage: 2
+        luck: true
+        steal_luck: true
     mood: danger
   '318':
     title: Параграф 318
@@ -5237,14 +5364,20 @@ scenes:
         delta: -4
     interaction:
       type: combat
-      mode: pool
+      mode: duel
       enemies:
       - name: Великан
         count: 1
         attack: 2
         health: 11
+        damage: 2
+        skill: 6
       outcomes:
         victory: '265'
+      options:
+        player_damage: 2
+        luck: true
+        steal_luck: true
     mood: danger
   '339':
     title: Параграф 339
@@ -5781,12 +5914,10 @@ scenes:
     interaction:
       type: choices
       options:
-      - label: Вариант А
-        to: '15'
-        letter: А
-      - label: Вариант Б
+      - label: Сразиться с огром (15)
+        to: 375_fight
+      - label: Не сражаться (144)
         to: '144'
-        letter: Б
     mood: danger
   '376':
     title: Параграф 376
@@ -5874,7 +6005,7 @@ scenes:
         delta: -2
     interaction:
       type: continue
-      to: '87'
+      to: 383_fight
     mood: tense
   '384':
     title: Параграф 384
@@ -5901,7 +6032,7 @@ scenes:
   '386':
     title: Параграф 386
     text: |-
-      Теряете 1 очко Выносливости. Для этого заклинания нужна монета, если ее у вас нет, заклинание не сработало – [А]. Если монета есть, вы прикладываете ее к запястью и произносите заклинание, у вас на руке появляется невидимый металлический щит. Закончите бой с троллем, при этом можете понижать его силу атаки в каждом раунде на 2 очка. После боя щит и использованная монета исчезнут.
+      Теряете 1 очко Выносливости. Для этого заклинания нужна монета, если ее у вас нет, заклинание не сработало. Если монета есть, вы прикладываете ее к запястью и произносите заклинание, у вас на руке появляется невидимый металлический щит. Закончите бой с троллем, при этом можете понижать его силу атаки в каждом раунде на 2 очка. После боя щит и использованная монета исчезнут.
 
       Тролль
 
@@ -5912,24 +6043,34 @@ scenes:
     - modify:
         stat: stamina
         delta: -1
-    interaction:
-      type: choices
-      options:
-      - label: Применить WOK с монетой (177)
-        to: '177'
-        if:
+    - if:
+        has_item:
+          id: coin
+      apply_effect: wok_shield
+    - if:
+        not:
           has_item:
             id: coin
-        effects:
-        - consume:
-            item: coin
-            count: 1
-      - label: Без монеты (99)
-        to: '99'
-        if:
-          not:
-            has_item:
-              id: coin
+      redirect: '99'
+    - consume:
+        item: coin
+        count: 1
+    interaction:
+      type: combat
+      mode: duel
+      enemies:
+      - name: Тролль
+        count: 1
+        attack: 2
+        health: 7
+        damage: 2
+        skill: 8
+      outcomes:
+        victory: '177'
+      options:
+        player_damage: 2
+        luck: true
+        steal_luck: true
     mood: danger
   '387':
     title: Параграф 387
@@ -6133,6 +6274,11 @@ scenes:
       - label: Вариант Б
         to: '285'
         letter: Б
+        effects:
+        - apply_effect: wok_shield
+        if:
+          has_item:
+            id: coin
     mood: danger
   '401':
     title: Параграф 401
@@ -6231,15 +6377,16 @@ scenes:
         stat: stamina
         delta: -4
     interaction:
-      type: choices
-      options:
-      - label: Вариант А
+      type: roll
+      formula: 1d6
+      outcomes:
+      - min: 1
+        max: 1
+        to: 407_fight
+      - min: 2
+        max: 6
         to: '202'
-        letter: А
-      - label: Вариант Б
-        to: '155'
-        letter: Б
-    mood: danger
+    mood: tense
     image: assets/407.jpg
   '408':
     title: Параграф 408
@@ -6294,16 +6441,23 @@ scenes:
     - modify:
         stat: stamina
         delta: -2
+    - apply_effect: giant_size
     interaction:
       type: combat
-      mode: pool
+      mode: duel
       enemies:
       - name: Великан
         count: 1
         attack: 2
         health: 11
+        damage: 2
+        skill: 9
       outcomes:
         victory: '265'
+      options:
+        player_damage: 2
+        luck: true
+        steal_luck: true
     mood: danger
   '412':
     title: Параграф 412
@@ -6494,18 +6648,26 @@ scenes:
         delta: -1
     interaction:
       type: combat
-      mode: pool
+      mode: duel
       enemies:
       - name: Волкодав
         count: 1
         attack: 2
         health: 6
+        damage: 2
+        skill: 7
       - name: Гоблин
         count: 1
         attack: 2
         health: 5
+        damage: 2
+        skill: 7
       outcomes:
         victory: '50'
+      options:
+        player_damage: 2
+        luck: true
+        steal_luck: true
     mood: danger
     image: assets/425.jpg
   '426':
@@ -6691,6 +6853,11 @@ scenes:
       - label: Вариант Б
         to: '203'
         letter: Б
+        effects:
+        - apply_effect: wok_shield
+        if:
+          has_item:
+            id: coin
     mood: danger
   '442':
     title: Параграф 442
@@ -7606,6 +7773,62 @@ scenes:
             delta: 1
       - label: Отправиться в путь
         to: '1'
+  375_fight:
+    title: 'Бой: огр'
+    text: |-
+      Огр
+
+      Мастерство 4 Выносливость 7
+    mood: danger
+    interaction:
+      type: combat
+      mode: duel
+      enemies:
+      - name: Огр
+        count: 1
+        attack: 2
+        health: 7
+        damage: 2
+        skill: 4
+      outcomes:
+        victory: '15'
+      options:
+        player_damage: 2
+        luck: true
+        steal_luck: true
+  407_fight:
+    title: 'Бой: два гоблина'
+    text: |-
+      Второй гоблин
+
+      Мастерство 6 Выносливость 4
+
+      Третий гоблин
+
+      Мастерство 5 Выносливость 5
+    mood: danger
+    interaction:
+      type: combat
+      mode: duel
+      enemies:
+      - name: Второй гоблин
+        count: 1
+        attack: 2
+        health: 4
+        damage: 2
+        skill: 6
+      - name: Третий гоблин
+        count: 1
+        attack: 2
+        health: 5
+        damage: 2
+        skill: 6
+      outcomes:
+        victory: '155'
+      options:
+        player_damage: 2
+        luck: true
+        steal_luck: true
   123_bat:
     title: 'Ночное существо: Гигантская летучая мышь'
     text: |-
@@ -7643,14 +7866,20 @@ scenes:
     mood: danger
     interaction:
       type: combat
-      mode: pool
+      mode: duel
       enemies:
       - name: Гигантская летучая мышь
         count: 1
         attack: 2
         health: 5
+        damage: 2
+        skill: 5
       outcomes:
         victory: '31'
+      options:
+        player_damage: 2
+        luck: true
+        steal_luck: true
   123_wolf:
     title: 'Ночное существо: Волкодав'
     text: |-
@@ -7688,14 +7917,20 @@ scenes:
     mood: danger
     interaction:
       type: combat
-      mode: pool
+      mode: duel
       enemies:
       - name: Волкодав
         count: 1
         attack: 2
         health: 6
+        damage: 2
+        skill: 7
       outcomes:
         victory: '31'
+      options:
+        player_damage: 2
+        luck: true
+        steal_luck: true
   123_werewolf:
     title: 'Ночное существо: Вервольф'
     text: |-
@@ -7733,14 +7968,20 @@ scenes:
     mood: danger
     interaction:
       type: combat
-      mode: pool
+      mode: duel
       enemies:
       - name: Вервольф
         count: 1
         attack: 2
         health: 8
+        damage: 2
+        skill: 7
       outcomes:
         victory: '31'
+      options:
+        player_damage: 2
+        luck: true
+        steal_luck: true
   123_none:
     title: Никого не встретили
     text: 'Никто не встретился: ночь прошла спокойно.'
@@ -7748,3 +7989,60 @@ scenes:
     interaction:
       type: continue
       to: '31'
+  383_fight:
+    title: Параграф 383 · замедленный голем
+    text: Деревянный голем замедлен. Сразитесь с ним; в первых четырёх раундах его Мастерство равно 4.
+    interaction:
+      type: combat
+      mode: duel
+      enemies:
+      - name: Деревянный голем
+        count: 1
+        attack: 2
+        health: 6
+        skill: 8
+        damage: 2
+        phases:
+        - from_round: 1
+          to_round: 4
+          skill: 4
+      options:
+        player_damage: 2
+        luck: true
+        steal_luck: true
+      outcomes:
+        victory: '169'
+cover: assets/cover.jpg
+effects:
+  smell:
+    title: Вонь скунсомедведя
+    kind: debuff
+    duration: next_combat
+    stacking: refresh
+    description: 'Запах мешает сражаться: −2 к Мастерству.'
+    modifiers:
+      skill: -2
+  elf_speed:
+    title: Шустрость эльвина
+    kind: debuff
+    duration: next_combat
+    stacking: refresh
+    description: 'Эльвин слишком быстр: −2 к Мастерству.'
+    modifiers:
+      skill: -2
+  wok_shield:
+    title: Щит WOK
+    kind: buff
+    duration: next_combat
+    stacking: refresh
+    description: В каждом следующем раунде Мастерство врага снижается на 2.
+    modifiers:
+      enemy_skill_per_round: -2
+  giant_size:
+    title: Заклинание роста
+    kind: buff
+    duration: next_combat
+    stacking: refresh
+    description: Мастерство удвоено до конца боя.
+    modifiers:
+      skill_multiplier: 1

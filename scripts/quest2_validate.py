@@ -137,6 +137,12 @@ def collect_edges(scene: dict[str, Any]) -> list[str]:
         for outcome in interaction.get("outcomes", []) or []:
             if outcome.get("to"):
                 edges.append(str(outcome["to"]))
+    elif kind == "attrition":
+        if interaction.get("to"):
+            edges.append(str(interaction["to"]))
+        for option in interaction.get("options", []) or []:
+            if option.get("to"):
+                edges.append(str(option["to"]))
     after = scene.get("after")
     if isinstance(after, dict):
         edges.extend(collect_edges({"after": None, "interaction": after}))
@@ -294,6 +300,18 @@ def validate_scene(scene_id: str, scene: dict[str, Any], refs: dict[str, set[str
         for key, target in (interaction.get("outcomes") or {}).items():
             if target not in refs["scenes"]:
                 out.append(Finding("E_SCENE_MISSING", ipath, f"outcomes.{key}: неизвестная сцена «{target}»"))
+    elif kind == "attrition":
+        if interaction.get("to") and interaction.get("to") not in refs["scenes"]:
+            out.append(Finding("E_SCENE_MISSING", ipath, f"неизвестная сцена «{interaction.get('to')}»"))
+        for index, option in enumerate(interaction.get("options", []) or []):
+            opath = f"{ipath}.options[{index}]"
+            if option.get("to") not in refs["scenes"]:
+                out.append(Finding("E_SCENE_MISSING", opath, f"неизвестная сцена «{option.get('to')}»"))
+            if "if" in option:
+                out += validate_condition(option["if"], scene_id, f"{opath}.if", refs)
+            out += validate_effects(option.get("effects", []), scene_id, f"{opath}.effects", refs)
+        if interaction.get("consume") and interaction.get("consume") not in refs["items"]:
+            out.append(Finding("E_ITEM_MISSING", ipath, f"неизвестный предмет «{interaction.get('consume')}»"))
     elif kind == "roll":
         formula = str(interaction.get("formula", ""))
         match = DICE_RE.match(formula.replace("−", "-").strip())

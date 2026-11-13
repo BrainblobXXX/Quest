@@ -2,14 +2,15 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { audio } from '@/lib/audio';
+import { preBattleMs } from '@/lib/preBattleTiming';
 import type { Game } from '@/lib/types';
 
 export type PreBattleAnimationKind = 'browning' | 'grenade';
 
 const FRAME_MS: Record<PreBattleAnimationKind, number> = {
-  browning: 85,
-  // граната замедлена вдвое относительно первой версии
-  grenade: 300,
+  browning: preBattleMs(85),
+  // граната замедлена относительно первой версии, но предбоевая анимация короче на 30%
+  grenade: preBattleMs(300),
 };
 
 export default function PreBattleAnimation({

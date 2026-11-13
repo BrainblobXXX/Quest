@@ -1,19 +1,16 @@
 'use client';
 
-import CombatPanel from '@/components/screens/CombatPanel';
-import CheckPanel from '@/components/screens/CheckPanel';
-import ContestCombatPanel from '@/components/screens/ContestCombatPanel';
-import FalloutCombatPanel from '@/components/screens/FalloutCombatPanel';
-import GamblePanel from '@/components/screens/GamblePanel';
-import type { CheckDef, CombatDef, GambleDef, Game, GameState } from '@/lib/types';
+import { activityRegistry } from '@/components/mechanics/registry';
+import { resolveActivity } from '@/lib/mechanics/activity';
+import type { ActivityHandlers } from '@/lib/mechanics/types';
+import type { CheckDef, CombatDef, Game, GameState, GambleDef } from '@/lib/types';
 import type { CombatMode } from '@/lib/combat';
 
 /**
- * Единственная точка выбора интерактивного блока сцены.
+ * Хост активной механики сцены.
  *
- * Приоритет фиксирован и совпадает с ARCHITECTURE.md:
- * бой → проверка → ставка. Магазин и нижние действия сцены остаются в
- * GameScreen, потому что это не внутрисценовая интеракция.
+ * Приоритет: бой → ставка → проверка. Story/continue/choices остаются
+ * в GameScreen до следующего этапа выделения story-механики.
  */
 export default function InteractionHost({
   game,
@@ -25,6 +22,7 @@ export default function InteractionHost({
   onGamble,
   onCheck,
   onCombatWin,
+  onCombatOutcome,
   onCombatExit,
   onRestart,
   onStaminaChange,
@@ -38,55 +36,24 @@ export default function InteractionHost({
   onGamble: (delta: number) => void;
   onCheck: (success: boolean) => void;
   onCombatWin: (result: GameState) => void;
+  onCombatOutcome?: (result: GameState, target: string) => void;
   onCombatExit: () => void;
   onRestart: () => void;
-  onStaminaChange?: (value: number) => void;
+  onStaminaChange?: (value: number, max: number) => void;
 }) {
-  if (combat) {
-    if (combatMode === 'contest') {
-      return (
-        <ContestCombatPanel
-          game={game}
-          state={state}
-          combat={combat}
-          onWin={onCombatWin}
-          onExit={onCombatExit}
-          onRestart={onRestart}
-        />
-      );
-    }
-    if (combatMode === 'rpg') {
-      return (
-        <FalloutCombatPanel
-          game={game}
-          state={state}
-          combat={combat}
-          onWin={onCombatWin}
-          onExit={onCombatExit}
-          onRestart={onRestart}
-        />
-      );
-    }
-    return (
-      <CombatPanel
-        game={game}
-        state={state}
-        combat={combat}
-        onWin={onCombatWin}
-        onExit={onCombatExit}
-        onRestart={onRestart}
-        onStaminaChange={onStaminaChange}
-      />
-    );
-  }
+  const activity = resolveActivity({ combat, combatMode, gamble, check });
 
-  if (gamble) {
-    return <GamblePanel game={game} state={state} gamble={gamble} onDone={onGamble} />;
-  }
+  if (!activity) return null;
 
-  if (check) {
-    return <CheckPanel game={game} state={state} check={check} onResolve={onCheck} />;
-  }
+  const handlers: ActivityHandlers = {
+    onCombatWin,
+    ...(onCombatOutcome ? { onCombatOutcome } : {}),
+    onCombatExit,
+    onRestart,
+    onCheck,
+    onGamble,
+    ...(onStaminaChange ? { onStaminaChange } : {}),
+  };
 
-  return null;
+  return <>{activityRegistry[activity.type].render({ game, state, activity, handlers })}</>;
 }

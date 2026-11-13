@@ -315,7 +315,7 @@ export default function Library({
                     >
                       Старт
                     </button>
-                    {open && g.id === 'zombie-blood' && onBattle && (
+                    {open && (g.id === 'zombie-blood' || g.id === 'shamutanti-hills') && onBattle && (
                       <button
                         type="button"
                         className="lib-battle"
@@ -323,9 +323,9 @@ export default function Library({
                           event.stopPropagation();
                           onBattle(g.id);
                         }}
-                        title="Сражение с зомби"
+                        title={g.id === 'zombie-blood' ? 'Сражение с зомби' : 'Боевой режим'}
                       >
-                        Сражение с зомби
+                        {g.id === 'zombie-blood' ? 'Сражение с зомби' : 'Боевой режим'}
                       </button>
                     )}
                   </div>

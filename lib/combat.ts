@@ -1,17 +1,19 @@
 import type { CombatDef, CombatEnemy, Game } from './types';
 import { roll2d6, rollDie, rollFormula, type Rng } from './rng';
 
-export type CombatMode = 'pool' | 'contest' | 'rpg';
+export type CombatMode = 'pool' | 'contest' | 'rpg' | 'duel';
 
 /**
  * Контракт выбора боевого режима.
  *
- * Режим определяется данными боя и типом книги, а не флагами UI:
+ * Явный `mode` из данных имеет приоритет. Если его нет, сохраняется прежняя
+ * эвристика:
  * - `contest` — fighting-fantasy с Защитой;
  * - `rpg` — Fallout-подобный бой с Защитой/несколькими врагами;
  * - `pool` — классический пул Здоровья.
  */
 export function combatMode(game: Game, combat: CombatDef | undefined): CombatMode {
+  if (combat?.mode) return combat.mode;
   if (!combat || combat.enemy.defense === undefined) return 'pool';
   if (game.type === 'fighting-fantasy') return 'contest';
   if (game.type === 'rpg') return 'rpg';

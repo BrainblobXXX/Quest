@@ -8,6 +8,7 @@ import { combatKey, combatKeyIndex } from '@/components/screens/combatKeys';
 import { rollDie } from '@/lib/rng';
 import { applyPoolDamage, resolvePoolAttack, resolvePoolCounter } from '@/lib/combat';
 import { expireCombatEffects, playerDamageModifier } from '@/lib/effects';
+import { preBattleMs } from '@/lib/preBattleTiming';
 import { WeaponIcon } from '@/components/screens/WeaponIcon';
 import PreBattleAnimation, { type PreBattleAnimationKind } from '@/components/screens/PreBattleAnimation';
 import type { CombatDef, Game, GameState } from '@/lib/types';
@@ -92,9 +93,9 @@ const ACTOR_ROLL_MS = 1400;
 const ACTOR_ROLL_TICK_MS = 80;
 const FISTS = 'fists';
 const PLAYER_PAUSE_MS = 650;
-const PRE_EFFECT_MS = 3900;
-const PRE_STAMINA_GLITCH_MS = 520;
-const PRE_STAMINA_ATTACK_MS = 2600;
+const PRE_EFFECT_MS = preBattleMs(3900);
+const PRE_STAMINA_GLITCH_MS = preBattleMs(520);
+const PRE_STAMINA_ATTACK_MS = preBattleMs(2600);
 const ATTACK_ANIM_MS = 1300;
 // Боевые эффекты на 15% тише предыдущих значений.
 const WEAPON_SFX_VOLUME = 0.56 * 0.85;
@@ -178,7 +179,12 @@ function enemyVisualFor(game: Game, name: string): EnemyVisual | null {
   };
 }
 
-function rollDamage(formula: string): DamageRoll {
+function rollDamage(value: string | number): DamageRoll {
+  if (typeof value === 'number') {
+    const total = Math.max(0, value);
+    return { formula: String(value), rolls: [], bonus: 0, total };
+  }
+  const formula = value;
   const match = /^(\d+)d(\d+)([+-]\d+)?$/i.exec(formula.trim());
   if (!match) {
     return { formula, rolls: [rollDie(6)], bonus: 0, total: 1 };
@@ -232,7 +238,8 @@ export default function CombatPanel({
 }) {
   const enemy = combat.enemy;
   const boss = enemy.boss === true;
-  const count = Math.max(1, Math.floor(enemy.count ?? 1));
+  const encounterCount = combat.encounter ? state.encounters?.[combat.encounter]?.count : undefined;
+  const count = Math.max(1, Math.floor(Number(encounterCount ?? enemy.count ?? 1)));
   const staminaId = game.stats?.stamina ? 'stamina' : game.stats?.hp ? 'hp' : 'stamina';
   const staminaDef = game.stats?.[staminaId];
   const healthTitle = staminaId === 'hp' ? 'Здоровье' : 'Выносливость';
@@ -834,8 +841,13 @@ export default function CombatPanel({
   };
 
   const finish = () => {
+    const encounters = combat.encounter && state.encounters
+      ? { ...state.encounters }
+      : state.encounters;
+    if (combat.encounter && encounters) delete encounters[combat.encounter];
     onWin({
       ...state,
+      ...(encounters ? { encounters } : {}),
       effects: expireCombatEffects(state.effects),
       stats: { ...state.stats, [staminaId]: stamina },
       inventory,

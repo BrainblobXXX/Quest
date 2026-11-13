@@ -3118,3 +3118,105 @@ body {
   .combat-prebattle-weapon { min-height: 38px; }
   .combat-prebattle-animation img { width: 88px; height: 38px; }
 }
+
+/* duel-бой: FF-раунд 2d6 + Мастерство */
+.duel-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.duel-enemy {
+  border: 1px solid rgba(51, 255, 0, 0.24);
+  background: rgba(0, 30, 0, 0.28);
+  padding: 9px 11px;
+}
+.duel-enemy-name {
+  color: #ffb347;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+.duel-dice {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 7px;
+  color: var(--green);
+  font-family: var(--mono);
+  font-size: 9px;
+}
+.duel-dice-faces {
+  display: flex;
+  gap: 5px;
+  margin-top: 7px;
+}
+.duel-weapons {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.duel-weapons .choice {
+  text-align: left;
+  font-size: 10px;
+}
+@media (max-width: 760px) {
+  .duel-dice { flex-direction: column; }
+  .duel-weapons .choice { font-size: 9px; }
+}
+
+/* encounter/attrition: граната по толпе без боя */
+.attrition-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 10px 0;
+  padding: 10px;
+  border: 1px solid rgba(255, 176, 0, 0.35);
+  background: rgba(30, 18, 0, 0.35);
+}
+.attrition-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: #ffb347;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.8px;
+}
+.attrition-formula,
+.attrition-note,
+.attrition-result {
+  color: var(--green);
+  font-family: var(--mono);
+  font-size: 10px;
+}
+.attrition-choices .choice { text-align: left; }
+.attrition-dice {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  color: var(--green);
+  font-family: var(--mono);
+  font-size: 10px;
+}
+@media (max-width: 760px) {
+  .attrition-head { flex-direction: column; gap: 3px; }
+}
+
+/* Мобильные кости: вертикальное подрагивание без rotate.
+   На части мобильных композиторов rotate-анимация застывает в наклонённом
+   положении; translate остаётся читаемым и не «кладёт» кость набок. */
+@media (max-width: 760px), (hover: none) and (pointer: coarse) {
+  .combat-die-face {
+    animation: combat-dice-tick-mobile 160ms linear infinite alternate !important;
+    transform-origin: center center;
+    will-change: transform;
+    -webkit-backface-visibility: hidden;
+  }
+}
+@keyframes combat-dice-tick-mobile {
+  from { transform: translate3d(0, -1.5px, 0); }
+  to { transform: translate3d(0, 1.5px, 0); }
+}

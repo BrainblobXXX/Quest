@@ -91,7 +91,7 @@ export default function FalloutCombatPanel({
       const result = resolveRpgRound({
         hp,
         enemies,
-        weaponDamage: weapon.damage ?? '1d6-3',
+        weaponDamage: String(weapon.damage ?? '1d6-3'),
         skill,
         armor,
         d20: die,

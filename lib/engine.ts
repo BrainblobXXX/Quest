@@ -26,13 +26,35 @@ export function newState(game: Game, rng: Rng = Math.random): GameState {
   };
   // стартовая сцена тоже может что-то выдавать (game.yaml → on_enter)
   const entered = applyOnEnter(game, state, game.scenes[game.start], rng);
-  return { ...entered, itemChanges: inventoryDiff(state.inventory, entered.inventory) };
+  const withStartEncounter = withEncounter(entered, game.scenes[game.start]);
+  return { ...withStartEncounter, itemChanges: inventoryDiff(state.inventory, withStartEncounter.inventory) };
 }
 
 export function sceneOf(game: Game, state: GameState): Scene {
   const scene = game.scenes[state.scene];
   if (!scene) throw new Error(`E_SCENE_MISSING: ${state.scene}`);
   return scene;
+}
+
+/** Создать encounter при входе в сцену, если его ещё нет. */
+function withEncounter(state: GameState, scene: Scene | undefined): GameState {
+  if (!scene?.encounter) return state;
+  const def = scene.encounter;
+  if (state.encounters?.[def.id]) return state;
+  return {
+    ...state,
+    encounters: {
+      ...(state.encounters ?? {}),
+      [def.id]: {
+        id: def.id,
+        name: def.name,
+        initial: def.count,
+        count: def.count,
+        ...(def.item ? { item: def.item } : {}),
+        history: [],
+      },
+    },
+  };
 }
 
 /** Разница инвентаря: только реально изменившиеся предметы. */
@@ -169,8 +191,9 @@ function addItems(inv: Record<string, number>, value: SceneEffect['take']) {
 }
 
 /** средний урон формулы NdM+B — для выбора «лучшего» оружия */
-function damageScore(formula: string | undefined): number {
-  if (!formula) return 0;
+function damageScore(formula: string | number | undefined): number {
+  if (formula === undefined) return 0;
+  if (typeof formula === 'number') return Math.max(0, formula);
   const match = /^(\d+)d(\d+)([+-]\d+)?$/i.exec(formula.trim());
   if (!match) return 0;
   const dice = Math.max(1, Number(match[1]));
@@ -359,7 +382,7 @@ export function goToScene(
     visited: [...state.visited, key],
     updated: new Date().toISOString(),
   };
-  const entered = applyOnEnter(game, moved, game.scenes[key], rng);
+  const entered = withEncounter(applyOnEnter(game, moved, game.scenes[key], rng), game.scenes[key]);
   return {
     ...entered,
     itemChanges: mergeItemChanges(carry, inventoryDiff(before, entered.inventory)),

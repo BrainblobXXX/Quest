@@ -69,6 +69,27 @@ function migrateZombieBlood(game: Game, state: GameState): GameState {
   return changed ? { ...state, inventory } : state;
 }
 
+function migrateZombieHorde(game: Game, state: GameState): GameState {
+  if (game.id !== 'zombie-blood') return state;
+  const chain = new Set(['339', '200', '108', '184', '253', '275', '352', '17']);
+  if (!chain.has(state.scene)) return state;
+  if (state.encounters?.['zombie-horde-17']) return state;
+  return {
+    ...state,
+    encounters: {
+      ...(state.encounters ?? {}),
+      'zombie-horde-17': {
+        id: 'zombie-horde-17',
+        name: 'Зомби без оружия',
+        initial: 27,
+        count: 27,
+        item: 'grenade',
+        history: [],
+      },
+    },
+  };
+}
+
 export function migrateState(game: Game, input: GameState): GameState {
   let state: GameState = { ...input, effects: input.effects ?? [] };
   if ((state.version ?? 0) < STATE_VERSION) {
@@ -83,5 +104,5 @@ export function migrateState(game: Game, input: GameState): GameState {
     state = migrateZombieBlood(game, state);
     state = { ...state, version: STATE_VERSION };
   }
-  return state;
+  return migrateZombieHorde(game, state);
 }

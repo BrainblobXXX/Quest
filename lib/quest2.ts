@@ -1,4 +1,4 @@
-import { STATE_VERSION, type CheckDef, type Choice, type CombatDef, type CombatEnemy, type EffectDef, type Game, type GameState, type GambleDef, type ItemDef, type ParseProblem, type RollOutcome, type Scene, type SceneEffect, type StatDef, type CodeDef } from './types';
+import { STATE_VERSION, type AttritionDef, type CheckDef, type Choice, type CombatDef, type CombatEnemy, type EffectDef, type EncounterDef, type Game, type GameState, type GambleDef, type ItemDef, type ParseProblem, type RollOutcome, type Scene, type SceneEffect, type StatDef, type CodeDef } from './types';
 
 type Json = Record<string, unknown>;
 type Q2Condition = Record<string, unknown>;
@@ -212,6 +212,31 @@ function combatFromInteraction(value: Q2Interaction, scene: string): CombatDef |
     name: str(enemy.name, 'Противник'),
     ...(enemy.count !== undefined ? { count: num(enemy.count, 1) } : {}),
     attack: num(enemy.attack),
+    ...(enemy.skill !== undefined ? { skill: num(enemy.skill) } : {}),
+    ...(enemy.damage !== undefined ? { damage: num(enemy.damage) } : {}),
+    ...(Array.isArray(enemy.phases)
+      ? {
+          phases: enemy.phases
+            .map((raw) => asRecord(raw))
+            .filter((raw): raw is Json => Boolean(raw))
+            .map((raw) => ({
+              ...(raw.from_round !== undefined ? { fromRound: num(raw.from_round) } : {}),
+              ...(raw.to_round !== undefined ? { toRound: num(raw.to_round) } : {}),
+              ...(raw.skill !== undefined ? { skill: num(raw.skill) } : {}),
+              ...(raw.even_skill !== undefined ? { evenSkill: num(raw.even_skill) } : {}),
+            })),
+        }
+      : {}),
+    ...(asRecord(enemy.on_hit)
+      ? {
+          onHit: {
+            ...(asRecord(enemy.on_hit)?.roll ? { roll: str(asRecord(enemy.on_hit)?.roll) } : {}),
+            ...(asRecord(enemy.on_hit)?.min !== undefined ? { min: num(asRecord(enemy.on_hit)?.min) } : {}),
+            ...(asRecord(enemy.on_hit)?.damage !== undefined ? { damage: num(asRecord(enemy.on_hit)?.damage) } : {}),
+            ...(asRecord(enemy.on_hit)?.luck_damage !== undefined ? { luckDamage: num(asRecord(enemy.on_hit)?.luck_damage) } : {}),
+          },
+        }
+      : {}),
     ...(enemy.defense !== undefined ? { defense: num(enemy.defense) } : {}),
     health: num(enemy.health, 1),
     ...(enemy.attack_roll ? { attackRoll: str(enemy.attack_roll) } : {}),
@@ -223,6 +248,8 @@ function combatFromInteraction(value: Q2Interaction, scene: string): CombatDef |
   const outcomes = asRecord(value.outcomes) ?? {};
   const win = str(outcomes.victory);
   if (!win) return null;
+  const rawMode = str(value.mode);
+  const mode = rawMode === 'pool' || rawMode === 'contest' || rawMode === 'rpg' || rawMode === 'duel' ? rawMode : undefined;
   const options = asRecord(value.options) ?? {};
   const allies = asArray(value.allies)
     .map((raw) => asRecord(raw))
@@ -254,13 +281,32 @@ function combatFromInteraction(value: Q2Interaction, scene: string): CombatDef |
     : undefined;
   return {
     scene,
+    ...(mode ? { mode } : {}),
+    ...(value.encounter ? { encounter: str(value.encounter) } : {}),
+    ...(value.empty ? { empty: str(value.empty) } : {}),
     enemy: mapped[0],
     enemies: mapped,
     ...(allies.length > 0 ? { allies } : {}),
     ...(restrictions ? { restrictions } : {}),
     win,
     ...(outcomes.defeat ? { lose: str(outcomes.defeat) } : {}),
+    ...(outcomes.capture ? { capture: str(outcomes.capture) } : {}),
+    ...(asRecord(options.capture_if)
+      ? {
+          captureIf: {
+            ...(asRecord(options.capture_if)?.enemy_health_at_most !== undefined
+              ? { enemyHealthAtMost: num(asRecord(options.capture_if)?.enemy_health_at_most) }
+              : {}),
+            ...(asRecord(options.capture_if)?.player_health_at_least !== undefined
+              ? { playerHealthAtLeast: num(asRecord(options.capture_if)?.player_health_at_least) }
+              : {}),
+          },
+        }
+      : {}),
     ...(options.stop_at_one ? { stopAtOne: true } : {}),
+    ...(options.player_damage !== undefined ? { playerDamage: num(options.player_damage) } : {}),
+    ...(options.luck === true ? { luck: true } : {}),
+    ...(options.steal_luck !== false && options.luck === true ? { stealLuck: true } : {}),
     ...(options.threshold !== undefined ? { threshold: num(options.threshold) } : {}),
     ...(options.bonus_damage ? { bonusDamage: str(options.bonus_damage) } : {}),
     ...(options.pre_damage ? { preDamage: str(options.pre_damage) } : {}),
@@ -301,6 +347,30 @@ function makeRev(raw: Json): string {
     hash = Math.imul(hash, 16777619);
   }
   return (hash >>> 0).toString(16);
+}
+
+function attritionFromInteraction(value: Q2Interaction, scene: string, problems: ParseProblem[]): AttritionDef | null {
+  const encounter = str(value.encounter);
+  const formula = str(value.formula);
+  if (!encounter || !formula) {
+    problems.push({ level: 'warn', code: 'Q2_ATTRITION_FIELDS', message: 'attrition требует encounter и formula', scene });
+    return null;
+  }
+  const consume = str(value.consume);
+  const animation = str(value.animation);
+  const next = str(value.to);
+  const empty = str(value.empty);
+  const options = asArray(value.options);
+  return {
+    scene,
+    encounter,
+    formula,
+    ...(consume ? { consume } : {}),
+    ...(animation === 'grenade' || animation === 'browning' ? { animation } : {}),
+    ...(next ? { next } : {}),
+    ...(empty ? { empty } : {}),
+    ...(options.length ? { choices: choices(options, problems, scene) } : {}),
+  };
 }
 
 export function parseQuest2(id: string, raw: Json): { game: Game; problems: ParseProblem[] } {
@@ -346,6 +416,20 @@ export function parseQuest2(id: string, raw: Json): { game: Game; problems: Pars
       ...(sceneRaw.image ? { image: str(sceneRaw.image) } : {}),
       ...(sceneRaw.ending ? { ending: true } : {}),
     };
+    const encounterRaw = asRecord(sceneRaw.encounter);
+    if (encounterRaw) {
+      const encounterId = str(encounterRaw.id, key);
+      const encounterName = str(encounterRaw.name, 'Противники');
+      const encounterCount = num(encounterRaw.count, 0);
+      if (encounterId && encounterCount > 0) {
+        scene.encounter = {
+          id: encounterId,
+          name: encounterName,
+          count: encounterCount,
+          ...(encounterRaw.item ? { item: str(encounterRaw.item) } : {}),
+        };
+      }
+    }
     const entry = effects(sceneRaw.entry, problems, key);
     if (entry.length) scene.onEnter = entry;
     const counter = asRecord(sceneRaw.ui)?.counter;
@@ -373,6 +457,9 @@ export function parseQuest2(id: string, raw: Json): { game: Game; problems: Pars
         if (interaction.title) scene.shopTitle = str(interaction.title);
         if (interaction.currency) scene.shopCurrency = str(interaction.currency);
         if (interaction.currency_item) scene.shopCurrencyItem = str(interaction.currency_item);
+      } else if (type === 'attrition') {
+        const attrition = attritionFromInteraction(interaction, key, problems);
+        if (attrition) scene.attrition = attrition;
       } else if (type === 'roll') {
         const next = rollNext(interaction);
         if (next) scene.next = next;

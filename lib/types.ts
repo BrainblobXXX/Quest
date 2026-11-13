@@ -4,10 +4,16 @@ export type ItemDef = {
   title: string;
   description?: string;
   icon?: string;
+  /** семантический вид предмета */
+  kind?: 'weapon' | 'armor' | 'consumable' | 'quest' | 'misc';
   countable?: boolean;
   consumable?: boolean;
-  /** формула урона: 1d6, 2d6+5, 1d6-3… */
-  damage?: string;
+  /** урон: число (плоский) или формула 1d6, 2d6+5, 1d6-3… */
+  damage?: string | number;
+  /** бонус к Мастерству в duel-бою */
+  skill_bonus?: number;
+  /** бонус действует только с этим оружием (например, повязка Рагнара) */
+  skill_bonus_weapon?: string;
   /** id предмета-патронов, если оружие огнестрельное */
   ammo?: string;
   /** рейтинг оружия (контестный бой: 2d6 + стат + рейтинг) */
@@ -121,6 +127,29 @@ export type ShopOffer = {
   price: number;
 };
 
+export type EncounterDef = {
+  id: string;
+  name: string;
+  count: number;
+  item?: string;
+};
+
+export type AttritionDef = {
+  scene: string;
+  encounter: string;
+  formula: string;
+  /** предмет, который списывается при применении */
+  consume?: string;
+  /** вид предбоевой анимации */
+  animation?: 'grenade' | 'browning';
+  /** если задано — после результата сразу перейти сюда */
+  next?: string;
+  /** переход, если encounter закончился */
+  empty?: string;
+  /** если задано — после результата показать выборы */
+  choices?: Choice[];
+};
+
 export type Scene = {
   key: string;
   title: string;
@@ -129,6 +158,10 @@ export type Scene = {
   mood?: string;
   music?: string;
   choices?: Choice[];
+  /** объявление/продолжение встречи с группой врагов */
+  encounter?: EncounterDef;
+  /** бросок урона по encounter без боя */
+  attrition?: AttritionDef;
   next?: string | { roll: string; outcomes: RollOutcome[] };
   ending?: boolean;
   /** что происходит при входе в сцену: выдача и изъятие предметов */
@@ -150,11 +183,41 @@ export type Scene = {
   rich?: { text: string; letter?: string }[];
 };
 
+export type CombatEnemyPhase = {
+  /** первый раунд фазы, по умолчанию 1 */
+  fromRound?: number;
+  /** последний раунд фазы; без него — до конца боя */
+  toRound?: number;
+  /** абсолютное Мастерство в этой фазе */
+  skill?: number;
+  /** если выпадет чётное d6, Мастерство становится таким на этот раунд */
+  evenSkill?: number;
+};
+
+export type CombatEnemyOnHit = {
+  /** формула проверки, по умолчанию 1d6 */
+  roll?: string;
+  /** минимальный результат, при котором срабатывает эффект */
+  min?: number;
+  /** урон эффекта; заменяет обычный урон ранения */
+  damage?: number;
+  /** урон при успешной проверке Удачи */
+  luckDamage?: number;
+};
+
 export type CombatEnemy = {
   name: string;
   /** число врагов; без него бой не запускается — данные неполные */
   count?: number;
   attack: number;
+  /** Мастерство врага в режиме duel; без него используется attack */
+  skill?: number;
+  /** урон врага в режиме duel; по умолчанию 2 */
+  damage?: number;
+  /** изменения Мастерства по раундам в duel */
+  phases?: CombatEnemyPhase[];
+  /** особый эффект при ранении игрока (например, яд мантикоры) */
+  onHit?: CombatEnemyOnHit;
   /** формула ответного урона в pool-бою; при наличии заменяет attack */
   attackRoll?: string;
   /** босс: увеличенное боевое окно */
@@ -190,6 +253,12 @@ export type CombatRestrictions = {
 
 export type CombatDef = {
   scene: string;
+  /** явный режим боя; без него режим выводится из type/defense */
+  mode?: 'pool' | 'contest' | 'rpg' | 'duel';
+  /** id encounter, из которого берётся количество врагов */
+  encounter?: string;
+  /** переход, если encounter уже пуст и бой не начинается */
+  empty?: string;
   enemy: CombatEnemy;
   /** все враги сцены (Fallout: несколько статблоков на одной сцене) */
   enemies?: CombatEnemy[];
@@ -197,6 +266,10 @@ export type CombatDef = {
   weapon?: string[];
   win: string;
   lose?: string;
+  /** альтернативный исход боя: пощада */
+  capture?: string;
+  /** условие пощады после раунда */
+  captureIf?: { enemyHealthAtMost?: number; playerHealthAtLeast?: number };
   note?: string;
   /** урон, который уже случился перед боем (граната/первый залп) */
   preDamage?: string;
@@ -220,6 +293,12 @@ export type CombatDef = {
   restrictions?: CombatRestrictions;
   /** бой останавливается, когда у одного из участников остаётся 1 здоровье */
   stopAtOne?: boolean;
+  /** урон игрока за ранение в duel; по умолчанию 2 */
+  playerDamage?: number;
+  /** разрешить проверку Удачи в duel */
+  luck?: boolean;
+  /** каждая проверка Удачи списывает 1 */
+  stealLuck?: boolean;
 };
 
 export type EffectDuration = number | 'next_combat';
@@ -282,6 +361,15 @@ export type Game = {
 
 export type ItemChange = { id: string; delta: number; reason?: 'shop' };
 
+export type EncounterState = {
+  id: string;
+  name: string;
+  initial: number;
+  count: number;
+  item?: string;
+  history?: { scene: string; roll: number; damage: number }[];
+};
+
 export type GameState = {
   game: string;
   format: string;
@@ -298,6 +386,8 @@ export type GameState = {
   effects?: ActiveEffect[];
   /** сцены, где ставка уже сделана */
   gamblesDone?: string[];
+  /** активные встречи с группами врагов */
+  encounters?: Record<string, EncounterState>;
   /** предметы, полученные/потерянные при входе в текущую сцену или действием в ней */
   itemChanges?: ItemChange[];
   stats: Record<string, number>;

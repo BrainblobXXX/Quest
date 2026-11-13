@@ -16,7 +16,9 @@ export type GameAction =
   | { type: 'gamble'; delta: number }
   | { type: 'check'; success: boolean; moraleCost?: number }
   | { type: 'buy'; itemId: string; price: number; currencyItem?: string }
-  | { type: 'combat-win'; result: GameState };
+  | { type: 'combat-win'; result: GameState }
+  | { type: 'combat-outcome'; result: GameState; target: string }
+  | { type: 'attrition'; damage: number };
 
 export function applyAction(
   game: Game,
@@ -107,6 +109,42 @@ export function applyAction(
       const target = game.combat?.[action.result.scene]?.win;
       if (!target) return null;
       return goToScene(game, action.result, target, rng);
+    }
+
+    case 'combat-outcome':
+      if (!action.target) return null;
+      return goToScene(game, action.result, action.target, rng);
+
+    case 'attrition': {
+      const attrition = game.scenes[state.scene]?.attrition;
+      if (!attrition) return null;
+      const encounter = state.encounters?.[attrition.encounter];
+      if (!encounter) return null;
+      const damage = Math.max(0, Math.floor(Number(action.damage) || 0));
+      const count = Math.max(0, encounter.count - damage);
+      const inventory = { ...state.inventory };
+      if (attrition.consume) {
+        const left = (inventory[attrition.consume] ?? 0) - 1;
+        if (left > 0) inventory[attrition.consume] = left;
+        else delete inventory[attrition.consume];
+      }
+      const updated: GameState = {
+        ...state,
+        inventory,
+        encounters: {
+          ...(state.encounters ?? {}),
+          [encounter.id]: {
+            ...encounter,
+            count,
+            history: [...(encounter.history ?? []), { scene: state.scene, roll: damage, damage }],
+          },
+        },
+        itemChanges: mergeItemChanges(state.itemChanges, inventoryDiff(state.inventory, inventory)),
+        updated: new Date().toISOString(),
+      };
+      const next = count <= 0 ? attrition.empty ?? attrition.next : attrition.next;
+      if (next) return goToScene(game, updated, next, rng);
+      return updated;
     }
 
     default:

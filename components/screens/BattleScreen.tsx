@@ -1,9 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import CombatPanel from '@/components/screens/CombatPanel';
+import CombatActivity from '@/components/mechanics/CombatActivity';
 import InitialRoll from '@/components/screens/InitialRoll';
 import EffectChips from '@/components/screens/EffectChips';
+import { combatMode } from '@/lib/combat';
 import { STATE_VERSION, type Game, type GameState } from '@/lib/types';
 
 type BattlePhase = 'health' | 'select' | 'effects' | 'intro' | 'combat';
@@ -11,12 +12,13 @@ type BattlePhase = 'health' | 'select' | 'effects' | 'intro' | 'combat';
 type EnemyKind = 'zombie' | 'armed' | 'dogs' | 'rats' | 'kong' | 'yurr';
 
 type EnemyOption = {
-  id: EnemyKind;
+  id: string;
   label: string;
   detail: string;
+  scenes: string[];
 };
 
-const ENEMY_OPTIONS: EnemyOption[] = [
+const ZOMBIE_ENEMY_OPTIONS: Array<{ id: EnemyKind; label: string; detail: string }> = [
   { id: 'zombie', label: 'ЗОМБИ', detail: 'без оружия' },
   { id: 'armed', label: 'ЗОМБИ С ОРУЖИЕМ', detail: 'вооружённые' },
   { id: 'dogs', label: 'СОБАКИ', detail: 'стая' },
@@ -40,6 +42,33 @@ function scenesForEnemyKind(game: Game, kind: EnemyKind): string[] {
   return Object.entries(game.combat ?? {})
     .filter(([, combat]) => (combat.enemies ?? []).some((enemy) => enemyKindFor(enemy.name) === kind))
     .map(([scene]) => scene);
+}
+
+function battleEnemyOptions(game: Game): EnemyOption[] {
+  if (game.id === 'zombie-blood') {
+    return ZOMBIE_ENEMY_OPTIONS.map((option) => ({
+      ...option,
+      scenes: scenesForEnemyKind(game, option.id),
+    }));
+  }
+  const groups = new Map<string, { label: string; scenes: string[] }>();
+  for (const [scene, combat] of Object.entries(game.combat ?? {})) {
+    const enemies = (combat.enemies ?? [combat.enemy]).filter(Boolean);
+    const label = enemies.map((enemy) => enemy.name.toUpperCase()).join(' + ');
+    if (!label) continue;
+    const key = label;
+    const group = groups.get(key) ?? { label, scenes: [] };
+    group.scenes.push(scene);
+    groups.set(key, group);
+  }
+  return [...groups.entries()]
+    .map(([id, group]) => ({
+      id,
+      label: group.label,
+      detail: `${group.scenes.length} боевых сцен`,
+      scenes: group.scenes.sort((a, b) => Number(a) - Number(b)),
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label, 'ru'));
 }
 
 type EffectSceneOption = {
@@ -148,19 +177,15 @@ export default function BattleScreen({
   const [lastVictory, setLastVictory] = useState(false);
   const [liveStamina, setLiveStamina] = useState<{ value: number; max: number } | null>(null);
   const vitalTitle = stat ? game.stats?.[stat]?.title ?? 'Выносливость' : 'Выносливость';
-  const options = ENEMY_OPTIONS.map((option) => ({
-    ...option,
-    scenes: scenesForEnemyKind(game, option.id),
-  }));
+  const options = battleEnemyOptions(game);
   const effectOptions = effectSceneOptions(game);
 
   const handleStaminaChange = useCallback((value: number, max: number) => {
     setLiveStamina({ value, max });
   }, []);
 
-  const chooseEnemy = (kind: EnemyKind) => {
-    const scenes = scenesForEnemyKind(game, kind);
-    const scene = pickRandomScene(scenes, state?.scene || undefined);
+  const chooseEnemy = (option: EnemyOption) => {
+    const scene = pickRandomScene(option.scenes, state?.scene || undefined);
     if (!scene) return;
     setLiveStamina(null);
     setState((previous) => {
@@ -227,14 +252,14 @@ export default function BattleScreen({
     if (phase !== 'select') return;
     const onKey = (event: KeyboardEvent) => {
       const number = Number(event.key);
-      if (!Number.isInteger(number) || number < 1 || number > ENEMY_OPTIONS.length) return;
+      if (!Number.isInteger(number) || number < 1 || number > options.length) return;
       event.preventDefault();
       const buttons = document.querySelectorAll<HTMLButtonElement>('.battle-select-choices .choice');
       buttons[number - 1]?.click();
     };
     window.addEventListener('keydown', onKey, true);
     return () => window.removeEventListener('keydown', onKey, true);
-  }, [phase]);
+  }, [phase, options.length]);
 
   useEffect(() => {
     if (phase !== 'effects') return;
@@ -296,16 +321,18 @@ export default function BattleScreen({
                 type="button"
                 className={`choice${index === 0 ? ' selected' : ''}`}
                 disabled={option.scenes.length === 0}
-                onClick={() => chooseEnemy(option.id)}
+                onClick={() => chooseEnemy(option)}
                 title={option.detail}
               >
                 {index + 1}. {option.label} · {option.scenes.length}
               </button>
             ))}
           </div>
-          <button type="button" className="battle-effects-toggle" onClick={() => setPhase('effects')} disabled={effectOptions.length === 0}>
-            ЭФФЕКТЫ ПРЕДБОЯ · {effectOptions.length}
-          </button>
+          {effectOptions.length > 0 && (
+            <button type="button" className="battle-effects-toggle" onClick={() => setPhase('effects')}>
+              ЭФФЕКТЫ ПРЕДБОЯ · {effectOptions.length}
+            </button>
+          )}
           <div className="battle-select-note">
             {lastVictory ? 'Выбери следующего противника.' : 'Для обычных врагов сцена выбирается случайно.'}
           </div>
@@ -357,15 +384,19 @@ export default function BattleScreen({
           <div className="battle-room-head">
             <span>ВЫБРАННЫЙ ПРОТИВНИК</span>
           </div>
-          <CombatPanel
+          <CombatActivity
             key={`${battleId}:${state.scene}`}
             game={game}
             state={state}
-            combat={currentCombat}
-            onWin={handleWin}
-            onExit={onExit}
-            onRestart={beginRun}
-            onStaminaChange={handleStaminaChange}
+            activity={{ type: 'combat', combat: currentCombat, mode: combatMode(game, currentCombat) }}
+            handlers={{
+              onCombatWin: handleWin,
+              onCombatExit: onExit,
+              onRestart: beginRun,
+              onCheck: () => {},
+              onGamble: () => {},
+              onStaminaChange: handleStaminaChange,
+            }}
           />
         </div>
       )}

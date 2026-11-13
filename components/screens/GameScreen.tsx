@@ -2,23 +2,19 @@
 
 import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { availableChoices, inventoryLine, isEnding, roll as rollDice, sceneOf } from '@/lib/engine';
+import { availableChoices, inventoryLine, roll as rollDice, sceneOf } from '@/lib/engine';
 import { audio } from '@/lib/audio';
 import InteractionHost from '@/components/screens/InteractionHost';
 import ShopPanel from '@/components/screens/ShopPanel';
 import SceneItemChanges from '@/components/screens/SceneItemChanges';
 import EffectChips from '@/components/screens/EffectChips';
 import { itemIconUrl } from '@/lib/itemIcons';
-import { DieFace } from '@/components/screens/Dice';
 import { combatMode } from '@/lib/combat';
 import { instructionFor } from '@/lib/instructions';
+import StoryActivity, { type StoryRollView } from '@/components/mechanics/StoryActivity';
+import AttritionPanel from '@/components/mechanics/AttritionPanel';
+import { findChoiceByLetter, resolveStory } from '@/lib/mechanics/story';
 import type { Choice, Game, GameState, ParseProblem } from '@/lib/types';
-
-function diceMax(formula: string): number {
-  const match = /^(\d+)d(\d+)$/i.exec(formula.trim());
-  if (!match) return 6;
-  return Math.max(1, Number(match[1]) * Number(match[2]));
-}
 
 const LETTER = /\[([А-ЯЁA-Z])\]/g;
 
@@ -161,6 +157,8 @@ export default function GameScreen({
   onAdvance,
   onRestart,
   onCombatWin,
+  onCombatOutcome,
+  onAttrition,
   onCombatExit,
   onBack,
   onCode,
@@ -175,6 +173,8 @@ export default function GameScreen({
   onAdvance: (value?: number) => void;
   onRestart: () => void;
   onCombatWin: (result: GameState) => void;
+  onCombatOutcome?: (result: GameState, target: string) => void;
+  onAttrition: (damage: number) => void;
   onCombatExit: () => void;
   onBack: () => void;
   onCode: (id: string) => boolean;
@@ -193,6 +193,8 @@ export default function GameScreen({
   const [combatStarted, setCombatStarted] = useState(false);
   const [liveStamina, setLiveStamina] = useState<number | null>(null);
   const combatActive = hasCombat && combatStarted;
+  const encounterCount = combat?.encounter ? state.encounters?.[combat.encounter]?.count : undefined;
+  const emptyCombat = Boolean(hasCombat && encounterCount !== undefined && encounterCount <= 0);
   const [rulesOpen, setRulesOpen] = useState(false);
   const instruction = instructionFor(game);
   const [invOpen, setInvOpen] = useState(false);
@@ -212,6 +214,7 @@ export default function GameScreen({
     setLiveStamina(null);
   }, [scene.key]);
   const choices = availableChoices(game, state);
+  const attrition = scene.attrition;
   const liveVitalId = Object.entries(game.stats ?? {}).find(([id, def]) => isVitalStat(id, def))?.[0];
   const allStats = Object.entries(game.stats ?? {})
     .filter(([, def]) => def.show !== false)
@@ -246,7 +249,7 @@ export default function GameScreen({
     setStatsOpen((value) => !value);
     setInvOpen(false);
   };
-  const chooseByLetter = (letter: string) => choices.find((choice) => choice.letter === letter);
+  const chooseByLetter = (letter: string) => findChoiceByLetter(choices, letter);
 
   /** простая Markdown-эмфаза: *курсив* и **жирный** */
   const formatEmphasis = (text: string, keyPrefix: string): ReactNode[] => {
@@ -308,15 +311,9 @@ export default function GameScreen({
     out.push(...formatEmphasis(text.slice(last), 'tail'));
     return out;
   };
-  const ending = isEnding(game, state);
-  const canReturn =
-    ending &&
-    state.visited.length > 1 &&
-    /Быстрее\s+(?:возвращайся\s+)?туда,\s+откуда/i.test(scene.text);
-  const hasNext = Boolean(scene.next);
-  const dice = !ending && scene.next && typeof scene.next === 'object' ? scene.next : null;
-  const isCoin = dice ? /d2$/i.test(dice.roll.trim()) : false;
-  const [rollView, setRollView] = useState<{ kind: 'coin' | 'dice'; value: number; phase: 'spin' | 'result' } | null>(null);
+  const story = resolveStory(game, state, choices);
+  const { ending, canReturn, hasNext, dice, isCoin } = story;
+  const [rollView, setRollView] = useState<StoryRollView | null>(null);
   const [tick, setTick] = useState(0);
   const rollTimers = useRef<number[]>([]);
 
@@ -488,7 +485,7 @@ export default function GameScreen({
         // стрелки — только для выбора вариантов, не для прокрутки рассказа
         e.preventDefault();
         if (rollView) return;
-        const items = ending ? (canReturn ? 2 : 1) : choices.length > 0 ? choices.length : dice || hasNext ? 1 : 0;
+        const items = story.itemCount;
         if (!items) return;
         const step = e.key === 'ArrowDown' ? 1 : -1;
         setSelection((prev) => {
@@ -502,7 +499,7 @@ export default function GameScreen({
       if (e.key === 'Escape' || rollView) return;
 
       // сколько пунктов можно выбрать: варианты, «далее», бросок или рестарт
-      const items = ending ? (canReturn ? 2 : 1) : choices.length > 0 ? choices.length : dice || hasNext ? 1 : 0;
+      const items = story.itemCount;
       if (!items) return;
 
       // на кнопке в фокусе Enter должен сработать как обычный клик
@@ -744,8 +741,18 @@ export default function GameScreen({
             {Number(scene.counter.max ?? game.stats[scene.counter.stat]?.initial ?? 0)}
           </div>
         )}
+        {attrition && (
+          <AttritionPanel
+            key={`attrition:${scene.key}`}
+            game={game}
+            state={state}
+            attrition={attrition}
+            onResolve={onAttrition}
+            onChoose={onChoose}
+          />
+        )}
         <InteractionHost
-          key={scene.key}
+          key={`interaction:${scene.key}`}
           game={game}
           state={state}
           check={!hasCombat && !showGamble ? check : null}
@@ -755,13 +762,32 @@ export default function GameScreen({
           onGamble={onGamble}
           onCheck={onCheck}
           onCombatWin={onCombatWin}
+          onCombatOutcome={onCombatOutcome}
           onCombatExit={onCombatExit}
           onRestart={onRestart}
           onStaminaChange={setLiveStamina}
         />
       </div>
 
-      {hasCombat && combat && !combatStarted && (
+      {emptyCombat && combat && (
+        <div className="choices combat-start-choices">
+          <button
+            type="button"
+            className="choice selected"
+            onClick={() => {
+              const encounters = state.encounters ? { ...state.encounters } : undefined;
+              if (combat.encounter && encounters) delete encounters[combat.encounter];
+              const result = { ...state, ...(encounters ? { encounters } : {}) };
+              if (onCombatOutcome) onCombatOutcome(result, combat.empty ?? combat.win);
+              else onCombatWin(result);
+            }}
+          >
+            1. ЗОМБИ УНИЧТОЖЕНЫ. ПРОДОЛЖИТЬ
+          </button>
+        </div>
+      )}
+
+      {hasCombat && combat && !combatStarted && !emptyCombat && (
         <div className="choices combat-start-choices">
           <button
             type="button"
@@ -788,119 +814,22 @@ export default function GameScreen({
         />
       )}
 
-      {!hasCombat && (
-        <>
-          {ending && (
-        <div className="choices">
-          <div className="green">КОНЕЦ</div>
-          {canReturn ? (
-            <>
-              <button
-                type="button"
-                className={`choice${selected === 0 ? ' selected' : ''}${pressed === `${scene.key}:back` ? ' pressed' : ''}`}
-                onClick={onBack}
-                {...pressHandlers('back')}
-              >
-                1. ВЕРНУТЬСЯ
-              </button>
-              <button
-                type="button"
-                className={`choice${selected === 1 ? ' selected' : ''}${pressed === `${scene.key}:restart` ? ' pressed' : ''}`}
-                onClick={onRestart}
-                {...pressHandlers('restart')}
-              >
-                2. НАЧАТЬ ЗАНОВО
-              </button>
-            </>
-          ) : (
-            <button
-              type="button"
-              className={`choice${selected === 0 ? ' selected' : ''}${pressed === `${scene.key}:restart` ? ' pressed' : ''}`}
-              onClick={onRestart}
-              {...pressHandlers('restart')}
-            >
-              1. НАЧАТЬ ЗАНОВО
-            </button>
-          )}
-        </div>
-      )}
-
-      {!ending && !check && !showGamble && choices.length > 0 && (
-        <div className="choices">
-          {choices.map((c, i) => (
-            <button
-              key={`${c.goto}-${i}`}
-              className={`choice${i === selected ? ' selected' : ''}${pressed === `${scene.key}:c${i}` ? ' pressed' : ''}`}
-              data-variant={c.letter}
-              onClick={() => onChoose(c)}
-              {...pressHandlers(`c${i}`)}
-            >
-              {i + 1}. {c.label.toUpperCase()}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {!ending && !check && !showGamble && choices.length === 0 && hasNext && !dice && (
-        <div className="choices">
-          <button
-            type="button"
-            className={`choice${selected === 0 ? ' selected' : ''}${pressed === `${scene.key}:next` ? ' pressed' : ''}`}
-            onClick={() => onAdvance()}
-            {...pressHandlers('next')}
-          >
-            1. ДАЛЕЕ
-          </button>
-        </div>
-      )}
-
-      {!ending && dice && !rollView && (
-        <div className="choices">
-          <button
-            type="button"
-            className={`choice${selected === 0 ? ' selected' : ''}${pressed === `${scene.key}:roll` ? ' pressed' : ''}`}
-            onClick={startRoll}
-            {...pressHandlers('roll')}
-          >
-            1. {isCoin ? 'БРОСИТЬ МОНЕТКУ' : 'БРОСИТЬ КУБИК'}
-          </button>
-        </div>
-      )}
-
-      {rollView && (
-        <div className="roll-stage">
-          <div className={rollView.kind === 'coin' ? 'roll-coin' : `roll-die${dice && diceMax(dice.roll) > 6 ? ' roll-die-d20' : ''}`}>
-            {rollView.kind === 'coin'
-              ? rollView.phase === 'result'
-                ? rollView.value === 1
-                  ? 'ОРЁЛ'
-                  : 'РЕШКА'
-                : '◉'
-              : <DieFace
-                value={rollView.phase === 'result' ? rollView.value : 1 + (tick % Math.max(1, dice ? diceMax(dice.roll) : 6))}
-                sides={dice ? diceMax(dice.roll) : 6}
-                className="roll-die-face combat-die-face"
-                numberClassName="roll-die-number"
-              />}
-          </div>
-          <div className="roll-caption">
-            {rollView.phase === 'result'
-              ? rollView.kind === 'coin'
-                ? rollView.value === 1
-                  ? 'ОРЁЛ'
-                  : 'РЕШКА'
-                : `ВЫПАЛО ${rollView.value}`
-              : rollView.kind === 'coin'
-                ? 'БРОСАЕМ МОНЕТУ…'
-                : 'БРОСАЕМ КУБИК…'}
-          </div>
-        </div>
-      )}
-
-      {!ending && !check && !showGamble && !scene.codebook && choices.length === 0 && !hasNext && (
-        <div className="choices error">СБОЙ: ТУПИК В СЦЕНЕ {scene.key}</div>
-      )}
-        </>
+      {!hasCombat && !attrition && (
+        <StoryActivity
+          state={state}
+          story={story}
+          selected={selected}
+          pressed={pressed}
+          rollView={rollView}
+          tick={tick}
+          blockedByInteraction={Boolean(check || showGamble)}
+          pressHandlers={pressHandlers}
+          onChoose={onChoose}
+          onAdvance={onAdvance}
+          onRestart={onRestart}
+          onBack={onBack}
+          onRoll={startRoll}
+        />
       )}
 
       {rulesOpen && typeof document !== 'undefined' &&
