@@ -1207,6 +1207,22 @@
         "image": {
           "type": "string"
         },
+        "prop": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "image"
+          ],
+          "properties": {
+            "image": {
+              "type": "string",
+              "minLength": 1
+            },
+            "alt": {
+              "type": "string"
+            }
+          }
+        },
         "entry": {
           "$ref": "#/$defs/effects"
         },

@@ -3220,3 +3220,42 @@ body {
   from { transform: translate3d(0, -1.5px, 0); }
   to { transform: translate3d(0, 1.5px, 0); }
 }
+
+/* ── предмет обстановки сцены (прозрачный prop) ─────────── */
+.scene-prop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 14px 0 2px;
+  padding: 0;
+  border: 0;
+  background: none;
+  min-height: 0;
+}
+.scene-prop img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(62%, 260px);
+  max-height: 180px;
+  object-fit: contain;
+  user-select: none;
+  opacity: 0.96;
+  filter:
+    drop-shadow(0 0 10px rgba(255, 150, 20, 0.16))
+    drop-shadow(0 0 2px rgba(0, 0, 0, 0.9))
+    contrast(1.06)
+    saturate(0.92);
+  animation: scene-prop-enter 320ms ease-out both;
+}
+@keyframes scene-prop-enter {
+  from { opacity: 0; transform: translateY(6px) scale(0.98); }
+  to { opacity: 0.96; transform: translateY(0) scale(1); }
+}
+@media (max-width: 760px) {
+  .scene-prop { margin-top: 10px; }
+  .scene-prop img { max-width: 76%; max-height: 140px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scene-prop img { animation: none; }
+}

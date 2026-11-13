@@ -416,6 +416,20 @@ export function parseQuest2(id: string, raw: Json): { game: Game; problems: Pars
       ...(sceneRaw.image ? { image: str(sceneRaw.image) } : {}),
       ...(sceneRaw.ending ? { ending: true } : {}),
     };
+    const propRaw = typeof sceneRaw.prop === 'string'
+      ? { image: sceneRaw.prop }
+      : asRecord(sceneRaw.prop);
+    if (propRaw) {
+      const image = str(propRaw.image);
+      if (image) {
+        scene.prop = {
+          image,
+          ...(propRaw.alt ? { alt: str(propRaw.alt) } : {}),
+        };
+      } else {
+        problems.push({ level: 'warn', code: 'Q2_PROP_FIELDS', message: 'prop требует image', scene: key });
+      }
+    }
     const encounterRaw = asRecord(sceneRaw.encounter);
     if (encounterRaw) {
       const encounterId = str(encounterRaw.id, key);

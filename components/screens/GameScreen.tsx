@@ -7,6 +7,7 @@ import { audio } from '@/lib/audio';
 import InteractionHost from '@/components/screens/InteractionHost';
 import ShopPanel from '@/components/screens/ShopPanel';
 import SceneItemChanges from '@/components/screens/SceneItemChanges';
+import SceneProp from '@/components/screens/SceneProp';
 import EffectChips from '@/components/screens/EffectChips';
 import { itemIconUrl } from '@/lib/itemIcons';
 import { combatMode } from '@/lib/combat';
@@ -733,6 +734,7 @@ export default function GameScreen({
           </figure>
         )}
         <div className="scene-text">{sceneText()}</div>
+        {scene.prop && <SceneProp src={assetUrl(game, scene.prop.image)} alt={scene.prop.alt} />}
         <SceneItemChanges game={game} state={state} />
         {scene.counter && game.stats?.[scene.counter.stat] && (
           <div className="creation-counter">

@@ -150,11 +150,19 @@ export type AttritionDef = {
   choices?: Choice[];
 };
 
+/** Отдельный предмет обстановки/эффект сцены: показывается под текстом. */
+export type SceneProp = {
+  image: string;
+  alt?: string;
+};
+
 export type Scene = {
   key: string;
   title: string;
   text: string;
   image?: string;
+  /** Не иллюстрация сцены: прозрачный prop под текстом, над «найдено/потеряно». */
+  prop?: SceneProp;
   mood?: string;
   music?: string;
   choices?: Choice[];
