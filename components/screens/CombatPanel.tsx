@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { audio } from '@/lib/audio';
 import { DieFace } from '@/components/screens/Dice';
 import { usePanelKeys } from '@/lib/usePanelKeys';
@@ -9,9 +10,13 @@ import { rollDie } from '@/lib/rng';
 import { applyPoolDamage, resolvePoolAttack, resolvePoolCounter } from '@/lib/combat';
 import { expireCombatEffects, playerDamageModifier } from '@/lib/effects';
 import { preBattleMs } from '@/lib/preBattleTiming';
-import { combatMs } from '@/lib/combatTiming';
+import { combatMs, combatSoundRate } from '@/lib/combatTiming';
+import { useDecreasePulse } from '@/lib/useDecreasePulse';
+import { preloadImages } from '@/lib/preload';
+import { prebattleFrameSources, prebattleSoundUrl } from '@/lib/prebattleFrames';
 import { WeaponIcon } from '@/components/screens/WeaponIcon';
 import PreBattleAnimation, { type PreBattleAnimationKind } from '@/components/screens/PreBattleAnimation';
+import CombatVisual from '@/components/screens/CombatVisual';
 import type { CombatDef, Game, GameState } from '@/lib/types';
 
 type Phase = 'prebattle' | 'prebattle-choice' | 'loadout' | 'round' | 'rolling' | 'victory' | 'defeat';
@@ -39,6 +44,8 @@ type PreBattleEffect = {
   kind: 'browning' | 'grenade' | 'damage';
   roll: DamageRoll;
   killed: number;
+  /** Урон применяется только после анимации, как у обычного удара. */
+  nextEnemies: number[];
 };
 
 type CombatSetup = {
@@ -103,6 +110,11 @@ const WEAPON_SFX_VOLUME = 0.56 * 0.85;
 const ENEMY_SFX_VOLUME = 0.65 * 0.85;
 const IDLE_ANIM_MS = 2900;
 const DEATH_ANIM_MS = 1450;
+
+function playCombatSfx(url: string | null, volume: number) {
+  if (!url) return;
+  audio.sfx(url, volume, { rate: combatSoundRate() });
+}
 type VisualPhase = 'idle' | 'player' | 'enemy' | 'dying' | 'dead';
 
 type EnemyVisual = {
@@ -112,6 +124,12 @@ type EnemyVisual = {
   attack: string[];
   death: string[];
 };
+
+function enemyFrameSources(visual: EnemyVisual): string[] {
+  return [...visual.passive, ...visual.attack, ...visual.death].map(
+    (file) => `${visual.base}/${file}`,
+  );
+}
 
 function framePaths(prefix: string, count: number): string[] {
   return Array.from({ length: count }, (_, index) => `${prefix}_${index + 1}.png`);
@@ -228,6 +246,8 @@ export default function CombatPanel({
   onExit,
   onRestart,
   onStaminaChange,
+  battleMode,
+  visualImage,
 }: {
   game: Game;
   state: GameState;
@@ -236,6 +256,8 @@ export default function CombatPanel({
   onExit: () => void;
   onRestart: () => void;
   onStaminaChange?: (value: number, max: number) => void;
+  battleMode?: boolean;
+  visualImage?: string | null;
 }) {
   const enemy = combat.enemy;
   const boss = enemy.boss === true;
@@ -274,10 +296,14 @@ export default function CombatPanel({
       } else if (itemOk) {
         const prepared = rollDamage(combat.preDamage);
         const damage = applyPoolDamage(next, prepared.total);
-        next.splice(0, next.length, ...damage.enemies);
         const kind = combat.preDamageKind ?? 'damage';
-        preEffect = { kind, roll: prepared, killed: damage.killed };
-        lines.push(`ДО БОЯ: ${preBattleName(kind)} ${rollLabel(prepared)}. Убито ${damage.killed}.`);
+        preEffect = {
+          kind,
+          roll: prepared,
+          killed: damage.killed,
+          nextEnemies: damage.enemies,
+        };
+        // Результат броска и «Убито N» появятся только после анимации.
         if (itemId) {
           const left = (setupInventory[itemId] ?? 0) - 1;
           if (left > 0) setupInventory[itemId] = left;
@@ -314,6 +340,7 @@ export default function CombatPanel({
   });
   const [enemies, setEnemies] = useState<number[]>(setup.enemies);
   const [inventory, setInventory] = useState<Record<string, number>>(() => ({ ...setup.inventory }));
+  const infiniteGrenades = state.infiniteGrenades === true;
   const [stamina, setStamina] = useState(setup.stamina);
 
   useEffect(() => {
@@ -326,6 +353,8 @@ export default function CombatPanel({
   const [selectedWeapon, setSelectedWeapon] = useState<string>(FISTS);
   const [weaponPicked, setWeaponPicked] = useState(false);
   const [preBattleBusy, setPreBattleBusy] = useState(false);
+  const [preBattleStartedByUser, setPreBattleStartedByUser] = useState(false);
+  const [warming, setWarming] = useState(false);
   const [rollView, setRollView] = useState<RollView | null>(null);
   const [activeAllyId, setActiveAllyId] = useState<string | null>(null);
   const [playerShooting, setPlayerShooting] = useState(false);
@@ -354,15 +383,37 @@ export default function CombatPanel({
     sequence.current = [];
   }, []);
 
+  const rollVisible = Boolean(rollView);
+
   useEffect(() => {
-    const element = logRef.current?.closest('.scene-scroll') as HTMLElement | null;
-    if (!element) return;
-    // ждём раскладку после добавления абзаца/смены фазы
-    const frame = window.requestAnimationFrame(() => {
-      element.scrollTop = element.scrollHeight;
-    });
+    const logElement = logRef.current;
+    if (!logElement) return;
+    // В обычной сцене может быть внешний .scene-scroll, в боевом режиме
+    // его нет — лог всё равно должен прокручиваться самостоятельно.
+    const element = logElement.closest('.scene-scroll') as HTMLElement | null;
+
+    const scrollToFresh = () => {
+      // На мобильном лог сам скроллится внутри своей области; не двигаем
+      // весь экран, иначе спрайт и кнопки прыгают вверх/вниз.
+      const mobile = window.matchMedia('(max-width: 760px), (hover: none) and (pointer: coarse)').matches;
+      if (mobile) {
+        if (logElement) logElement.scrollTop = logElement.scrollHeight;
+        return;
+      }
+      // Если у лога своя прокрутка, крутим только его: иначе на каждом
+      // новом абзаце дёргается вся сцена и визуальный блок.
+      if (logElement.scrollHeight > logElement.clientHeight + 1) {
+        logElement.scrollTop = logElement.scrollHeight;
+        return;
+      }
+      if (element) element.scrollTop = element.scrollHeight;
+    };
+
+    // Сразу фиксируем текущий низ, затем повторяем после переноса длинных строк.
+    scrollToFresh();
+    const frame = window.requestAnimationFrame(scrollToFresh);
     return () => window.cancelAnimationFrame(frame);
-  }, [log, phase]);
+  }, [log, phase, rollVisible]);
 
   useEffect(() => {
     setSelectedChoice(0);
@@ -381,6 +432,8 @@ export default function CombatPanel({
   const alive = enemies.filter((hp) => hp > 0).length;
   const enemyMaxHealth = Math.max(1, Number(enemy.health ?? 1));
   const enemyCurrentHealth = Math.max(0, ...enemies);
+  const countPulse = useDecreasePulse(alive);
+  const healthPulse = useDecreasePulse(enemyCurrentHealth);
   const enemyArmor = Math.max(0, Number(enemy.armor ?? 0));
   const initialAlive = setup.enemies.filter((hp) => hp > 0).length;
   const enemyTotal = Math.max(1, initialAlive);
@@ -486,7 +539,7 @@ export default function CombatPanel({
   });
 
   useEffect(() => {
-    if (phase !== 'prebattle' || preBattleStarted.current) return;
+    if (phase !== 'prebattle' || preBattleStarted.current || !preBattleStartedByUser) return;
     preBattleStarted.current = true;
     let active = true;
     const run = async () => {
@@ -497,19 +550,30 @@ export default function CombatPanel({
         if (!active) return;
         setRollView(null);
       }
+      if (setup.preEffect) {
+        addLog(`ДО БОЯ: ${preBattleName(setup.preEffect.kind)} ${rollLabel(setup.preEffect.roll)}.`);
+      }
       if (setup.preEffect && setup.preEffect.kind !== 'damage') {
+        await preloadImages(prebattleFrameSources(game.id, setup.preEffect.kind));
+        await audio.preload(prebattleSoundUrl(game.id, setup.preEffect.kind));
+        if (!active) return;
         setPreBattleAnimation(setup.preEffect.kind);
-        setVisual('player');
         await wait(PRE_EFFECT_MS);
         if (!active) return;
-        setVisual('idle');
         setPreBattleAnimation(null);
+      }
+      if (setup.preEffect) {
+        // Реакция противника — после завершения эффекта, а не вместе с ним.
+        setVisual('player');
+        await wait(combatMs(450));
+        if (!active) return;
+        setVisual('idle');
       }
       if (setup.preStaminaApplied !== undefined) {
         // Предбоевой удар зомби: сначала анимация атаки, затем глитч.
         setVisual('enemy');
         const enemySound = enemySoundUrl(game, enemy.name);
-        if (enemySound) audio.sfx(enemySound, ENEMY_SFX_VOLUME);
+        playCombatSfx(enemySound, ENEMY_SFX_VOLUME);
         await wait(PRE_STAMINA_ATTACK_MS);
         if (!active) return;
         setVisual('idle');
@@ -518,8 +582,15 @@ export default function CombatPanel({
         if (!active) return;
         setHitFlash(false);
       }
+      let appliedEnemies = setup.enemies;
+      if (setup.preEffect) {
+        // Как и у обычного удара: число противников и «Убито» — после анимации.
+        appliedEnemies = setup.preEffect.nextEnemies;
+        setEnemies(appliedEnemies);
+        addLog(`ДО БОЯ: УБИТО ${setup.preEffect.killed}.`);
+      }
       if (!active) return;
-      if (setup.enemies.every((hp) => hp <= 0)) {
+      if (appliedEnemies.every((hp) => hp <= 0)) {
         setVisual('dead');
         setPhase('victory');
       } else if (setup.stamina <= 0) {
@@ -530,7 +601,7 @@ export default function CombatPanel({
     };
     void run();
     return () => { active = false; };
-  }, [phase, setup]);
+  }, [phase, setup, preBattleStartedByUser]);
 
   const animateRoll = (
     actor: RollActor,
@@ -581,7 +652,8 @@ export default function CombatPanel({
 
   const enemyVisual = enemyVisualFor(game, enemy.name);
   const enemyVisualKey = enemyVisual ? enemyVisual.key : 'none';
-  const hasVisual = Boolean(enemyVisual);
+  const showPlaceholder = battleMode === true && !enemyVisual;
+  const hasVisual = Boolean(enemyVisual) || showPlaceholder;
 
   useEffect(() => {
     if (!enemyVisual || visual !== 'enemy' || enemyVisual.attack.length === 0) {
@@ -647,24 +719,35 @@ export default function CombatPanel({
     return () => window.clearInterval(id);
   }, [enemyVisualKey, visual]);
 
-  // На выборе оружия спрайт скрыт, поэтому предзагружаем все кадры заранее:
-  // иначе при переходе в бой на долю секунды виден alt-текст вместо противника.
+  // Прогреваем кадры и звуки ещё на выборе оружия. Это убирает подвисание
+  // первого удара: к нажатию «В БОЙ» ассеты уже скачаны и декодированы.
   useEffect(() => {
     if (!enemyVisual) return;
-    const sources = [...enemyVisual.passive, ...enemyVisual.attack, ...enemyVisual.death].map(
-      (file) => `${enemyVisual.base}/${file}`,
-    );
-    const images = sources.map((src) => {
-      const image = new window.Image();
-      image.src = src;
-      return image;
-    });
-    return () => {
-      for (const image of images) image.src = '';
-    };
-  }, [enemyVisualKey]);
+    void preloadImages(enemyFrameSources(enemyVisual));
+    void audio.preload(enemySoundUrl(game, enemy.name));
+  }, [enemyVisualKey, game, enemy.name]);
 
-  const start = () => {
+  useEffect(() => {
+    void audio.preload(weaponSoundUrl(game, selected.id));
+  }, [game, selected.id]);
+
+  useEffect(() => {
+    if (!setup.preEffect || setup.preEffect.kind === 'damage') return;
+    void preloadImages(prebattleFrameSources(game.id, setup.preEffect.kind));
+    void audio.preload(prebattleSoundUrl(game.id, setup.preEffect.kind));
+  }, [game.id, setup.preEffect]);
+
+  const start = async () => {
+    if (warming) return;
+    setWarming(true);
+    try {
+      if (enemyVisual) await preloadImages(enemyFrameSources(enemyVisual));
+      await audio.preload(enemySoundUrl(game, enemy.name));
+      await audio.preload(weaponSoundUrl(game, selected.id));
+    } finally {
+      setWarming(false);
+    }
+    if (phase !== 'loadout') return;
     const chosen =
       weaponOptions.find((option) => option.id === selectedWeapon && option.usable) ??
       { id: FISTS, title: 'Кулаки', damage: '1d6-3' };
@@ -684,7 +767,7 @@ export default function CombatPanel({
     const playerName = selected.id === FISTS ? 'КУЛАКИ' : selected.title.toUpperCase();
     await animateRoll('player', playerName, playerRoll);
     const hitSound = weaponSoundUrl(game, selected.id);
-    if (hitSound) audio.sfx(hitSound, WEAPON_SFX_VOLUME);
+    playCombatSfx(hitSound, WEAPON_SFX_VOLUME);
     setPlayerShooting(true);
     setVisual('player');
     await wait(combatMs(450));
@@ -710,7 +793,7 @@ export default function CombatPanel({
       setActiveAllyId(ally.id);
       if (ally.weapon) {
         const allySound = weaponSoundUrl(game, ally.weapon);
-        if (allySound) audio.sfx(allySound, WEAPON_SFX_VOLUME);
+        playCombatSfx(allySound, WEAPON_SFX_VOLUME);
       }
       setVisual('player');
       await wait(combatMs(450));
@@ -759,14 +842,14 @@ export default function CombatPanel({
       // Рывок/удар врага начинается только после завершения его броска.
       setVisual('enemy');
       const enemySound = enemySoundUrl(game, enemy.name);
-      if (enemySound) audio.sfx(enemySound, ENEMY_SFX_VOLUME);
+      playCombatSfx(enemySound, ENEMY_SFX_VOLUME);
       enemyDamage = enemyRoll.total * counterFactor;
       addLog(`ПРОТИВНИК: ${enemy.name.toUpperCase()} · ${rollLabel(enemyRoll)}`);
       await wait(combatMs(ATTACK_ANIM_MS));
     } else {
       setVisual('enemy');
       const enemySound = enemySoundUrl(game, enemy.name);
-      if (enemySound) audio.sfx(enemySound, ENEMY_SFX_VOLUME);
+      playCombatSfx(enemySound, ENEMY_SFX_VOLUME);
       enemyDamage = Number(enemy.attack) * counterFactor;
       await wait(combatMs(ATTACK_ANIM_MS));
     }
@@ -791,27 +874,34 @@ export default function CombatPanel({
 
   const usePreBattleGrenade = async () => {
     if (phase !== 'prebattle-choice' || preBattleBusy || !combat.preDamage) return;
-    if ((inventory.grenade ?? 0) <= 0) return;
+    if ((inventory.grenade ?? 0) <= 0 && !infiniteGrenades) return;
     setPreBattleBusy(true);
     const result = rollDamage(combat.preDamage);
     const { enemies: next, killed } = applyPoolDamage(enemies, result.total);
-    setEnemies(next);
-    setInventory((current) => {
-      const left = (current.grenade ?? 0) - 1;
-      const updated = { ...current };
-      if (left > 0) updated.grenade = left;
-      else delete updated.grenade;
-      return updated;
-    });
-    addLog(`ДО БОЯ: ГРАНАТА ${rollLabel(result)}. Убито ${killed}.`);
+    if (!infiniteGrenades) {
+      setInventory((current) => {
+        const left = (current.grenade ?? 0) - 1;
+        const updated = { ...current };
+        if (left > 0) updated.grenade = left;
+        else delete updated.grenade;
+        return updated;
+      });
+    }
     setRollView(null);
     await animateRoll('player', 'ГРАНАТА', result);
     setRollView(null);
+    await preloadImages(prebattleFrameSources(game.id, 'grenade'));
+    await audio.preload(prebattleSoundUrl(game.id, 'grenade'));
     setPreBattleAnimation('grenade');
-    setVisual('player');
     await wait(PRE_EFFECT_MS);
-    setVisual('idle');
     setPreBattleAnimation(null);
+    // Реакция врага запускается только после полного эффекта.
+    setVisual('player');
+    await wait(combatMs(450));
+    setVisual('idle');
+    // Как в обычном ударе: обновляем число врагов после анимации.
+    setEnemies(next);
+    addLog(`ДО БОЯ: ГРАНАТА ${rollLabel(result)}. Убито ${killed}.`);
     setPreBattleBusy(false);
     if (next.every((hp) => hp <= 0)) {
       setVisual('dead');
@@ -904,10 +994,31 @@ export default function CombatPanel({
 
   const fistsNumber = weaponOptions.length + (fistsAllowed ? 1 : 0);
   const startNumber = fistsNumber + 1;
+  // Глитч должен жить внутри ЭЛТ-экрана, а не поверх корпуса компьютера.
+  const flashHost = typeof document !== 'undefined'
+    ? panelRef.current?.closest('.screen') ?? document.querySelector('.screen')
+    : null;
+  const preBattleKind = setup.preEffect && setup.preEffect.kind !== 'damage'
+    ? setup.preEffect.kind
+    : setup.preChoice && combat.preDamageKind === 'grenade'
+      ? 'grenade'
+      : null;
+  const preBattleStill = preBattleKind
+    ? prebattleFrameSources(game.id, preBattleKind)[0] ?? null
+    : null;
+  const preBattleStartLabel = setup.preEffect?.kind === 'grenade'
+    ? 'БРОСИТЬ ГРАНАТУ'
+    : setup.preEffect?.kind === 'browning'
+      ? 'СТРЕЛЯТЬ ИЗ БРАУНИНГА'
+      : 'ПРОДОЛЖИТЬ';
 
   return (
     <div className={`combat-panel${hasVisual ? ' combat-with-visual' : ''}${phase === 'prebattle' ? ' is-prebattle' : ''}${hitFlash ? ' combat-player-hit' : ''}`} role="region" aria-label={`Бой: ${enemy.name}`} ref={panelRef}>
-      <div className={`combat-hit-flash${hitFlash ? ' is-hit' : ''}`} aria-hidden="true" />
+      {hitFlash && flashHost &&
+        createPortal(
+          <div className="combat-hit-flash is-hit" aria-hidden="true" />,
+          flashHost,
+        )}
       <div className={`combat-layout${hasVisual ? ' combat-layout-with-visual' : ''}`}>
         <div className="combat-main">
       <div className={`combat-status-line${stamina <= 0 ? ' low' : ''}`}>
@@ -926,25 +1037,24 @@ export default function CombatPanel({
             &gt; {line}
           </div>
         ))}
+        {(phase === 'rolling' || phase === 'prebattle' || phase === 'prebattle-choice') && rollView && (
+          <div className={`combat-roll-card actor-${rollView.actor}${rollView.rolling ? ' is-rolling' : ''}`} aria-live="polite">
+            <div className="combat-roll-head">
+              <span>{rollView.actor === 'player' ? 'ИГРОК' : rollView.name}</span>
+            </div>
+            <div className="combat-dice-live">
+              <span className="combat-dice-faces">
+                {rollView.faces.map((face, index) => (
+                  <DieFace value={face} key={index} />
+                ))}
+              </span>
+              <span className="combat-roll-formula">
+                {rollView.formula} {rollView.rolling ? '…' : `= ${rollView.total}`}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
-
-      {(phase === 'rolling' || phase === 'prebattle' || phase === 'prebattle-choice') && rollView && (
-        <div className={`combat-roll-card actor-${rollView.actor}${rollView.rolling ? ' is-rolling' : ''}`} aria-live="polite">
-          <div className="combat-roll-head">
-            <span>{rollView.actor === 'player' ? 'ИГРОК' : rollView.name}</span>
-          </div>
-          <div className="combat-dice-live">
-            <span className="combat-dice-faces">
-              {rollView.faces.map((face, index) => (
-                <DieFace value={face} key={index} />
-              ))}
-            </span>
-            <span className="combat-roll-formula">
-              {rollView.formula} {rollView.rolling ? '…' : `= ${rollView.total}`}
-            </span>
-          </div>
-        </div>
-      )}
 
       {phase === 'prebattle-choice' && !preBattleBusy && (
         <>
@@ -958,7 +1068,7 @@ export default function CombatPanel({
               onFocus={() => setSelectedChoice(0)}
               onClick={usePreBattleGrenade}
             >
-              A. БРОСИТЬ ГРАНАТУ ×{inventory.grenade ?? 0} · {combat.preDamage ?? '2d6+1'}
+              A. БРОСИТЬ ГРАНАТУ ×{infiniteGrenades ? '∞' : inventory.grenade ?? 0} · {combat.preDamage ?? '2d6+1'}
             </button>
             <button
               type="button"
@@ -970,6 +1080,18 @@ export default function CombatPanel({
             </button>
           </div>
         </>
+      )}
+
+      {phase === 'prebattle' && !preBattleStartedByUser && (
+        <div className="choices combat-choices combat-prebattle-start">
+          <button
+            type="button"
+            className="choice selected"
+            onClick={() => setPreBattleStartedByUser(true)}
+          >
+            A. {preBattleStartLabel}
+          </button>
+        </div>
       )}
 
       {phase === 'loadout' && (
@@ -1014,24 +1136,24 @@ export default function CombatPanel({
                 {combatKey(fistsNumber - 1)}. КУЛАКИ · 1d6−3{selected.id === FISTS ? ' · ВЫБРАНО' : ''}
               </button>
             )}
-            <button type="button" className={`choice${selectedChoice === startNumber - 1 ? ' selected' : ''}`} onFocus={() => setSelectedChoice(startNumber - 1)} onClick={start}>
-              {combatKey(startNumber - 1)}. В БОЙ
+            <button type="button" className={`choice combat-start-choice${selectedChoice === startNumber - 1 ? ' selected' : ''}`} onFocus={() => setSelectedChoice(startNumber - 1)} onClick={start} disabled={warming}>
+              {combatKey(startNumber - 1)}. {warming ? 'ЗАГРУЗКА…' : 'НАЧАТЬ БОЙ'}
             </button>
           </div>
         </>
       )}
 
-      {phase === 'round' && (
+      {(phase === 'round' || phase === 'rolling') && (
         <>
           <div className="combat-note">ОРУЖИЕ: {weaponTitle} · {selectedDamage}</div>
           <div className="choices combat-choices">
-            <button type="button" className={`choice${selectedChoice === 0 ? ' selected' : ''}`} onFocus={() => setSelectedChoice(0)} onClick={attack}>
+            <button type="button" className={`choice${selectedChoice === 0 ? ' selected' : ''}`} onFocus={() => setSelectedChoice(0)} onClick={attack} disabled={phase === 'rolling'}>
               A. АТАКОВАТЬ
             </button>
-            <button type="button" className={`choice${selectedChoice === 1 ? ' selected' : ''}`} onFocus={() => setSelectedChoice(1)} onClick={useMedkit} disabled={!canUseMedkit}>
+            <button type="button" className={`choice${selectedChoice === 1 ? ' selected' : ''}`} onFocus={() => setSelectedChoice(1)} onClick={useMedkit} disabled={phase === 'rolling' || !canUseMedkit}>
               B. АПТЕЧКА ×{inventory.medkit ?? 0}
             </button>
-            <button type="button" className={`choice${selectedChoice === 2 ? ' selected' : ''}`} onFocus={() => setSelectedChoice(2)} onClick={() => setPhase('loadout')}>
+            <button type="button" className={`choice${selectedChoice === 2 ? ' selected' : ''}`} onFocus={() => setSelectedChoice(2)} onClick={() => setPhase('loadout')} disabled={phase === 'rolling'}>
               C. СМЕНИТЬ ОРУЖИЕ
             </button>
           </div>
@@ -1068,7 +1190,17 @@ export default function CombatPanel({
       )}
         </div>
 
-        {hasVisual && (
+        {showPlaceholder && (
+          <CombatVisual
+            enemyName={enemy.name}
+            image={visualImage}
+            enemyCount={alive}
+            enemyHealth={enemyCurrentHealth}
+            enemyPulse={countPulse || healthPulse}
+          />
+        )}
+
+        {hasVisual && enemyVisual && (
           <aside className={`combat-visual${phase === 'loadout' ? ' is-loadout' : ''}${boss ? ' combat-boss' : ''}`} aria-label={phase === 'loadout' ? 'Выбор оружия' : `Игрок против ${enemy.name}, осталось ${alive}`}>
             <div className={`combat-visual-block combat-player-block${allies.length > 0 ? ' has-ally' : ''}`}>
               <div className="combat-player-line">
@@ -1095,7 +1227,28 @@ export default function CombatPanel({
                         <div className="combat-weapon combat-prebattle-weapon">
                           <PreBattleAnimation game={game} kind={preBattleAnimation} />
                         </div>
-                      ) : null
+                      ) : preBattleKind && preBattleStill ? (
+                        <div className="combat-weapon combat-prebattle-weapon">
+                          <div
+                            className={`combat-prebattle-animation is-${preBattleKind} combat-prebattle-still`}
+                            role="img"
+                            aria-label={preBattleKind === 'browning' ? 'Пулемёт Браунинга' : 'Граната'}
+                          >
+                            {/* Первый кадр виден ещё до нажатия кнопки старта. */}
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={preBattleStill}
+                              alt={preBattleKind === 'browning' ? 'Пулемёт Браунинга' : 'Граната'}
+                              draggable={false}
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="combat-weapon">
+                          <WeaponIcon weaponId={selected.id} gameId={game.id} />
+                          <div className="weapon-damage">{selectedDamage}</div>
+                        </div>
+                      )
                     ) : (
                       <div className={`combat-weapon${playerShooting ? ' is-shooting' : ''}`}>
                         <WeaponIcon weaponId={selected.id} gameId={game.id} />
@@ -1127,12 +1280,12 @@ export default function CombatPanel({
                     </div>
                     <div className="zombie-badges">
                       {alive > 1 && (
-                        <span className="zombie-count" aria-label={`Количество: ${alive}`}>
+                        <span className={`zombie-count${countPulse ? ' plate-hit' : ''}`} aria-label={`Количество: ${alive}`}>
                           × {alive}
                         </span>
                       )}
                       {alive > 0 && (
-                        <span className="zombie-health" aria-label={`Жизни одной особи: ${enemyCurrentHealth}`}>
+                        <span className={`zombie-health${healthPulse ? ' plate-hit' : ''}`} aria-label={`Жизни одной особи: ${enemyCurrentHealth}`}>
                           ♥ {enemyCurrentHealth}
                         </span>
                       )}

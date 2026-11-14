@@ -1,4 +1,4 @@
-import { trackFor } from '../lib/music';
+import { trackFor, tracksFor, tracksForVisited } from '../lib/music';
 import type { Game, Scene } from '../lib/types';
 
 const game: Game = {
@@ -24,6 +24,23 @@ ok('mood без трека — продолжать текущий (null)', trac
 ok('mood не задан — берётся default_mood', trackFor(game, scene(undefined)) === 'music/calm.mp3');
 ok('явный music важнее mood', trackFor(game, scene('mystery', 'music/win.mp3')) === 'music/win.mp3');
 ok('пакет без moods и без mood — тишина', trackFor({ ...game, moods: {}, defaultMood: null }, scene(undefined)) === null);
+
+
+const playlistGame: Game = {
+  ...game,
+  moods: { calm: ['music/calm.mp3', 'music/calm2.mp3'], tense: 'music/tense.mp3' },
+  scenes: {
+    '1': { key: '1', title: '', text: '', mood: 'calm' },
+    '2': { key: '2', title: '', text: '', mood: 'calm' },
+  },
+};
+
+ok('mood-плейлист возвращает все треки', tracksFor(playlistGame, scene('calm')).length === 2);
+ok('явный music возвращает один трек', tracksFor(playlistGame, scene('calm', 'music/win.mp3')).length === 1);
+ok(
+  'плейлист без mood наследует трек предыдущей сцены',
+  tracksForVisited(playlistGame, { ...scene(undefined) }, ['2', '3']).length === 2,
+);
 
 if (fail.length) {
   console.error(`\nПРОВАЛЕНО: ${fail.length}`);

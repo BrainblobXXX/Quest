@@ -1,17 +1,16 @@
 /**
- * Мобильные боевые тайминги.
+ * Единые боевые тайминги.
  *
- * На узком/сенсорном экране анимации боя воспринимаются медленнее, поэтому
- * сокращаем JS-паузы, не меняя логику раунда. На десктопе значения остаются
- * прежними.
+ * Раньше мобильная версия ускоряла бой относительно десктопа. Теперь
+ * коэффициент общий: и анимация, и звук идут с одинаковой скоростью.
  */
-const MOBILE_QUERY = '(max-width: 760px), (hover: none) and (pointer: coarse)';
-
-export function isMobileCombat(): boolean {
-  if (typeof window === 'undefined') return false;
-  return window.matchMedia(MOBILE_QUERY).matches;
-}
+const COMBAT_SPEED = 0.62;
 
 export function combatMs(ms: number): number {
-  return isMobileCombat() ? Math.max(80, Math.round(ms * 0.62)) : ms;
+  return Math.max(80, Math.round(ms * COMBAT_SPEED));
+}
+
+/** Звук ускоряется тем же коэффициентом, что и боевые паузы. */
+export function combatSoundRate(): number {
+  return 1 / COMBAT_SPEED;
 }

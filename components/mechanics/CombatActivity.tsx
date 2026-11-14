@@ -6,7 +6,7 @@ import FalloutCombatPanel from '@/components/screens/FalloutCombatPanel';
 import DuelCombatPanel from '@/components/mechanics/DuelCombatPanel';
 import type { ActivityRenderProps } from '@/lib/mechanics/types';
 
-export default function CombatActivity({ game, state, activity, handlers }: ActivityRenderProps) {
+export default function CombatActivity({ game, state, activity, handlers, battleMode, visualImage }: ActivityRenderProps) {
   if (activity.type !== 'combat') return null;
 
   if (activity.mode === 'duel') {
@@ -20,6 +20,8 @@ export default function CombatActivity({ game, state, activity, handlers }: Acti
         onRestart={handlers.onRestart}
         onOutcome={handlers.onCombatOutcome}
         onStaminaChange={handlers.onStaminaChange}
+        battleMode={battleMode}
+        visualImage={visualImage}
       />
     );
   }
@@ -59,6 +61,8 @@ export default function CombatActivity({ game, state, activity, handlers }: Acti
       onExit={handlers.onCombatExit}
       onRestart={handlers.onRestart}
       onStaminaChange={handlers.onStaminaChange}
+      battleMode={battleMode}
+      visualImage={visualImage}
     />
   );
 }

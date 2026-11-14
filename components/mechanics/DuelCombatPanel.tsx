@@ -1,9 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { audio } from '@/lib/audio';
 import { usePanelKeys } from '@/lib/usePanelKeys';
+import { useDecreasePulse } from '@/lib/useDecreasePulse';
+import CombatVisual from '@/components/screens/CombatVisual';
 import { DieFace } from '@/components/screens/Dice';
+import { WeaponIcon } from '@/components/screens/WeaponIcon';
+import { combatKey, combatKeyIndex } from '@/components/screens/combatKeys';
 import { enemySkillPerRoundModifier, skillModifier, skillMultiplier } from '@/lib/effects';
 import { expireCombatEffects } from '@/lib/effects';
 import {
@@ -71,6 +75,8 @@ export default function DuelCombatPanel({
   onRestart,
   onOutcome,
   onStaminaChange,
+  battleMode,
+  visualImage,
 }: {
   game: Game;
   state: GameState;
@@ -80,6 +86,8 @@ export default function DuelCombatPanel({
   onRestart: () => void;
   onOutcome?: (result: GameState, target: string) => void;
   onStaminaChange?: (value: number, max: number) => void;
+  battleMode?: boolean;
+  visualImage?: string | null;
 }) {
   const staminaId = game.stats?.stamina ? 'stamina' : game.stats?.hp ? 'hp' : 'stamina';
   const staminaDef = game.stats?.[staminaId];
@@ -102,11 +110,23 @@ export default function DuelCombatPanel({
     `ВСТРЕЧА: ${sourceEnemies.map((enemy) => enemy.name.toUpperCase()).join(', ')}`,
     'БРОСОК: 2d6 + МАСТЕРСТВО. РАНЕНИЕ: −2 ВЫНОСЛИВОСТИ.',
   ]);
+  const logRef = useRef<HTMLDivElement>(null);
+
+  // Держим свежие строки в зоне видимости, не двигая остальной бой.
+  useEffect(() => {
+    const element = logRef.current;
+    if (!element) return;
+    const frame = window.requestAnimationFrame(() => {
+      element.scrollTop = element.scrollHeight;
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [log, lastRoll]);
 
   const options = weaponOptions(game, state, combat);
   const weapon = options.find((option) => option.id === weaponId) ?? options[0];
   const enemyIndex = enemies.findIndex((enemy) => Number(enemy.health) > 0);
   const enemy = enemies[enemyIndex];
+  const enemyHealthPulse = useDecreasePulse(Number(enemy?.health ?? 0));
   const hasWeapon = options.some((option) => option.id !== 'fists');
   const noWeaponPenalty = hasWeapon ? 0 : -4;
   const passiveWeaponBonus = Object.entries(state.inventory).reduce((sum, [id, count]) => {
@@ -284,155 +304,198 @@ export default function DuelCombatPanel({
 
   usePanelKeys((event) => {
     if (document.querySelector('.rules-modal')) return false;
-    if (phase === 'round' && (event.key === '1' || event.key === 'Enter' || event.key === ' ')) {
-      attack();
-      return true;
+    const key = event.key;
+    const letter = key.toUpperCase();
+    if (phase === 'round') {
+      const index = combatKeyIndex(key);
+      if (index === options.length) {
+        attack();
+        return true;
+      }
+      if (index >= 0 && index < options.length) {
+        setWeaponId(options[index].id);
+        return true;
+      }
+      if (key === '1' || key === 'Enter' || key === ' ') {
+        attack();
+        return true;
+      }
     }
-    if (phase === 'luck' && (event.key === '1' || event.key === 'Enter' || event.key === ' ')) {
-      useLuck();
-      return true;
-    }
-    if (phase === 'luck' && event.key === '2') {
-      skipLuck();
-      return true;
+    if (phase === 'luck') {
+      if (letter === 'A' || key === '1' || key === 'Enter' || key === ' ') {
+        useLuck();
+        return true;
+      }
+      if (letter === 'B' || key === '2') {
+        skipLuck();
+        return true;
+      }
     }
     if (phase === 'mercy') {
-      if (event.key === '1') { finishCapture(); return true; }
-      if (event.key === '2') { setPhase('round'); return true; }
+      if (letter === 'A' || key === '1') { finishCapture(); return true; }
+      if (letter === 'B' || key === '2') { setPhase('round'); return true; }
     }
-    if (phase === 'victory' && (event.key === '1' || event.key === 'Enter' || event.key === ' ')) {
+    if (phase === 'victory' && (letter === 'A' || key === '1' || key === 'Enter' || key === ' ')) {
       finish();
       return true;
     }
-    if (phase === 'defeat' && event.key === '1') {
-      onRestart();
-      return true;
-    }
-    if (phase === 'defeat' && event.key === '2') {
-      onExit();
-      return true;
+    if (phase === 'defeat') {
+      if (letter === 'A' || key === '1') { onRestart(); return true; }
+      if (letter === 'B' || key === '2') { onExit(); return true; }
     }
     return false;
   });
 
-  const enemyLabel = enemy ? `${enemy.name.toUpperCase()} · МАСТЕРСТВО ${enemySkill(enemy)} · ВЫНОСЛИВОСТЬ ${enemy.health}` : 'ПРОТИВНИКИ ПОБЕЖДЕНЫ';
-
   return (
     <div className="combat-panel duel-panel" role="region" aria-label="Дуэльный бой">
-      <div className="combat-status-line">
-        <span>РАУНД: {round}.</span>
-        <span>МАСТЕРСТВО: {playerSkill}.</span>
-        <span>УДАЧА: {luck}.</span>
-        <span>ВЫНОСЛИВОСТЬ: {stamina}/{staminaMax}.</span>
-      </div>
-
-      <div className="combat-log" aria-live="polite">
-        {log.map((line, index) => (
-          <div key={`${line}-${index}`} className={index === log.length - 1 ? 'combat-log-last' : ''}>
-            &gt; {line}
+      <div className={`combat-layout${battleMode ? ' combat-layout-with-visual' : ''}`}>
+        <div className="combat-main">
+          <div className="combat-status-line">
+            <span>РАУНД: {round}.</span>
+            <span>МАСТЕРСТВО: {playerSkill}.</span>
+            <span>УДАЧА: {luck}.</span>
+            <span>ВЫНОСЛИВОСТЬ: {stamina}/{staminaMax}.</span>
           </div>
-        ))}
-      </div>
 
-      <div className="duel-enemy">
-        <div className="duel-enemy-name">{enemyLabel}</div>
-        {lastRoll && (
-          <div className="duel-dice">
-            <span>ВЫ: {lastRoll.playerFaces.join(' + ')} + {playerSkill} = {lastRoll.playerTotal}</span>
-            <span>ВРАГ: {lastRoll.enemyFaces.join(' + ')} + {lastEnemySkill ?? enemySkill(enemy!)} = {lastRoll.enemyTotal}</span>
-          </div>
-        )}
-        {lastRoll && (
-          <div className="duel-dice-faces">
-            {lastRoll.playerFaces.map((face, index) => <DieFace value={face} key={`p${index}`} />)}
-            {lastRoll.enemyFaces.map((face, index) => <DieFace value={face} key={`e${index}`} />)}
-          </div>
-        )}
-      </div>
-
-      {phase === 'round' && (
-        <>
-          <div className="duel-weapons">
-            {options.map((option) => (
-              <button
-                type="button"
-                key={option.id}
-                className={`choice${option.id === weapon?.id ? ' selected' : ''}`}
-                onClick={() => setWeaponId(option.id)}
-              >
-                {option.title.toUpperCase()} · УРОН {option.damage}
-                {option.skillBonus !== 0 ? ` · МАСТЕРСТВО ${option.skillBonus > 0 ? '+' : ''}${option.skillBonus}` : ''}
-              </button>
+          <div className="combat-log" aria-live="polite" ref={logRef}>
+            {log.map((line, index) => (
+              <div key={`${line}-${index}`} className={index === log.length - 1 ? 'combat-log-last' : ''}>
+                &gt; {line}
+              </div>
             ))}
+            {lastRoll && (
+              <div className="combat-roll-card actor-player" aria-live="polite">
+                <div className="combat-roll-head">
+                  <span>БРОСОК</span>
+                </div>
+                <div className="duel-dice">
+                  <span>ВЫ: {lastRoll.playerFaces.join(' + ')} + {playerSkill} = {lastRoll.playerTotal}</span>
+                  <span>
+                    ВРАГ: {lastRoll.enemyFaces.join(' + ')} + {lastEnemySkill ?? enemySkill(enemy!)} = {lastRoll.enemyTotal}
+                  </span>
+                </div>
+                <div className="duel-dice-faces">
+                  {lastRoll.playerFaces.map((face, index) => <DieFace value={face} key={`p${index}`} />)}
+                  {lastRoll.enemyFaces.map((face, index) => <DieFace value={face} key={`e${index}`} />)}
+                </div>
+              </div>
+            )}
           </div>
-          <div className="choices combat-choices">
-            <button type="button" className="choice selected" onClick={attack}>
-              1. АТАКОВАТЬ
-            </button>
-          </div>
-        </>
-      )}
 
-      {phase === 'luck' && pending && (
-        <>
-          <div className="combat-note">
-            {pending.result === 'hit' ? 'ВЫ РАНИЛИ ВРАГА.' : 'ВАС РАНИЛИ.'} Испытать Удачу?
+          <div className="duel-enemy">
+            <div className="duel-enemy-name">
+              {enemy ? (
+                <>
+                  {enemy.name.toUpperCase()} · МАСТЕРСТВО {enemySkill(enemy)} ·{' '}
+                  <span className={`duel-enemy-health${enemyHealthPulse ? ' plate-hit' : ''}`}>
+                    ВЫНОСЛИВОСТЬ {enemy.health}
+                  </span>
+                </>
+              ) : 'ПРОТИВНИКИ ПОБЕЖДЕНЫ'}
+            </div>
           </div>
-          <div className="choices combat-choices">
-            <button type="button" className="choice selected" onClick={useLuck}>
-              1. ИСПЫТАТЬ УДАЧУ
-            </button>
-            <button type="button" className="choice" onClick={skipLuck}>
-              2. ПРОДОЛЖИТЬ
-            </button>
-          </div>
-        </>
-      )}
 
-      {phase === 'mercy' && (
-        <>
-          <div className="combat-note">
-            ПРОТИВНИК РАНЕН. ПОЩАДИТЬ ИЛИ ДОБИТЬ?
-          </div>
-          <div className="choices combat-choices">
-            <button type="button" className="choice selected" onClick={finishCapture}>
-              1. ПОЩАДИТЬ
-            </button>
-            <button type="button" className="choice" onClick={() => setPhase('round')}>
-              2. ДОБИТЬ
-            </button>
-          </div>
-        </>
-      )}
+          {phase === 'round' && (
+            <>
+              <div className="combat-note">
+                ОРУЖИЕ: {weapon?.title?.toUpperCase() ?? 'КУЛАКИ'} · УРОН {playerDamage}
+              </div>
+              <div className="choices combat-choices">
+                {options.map((option, index) => (
+                  <button
+                    type="button"
+                    key={option.id}
+                    className={`choice${option.id === weapon?.id ? ' selected' : ''}`}
+                    onClick={() => setWeaponId(option.id)}
+                  >
+                    <WeaponIcon weaponId={option.id} gameId={game.id} className="choice-weapon-icon" />
+                    {combatKey(index)}. {option.title.toUpperCase()} · УРОН {option.damage}
+                    {option.skillBonus !== 0
+                      ? ` · МАСТЕРСТВО ${option.skillBonus > 0 ? '+' : ''}${option.skillBonus}`
+                      : ''}
+                  </button>
+                ))}
+                <button type="button" className="choice selected duel-attack-choice" onClick={attack}>
+                  {combatKey(options.length)}. АТАКОВАТЬ
+                </button>
+              </div>
+            </>
+          )}
 
-      {phase === 'victory' && (
-        <>
-          <div className="combat-note combat-victory-note">
-            ПОБЕДА. ВЫНОСЛИВОСТЬ {stamina} / {staminaMax}.
-          </div>
-          <div className="choices combat-choices">
-            <button type="button" className="choice selected" onClick={finish}>
-              1. ПРОДОЛЖИТЬ
-            </button>
-          </div>
-        </>
-      )}
+          {phase === 'luck' && pending && (
+            <>
+              <div className="combat-note">
+                {pending.result === 'hit' ? 'ВЫ РАНИЛИ ВРАГА.' : 'ВАС РАНИЛИ.'} Испытать Удачу?
+              </div>
+              <div className="choices combat-choices">
+                <button type="button" className="choice selected" onClick={useLuck}>
+                  A. ИСПЫТАТЬ УДАЧУ
+                </button>
+                <button type="button" className="choice" onClick={skipLuck}>
+                  B. ПРОДОЛЖИТЬ
+                </button>
+              </div>
+            </>
+          )}
 
-      {phase === 'defeat' && (
-        <>
-          <div className="combat-note combat-defeat-note">
-            ВЫ ПОГИБЛИ. Выносливость 0 — приключение окончено.
-          </div>
-          <div className="choices combat-choices">
-            <button type="button" className="choice selected" onClick={onRestart}>
-              1. НАЧАТЬ ЗАНОВО
-            </button>
-            <button type="button" className="choice" onClick={onExit}>
-              2. В БИБЛИОТЕКУ
-            </button>
-          </div>
-        </>
-      )}
+          {phase === 'mercy' && (
+            <>
+              <div className="combat-note">
+                ПРОТИВНИК РАНЕН. ПОЩАДИТЬ ИЛИ ДОБИТЬ?
+              </div>
+              <div className="choices combat-choices">
+                <button type="button" className="choice selected" onClick={finishCapture}>
+                  A. ПОЩАДИТЬ
+                </button>
+                <button type="button" className="choice" onClick={() => setPhase('round')}>
+                  B. ДОБИТЬ
+                </button>
+              </div>
+            </>
+          )}
+
+          {phase === 'victory' && (
+            <>
+              <div className="combat-note combat-victory-note">
+                ПОБЕДА. ВЫНОСЛИВОСТЬ {stamina} / {staminaMax}.
+              </div>
+              <div className="choices combat-choices">
+                <button type="button" className="choice selected" onClick={finish}>
+                  A. ПРОДОЛЖИТЬ
+                </button>
+              </div>
+            </>
+          )}
+
+          {phase === 'defeat' && (
+            <>
+              <div className="combat-note combat-defeat-note">
+                ВЫ ПОГИБЛИ. ВЫНОСЛИВОСТЬ 0 — ПРИКЛЮЧЕНИЕ ОКОНЧЕНО.
+              </div>
+              <div className="choices combat-choices">
+                <button type="button" className="choice selected" onClick={onRestart}>
+                  A. НАЧАТЬ ЗАНОВО
+                </button>
+                <button type="button" className="choice" onClick={onExit}>
+                  B. В БИБЛИОТЕКУ
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+
+        {battleMode && (
+          <CombatVisual
+            enemyName={enemy?.name ?? 'ПРОТИВНИК'}
+            image={visualImage}
+            gameId={game.id}
+            playerWeaponId={weapon?.id}
+            enemyHealth={Number(enemy?.health ?? 0)}
+            enemyPulse={enemyHealthPulse}
+          />
+        )}
+      </div>
     </div>
   );
+
 }

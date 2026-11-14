@@ -3,15 +3,22 @@
 import { useEffect, useMemo, useState } from 'react';
 import { audio } from '@/lib/audio';
 import { preBattleMs } from '@/lib/preBattleTiming';
+import { combatSoundRate } from '@/lib/combatTiming';
+import { preloadImages } from '@/lib/preload';
+import {
+  prebattleFrameSources,
+  prebattleSoundUrl,
+  type PreBattleAnimationKind,
+} from '@/lib/prebattleFrames';
 import type { Game } from '@/lib/types';
-
-export type PreBattleAnimationKind = 'browning' | 'grenade';
 
 const FRAME_MS: Record<PreBattleAnimationKind, number> = {
   browning: preBattleMs(85),
   // граната замедлена относительно первой версии, но предбоевая анимация короче на 30%
   grenade: preBattleMs(300),
 };
+
+export type { PreBattleAnimationKind };
 
 export default function PreBattleAnimation({
   game,
@@ -20,43 +27,37 @@ export default function PreBattleAnimation({
   game: Game;
   kind: PreBattleAnimationKind;
 }) {
-  const frames = useMemo(() => {
-    if (game.id !== 'zombie-blood') return [];
-    const base = `/api/games/${encodeURIComponent(game.id)}/assets/effects`;
-    if (kind === 'browning') {
-      return Array.from({ length: 10 }, (_, index) => `${base}/browning/machinegun-${String(index + 1).padStart(2, '0')}.png`);
-    }
-    return [
-      ...Array.from({ length: 5 }, (_, index) => `${base}/grenade/throw/grenade-${String(index + 1).padStart(2, '0')}.png`),
-      ...Array.from({ length: 5 }, (_, index) => `${base}/grenade/explosion/explosion-${String(index + 1).padStart(2, '0')}.png`),
-    ];
-  }, [game.id, kind]);
+  const frames = useMemo(() => prebattleFrameSources(game.id, kind), [game.id, kind]);
   const [frame, setFrame] = useState(0);
+  const [ready, setReady] = useState(false);
 
+  // Сначала скачиваем и декодируем все кадры и звук, только потом запускаем цикл.
   useEffect(() => {
     if (frames.length === 0) return;
-    const base = `/api/games/${encodeURIComponent(game.id)}/assets/sounds/effects`;
-    const clip = audio.sfx(
-      `${base}/${kind === 'browning' ? 'machinegun' : 'grenade-throw'}.mp3`,
-      kind === 'browning' ? 0.5 : 0.65,
-    );
+    let active = true;
+    setFrame(0);
+    setReady(false);
+    void Promise.all([
+      preloadImages(frames),
+      audio.preload(prebattleSoundUrl(game.id, kind)),
+    ]).then(() => {
+      if (active) setReady(true);
+    });
+    return () => {
+      active = false;
+    };
+  }, [frames, game.id, kind]);
+
+  useEffect(() => {
+    if (!ready || frames.length === 0) return;
+
+    const sound = prebattleSoundUrl(game.id, kind);
+    const clip = sound
+      ? audio.sfx(sound, kind === 'browning' ? 0.5 : 0.65, { rate: combatSoundRate() })
+      : null;
     // Очередь Браунинга идёт по кругу, вместе с ней зациклен звук.
     if (clip && kind === 'browning') clip.loop = true;
-    return () => {
-      if (!clip) return;
-      try {
-        clip.pause();
-        clip.currentTime = 0;
-        clip.src = '';
-      } catch {
-        // звук уже мог завершиться или быть выгружен
-      }
-    };
-  }, [game.id, kind, frames.length]);
 
-  useEffect(() => {
-    if (frames.length === 0) return;
-    setFrame(0);
     // Браунинг зациклен, граната проигрывается один раз и остаётся на последнем кадре.
     const loop = kind === 'browning';
     const timer = window.setInterval(() => {
@@ -69,8 +70,19 @@ export default function PreBattleAnimation({
         return current + 1;
       });
     }, FRAME_MS[kind]);
-    return () => window.clearInterval(timer);
-  }, [frames.length, kind]);
+
+    return () => {
+      window.clearInterval(timer);
+      if (!clip) return;
+      try {
+        clip.pause();
+        clip.currentTime = 0;
+        clip.src = '';
+      } catch {
+        // звук уже мог завершиться или быть выгружен
+      }
+    };
+  }, [ready, frames, game.id, kind]);
 
   if (frames.length === 0) return null;
 

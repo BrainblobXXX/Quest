@@ -15,6 +15,7 @@ import { instructionFor } from '@/lib/instructions';
 import StoryActivity, { type StoryRollView } from '@/components/mechanics/StoryActivity';
 import AttritionPanel from '@/components/mechanics/AttritionPanel';
 import { findChoiceByLetter, resolveStory } from '@/lib/mechanics/story';
+import { preloadSceneNeighborhood } from '@/lib/scenePreload';
 import type { Choice, Game, GameState, ParseProblem } from '@/lib/types';
 
 const LETTER = /\[([А-ЯЁA-Z])\]/g;
@@ -204,10 +205,12 @@ export default function GameScreen({
   const [codeMessage, setCodeMessage] = useState<string | null>(null);
   const [zoom, setZoom] = useState(false);
   const [imageFit, setImageFit] = useState<{ src: string; wide: boolean } | null>(null);
+  const [loadedImage, setLoadedImage] = useState<string | null>(null);
   const [selection, setSelection] = useState({ scene: scene.key, index: -1 });
   const [pressed, setPressed] = useState<string | null>(null);
   const selected = selection.scene === scene.key ? selection.index : -1;
   const scrollRef = useRef<HTMLDivElement>(null);
+  const combatAnchorRef = useRef<HTMLDivElement>(null);
   const scrollKey = `${game.id}:${state.scene}`;
 
   useEffect(() => {
@@ -215,6 +218,11 @@ export default function GameScreen({
     setLiveStamina(null);
   }, [scene.key]);
   const choices = availableChoices(game, state);
+
+  // Пока игрок читает и выбирает, прогреваем текущую и соседние сцены.
+  useEffect(() => {
+    preloadSceneNeighborhood(game, state, scene, choices);
+  }, [game, scene.key, state.scene, choices]);
   const attrition = scene.attrition;
   const liveVitalId = Object.entries(game.stats ?? {}).find(([id, def]) => isVitalStat(id, def))?.[0];
   const allStats = Object.entries(game.stats ?? {})
@@ -417,6 +425,24 @@ export default function GameScreen({
     const saved = window.sessionStorage.getItem(`scroll:${scrollKey}`);
     el.scrollTop = saved ? Number(saved) : 0;
   }, [scrollKey]);
+
+  // После нажатия «НАЧАТЬ БОЙ» уводим сцену к боевому блоку:
+  // иначе на мобильном палец попадает в лог и скроллит его, а не страницу.
+  useEffect(() => {
+    if (!combatStarted) return;
+    const scroll = scrollRef.current;
+    const anchor = combatAnchorRef.current;
+    if (!scroll || !anchor) return;
+    const frame = window.requestAnimationFrame(() => {
+      const top =
+        anchor.getBoundingClientRect().top -
+        scroll.getBoundingClientRect().top +
+        scroll.scrollTop -
+        8;
+      scroll.scrollTop = Math.max(0, top);
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [combatStarted]);
 
   const saveScroll = (e: React.UIEvent<HTMLDivElement>) => {
     window.sessionStorage.setItem(`scroll:${scrollKey}`, String(e.currentTarget.scrollTop));
@@ -648,7 +674,8 @@ export default function GameScreen({
             aria-label={`Инвентарь: ${inventoryLine(game, state) || 'пусто'}`}
             title="Инвентарь"
           >
-            <span className="inv-inline">ИНВЕНТАРЬ</span>
+            <span className="inv-inline inv-full">ИНВЕНТАРЬ</span>
+            <span className="inv-inline inv-short" aria-hidden="true">ИНВ</span>
           </button>
         )}
       </div>
@@ -709,7 +736,8 @@ export default function GameScreen({
       <div className="scene-scroll" ref={scrollRef} onScroll={saveScroll}>
         {scene.image && (
           <figure
-            className={`scene-image${imageFit?.src === scene.image && imageFit.wide ? ' wide' : ''}`}
+            key={scene.image}
+            className={`scene-image${imageFit?.src === scene.image && imageFit.wide ? ' wide' : ''}${loadedImage === scene.image ? ' is-ready' : ''}`}
           >
             <button
               type="button"
@@ -728,6 +756,7 @@ export default function GameScreen({
                   // привязываем признак к адресу картинки: если следующая сцена
                   // показывает тот же файл, он остаётся широким без повторной загрузки
                   setImageFit({ src: scene.image ?? '', wide });
+                  setLoadedImage(scene.image ?? null);
                 }}
               />
             </button>
@@ -753,8 +782,9 @@ export default function GameScreen({
             onChoose={onChoose}
           />
         )}
-        <InteractionHost
-          key={`interaction:${scene.key}`}
+        <div ref={combatAnchorRef}>
+          <InteractionHost
+            key={`interaction:${scene.key}`}
           game={game}
           state={state}
           check={!hasCombat && !showGamble ? check : null}
@@ -767,8 +797,9 @@ export default function GameScreen({
           onCombatOutcome={onCombatOutcome}
           onCombatExit={onCombatExit}
           onRestart={onRestart}
-          onStaminaChange={setLiveStamina}
-        />
+            onStaminaChange={setLiveStamina}
+          />
+        </div>
       </div>
 
       {emptyCombat && combat && (

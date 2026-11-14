@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3100",
+    "dev:mobile": "next dev -H 0.0.0.0 -p 3100",
     "build": "next build",
     "start": "node .next/standalone/server.js",
     "lint": "next lint",

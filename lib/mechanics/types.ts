@@ -40,6 +40,10 @@ export type ActivityRenderProps = {
   state: GameState;
   activity: Activity;
   handlers: ActivityHandlers;
+  /** Боевой режим: можно показывать плейсхолдеры вместо отсутствующих анимаций. */
+  battleMode?: boolean;
+  /** Иллюстрация текущей сцены для статичного портрета в плейсхолдере. */
+  visualImage?: string | null;
 };
 
 /**

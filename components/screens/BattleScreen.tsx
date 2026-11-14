@@ -143,6 +143,7 @@ function makeBattleState(game: Game, scene: string, health: number, stat: string
     rev: game.rev,
     scene,
     inventory: battleInventory(game),
+    infiniteGrenades: true,
     flags: [],
     knownCodes: [],
     gamblesDone: [],
@@ -389,6 +390,8 @@ export default function BattleScreen({
             game={game}
             state={state}
             activity={{ type: 'combat', combat: currentCombat, mode: combatMode(game, currentCombat) }}
+            battleMode
+            visualImage={currentImage}
             handlers={{
               onCombatWin: handleWin,
               onCombatExit: onExit,

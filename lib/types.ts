@@ -387,6 +387,8 @@ export type GameState = {
   rev?: string;
   scene: string;
   inventory: Record<string, number>;
+  /** Боевой режим: гранаты не расходуются. */
+  infiniteGrenades?: boolean;
   flags: string[];
   /** изученные коды (не расходуются) */
   knownCodes?: string[];

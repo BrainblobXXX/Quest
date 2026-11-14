@@ -8,9 +8,13 @@ class AudioEngine {
   private humOsc: OscillatorNode | null = null;
   private enabled = true;
   private music: HTMLAudioElement | null = null;
+  /** Реально звучащий трек; старый не глушим, пока новый не начнёт играть. */
+  private audibleTrack: HTMLAudioElement | null = null;
   /** все живые аудиоэлементы: гарантия, что играет ровно один трек */
   private tracks = new Set<HTMLAudioElement>();
   private musicUrl: string | null = null;
+  private musicPlaylist: string[] = [];
+  private musicPreloadedUrl: string | null = null;
   private musicFade: number | null = null;
   private pendingMusic: string | null = null;
   private readonly musicMax = 0.5;
@@ -114,25 +118,103 @@ class AudioEngine {
     this.tracks.delete(track);
   }
 
+  /** Выбрать и прогреть следующий трек плейлиста, пока играет текущий. */
+  private preloadNextMusic(): void {
+    if (this.musicPlaylist.length === 0) return;
+    const candidates = this.musicPlaylist.filter((url) => url !== this.musicUrl);
+    const pool = candidates.length > 0 ? candidates : this.musicPlaylist;
+    const next = pool[Math.floor(Math.random() * pool.length)] ?? null;
+    if (!next || next === this.musicUrl || next === this.musicPreloadedUrl) return;
+    this.musicPreloadedUrl = next;
+    void this.preload(next);
+  }
+
+  /**
+   * Включить плейлист настроения: при смене выбирается случайный трек,
+   * а следующий трек прогревается сразу после старта текущего.
+   */
+  playMusicPlaylist(urls: readonly string[], fade = 1.5, immediate = false): void {
+    const playlist = [...new Set(urls.filter(Boolean))];
+    this.musicPlaylist = playlist;
+    if (playlist.length === 0) return;
+
+    // Если текущий трек уже принадлежит новому плейлисту, не перезапускаем его.
+    if (this.musicUrl && this.music && playlist.includes(this.musicUrl)) {
+      // Игрок быстро вернулся на mood, который сейчас звучит. Отменяем
+      // отложенный переход и начинаем удержание заново: следующий mood
+      // должен подождать полный интервал, а текущий трек не перезапускается.
+      const hadDeferredSwitch = this.musicDeferTimer !== null || this.deferredMusic !== null;
+      this.clearMusicDefer();
+      if (hadDeferredSwitch) this.musicStartedAt = Date.now();
+      this.preloadNextMusic();
+      return;
+    }
+
+    const candidates = playlist.filter((url) => url !== this.musicUrl);
+    const pool = candidates.length > 0 ? candidates : playlist;
+    const next = pool[Math.floor(Math.random() * pool.length)];
+    if (next) this.playMusic(next, fade, immediate);
+  }
+
+  private clearMusicDefer(): void {
+    if (this.musicDeferTimer !== null) {
+      window.clearTimeout(this.musicDeferTimer);
+      this.musicDeferTimer = null;
+    }
+    this.deferredMusic = null;
+  }
+
+  private deferMusic(url: string, fade: number, delay: number): void {
+    this.deferredMusic = { url, fade };
+    // Не сдвигаем дедлайн при каждом новом mood: иначе при частых сценах
+    // трек может не смениться вообще. Держим один интервал удержания.
+    if (this.musicDeferTimer !== null) return;
+    this.musicDeferTimer = window.setTimeout(() => {
+      const next = this.deferredMusic;
+      this.clearMusicDefer();
+      if (next) this.playMusic(next.url, next.fade);
+    }, Math.max(0, delay));
+  }
+
   /**
    * Музыка по настроению сцены.
    * null — продолжать текущий трек (сцена без mood).
    * Повторный вызов с тем же url ничего не делает.
+   *
+   * Частые смены mood не должны превращать саундтрек в дёрганый:
+   * новый трек ставится не раньше, чем через `minTrackMs`.
    */
-  playMusic(url: string | null, fade = 1.5): void {
+  playMusic(url: string | null, fade = 1.5, immediate = false): void {
     if (typeof window === 'undefined' || !url) return;
     if (!this.ctx) {
       this.pendingMusic = url;
       return;
     }
-    if (url === this.musicUrl && this.music) return;
+    if (url === this.musicUrl && this.music) {
+      this.clearMusicDefer();
+      if (this.musicEnabled && this.music.paused) {
+        void this.music.play().catch(() => {
+          this.pendingMusic = url;
+        });
+      }
+      return;
+    }
 
+    const elapsed = this.musicStartedAt ? Date.now() - this.musicStartedAt : Number.POSITIVE_INFINITY;
+    // Исключение: бой с danger запускает свой трек сразу, без удержания.
+    if (!immediate && this.music && elapsed < this.minTrackMs) {
+      this.deferMusic(url, fade, this.minTrackMs - elapsed);
+      return;
+    }
+
+    this.clearMusicDefer();
     this.musicUrl = url;
     document.documentElement.dataset.track = url;
 
-    // сначала убираем всё лишнее: осиротевшие треки после прерванного кроссфейда
+    // Старый трек не глушим, пока новый реально не начал играть: иначе
+    // при быстром листании и загрузке нового трека образуется тишина.
     this.clearFade();
-    const prev = this.music;
+    const prev = this.audibleTrack ?? this.music;
     for (const track of [...this.tracks]) {
       if (track !== prev) this.dropTrack(track);
     }
@@ -143,30 +225,47 @@ class AudioEngine {
     next.addEventListener('error', () => this.dropTrack(next));
     this.music = next;
     this.tracks.add(next);
+    this.preloadNextMusic();
     if (this.musicEnabled) {
-      void next.play().catch(() => {
+      void next.play().then(() => {
+        if (this.music === next) beginCrossfade();
+      }).catch(() => {
         // автовоспроизведение могло быть заблокировано — включим после жеста
         this.pendingMusic = url;
       });
     }
 
-    const startPrev = prev?.volume ?? 0;
-    const steps = 30;
-    const dt = Math.max(20, (fade * 1000) / steps);
-    let i = 0;
+    let started = false;
+    const beginCrossfade = () => {
+      if (started || this.music !== next) return;
+      started = true;
+      this.audibleTrack = next;
+      this.musicStartedAt = Date.now();
+      this.clearFade();
 
-    this.musicFade = window.setInterval(() => {
-      i += 1;
-      const k = Math.min(1, i / steps);
-      // громкость пересчитываем каждый тик: ползунок мог измениться во время фейда
-      const target = this.currentMusicVolume();
-      next.volume = Math.min(1, Math.max(0, target * k));
-      if (prev && prev !== next) prev.volume = Math.min(1, Math.max(0, startPrev * (1 - k)));
-      if (k >= 1) {
-        this.clearFade();
-        if (prev && prev !== next) this.dropTrack(prev);
-      }
-    }, dt);
+      const from = prev && prev !== next ? prev : null;
+      const startPrev = from?.volume ?? 0;
+      const steps = 30;
+      const dt = Math.max(20, (fade * 1000) / steps);
+      let i = 0;
+
+      this.musicFade = window.setInterval(() => {
+        i += 1;
+        const k = Math.min(1, i / steps);
+        // громкость пересчитываем каждый тик: ползунок мог измениться во время фейда
+        const target = this.currentMusicVolume();
+        next.volume = Math.min(1, Math.max(0, target * k));
+        if (from) from.volume = Math.min(1, Math.max(0, startPrev * (1 - k)));
+        if (k >= 1) {
+          this.clearFade();
+          if (from && from !== next) this.dropTrack(from);
+        }
+      }, dt);
+    };
+
+    // Начинаем кроссфейд только после фактического старта воспроизведения.
+    // `canplay` недостаточно: буфер готов, а play() ещё может ждать.
+    next.addEventListener('playing', beginCrossfade, { once: true });
   }
 
   setMusicEnabled(on: boolean): void {
@@ -186,6 +285,7 @@ class AudioEngine {
    * чтобы после возврата продолжить с того же места.
    */
   pauseAll(): void {
+    this.clearMusicDefer();
     this.clearFade();
     for (const track of this.tracks) {
       try {
@@ -217,7 +317,12 @@ class AudioEngine {
   }
 
   stopMusic(): void {
+    this.clearMusicDefer();
     this.musicUrl = null;
+    this.musicPlaylist = [];
+    this.musicPreloadedUrl = null;
+    this.musicStartedAt = 0;
+    this.audibleTrack = null;
     this.pendingMusic = null;
     this.clearFade();
     for (const track of [...this.tracks]) this.dropTrack(track);
@@ -279,12 +384,67 @@ class AudioEngine {
     osc.stop(ctx.currentTime + 0.13);
   }
 
-  /** Короткий звуковой эффект (например, выстрел оружия). */
-  sfx(url: string, volume = 0.7): HTMLAudioElement | null {
+  private sfxPreloads = new Map<string, Promise<void>>();
+  private readonly maxSfxPreloads = 24;
+  private musicStartedAt = 0;
+  private deferredMusic: { url: string; fade: number } | null = null;
+  private musicDeferTimer: number | null = null;
+  private readonly minTrackMs = 10_000;
+
+  /**
+   * Прогрев звука: скачиваем и декодируем клип до первого боя.
+   * Повторные вызовы возвращают уже созданный промис.
+   */
+  preload(url: string | null): Promise<void> {
+    if (!url || typeof window === 'undefined') return Promise.resolve();
+    const existing = this.sfxPreloads.get(url);
+    if (existing) return existing;
+
+    const promise = new Promise<void>((resolve) => {
+      const clip = new Audio(url);
+      clip.preload = 'auto';
+      let settled = false;
+      const done = () => {
+        if (settled) return;
+        settled = true;
+        resolve();
+      };
+      clip.addEventListener('canplaythrough', done, { once: true });
+      clip.addEventListener('loadeddata', done, { once: true });
+      clip.addEventListener('error', done, { once: true });
+      clip.load();
+      window.setTimeout(done, 4000);
+    });
+    this.sfxPreloads.set(url, promise);
+    while (this.sfxPreloads.size > this.maxSfxPreloads) {
+      const oldest = this.sfxPreloads.keys().next().value;
+      if (!oldest) break;
+      this.sfxPreloads.delete(oldest);
+    }
+    return promise;
+  }
+
+  /** Сбросить прогретые звуки при запуске другой книги. */
+  clearPreloads(): void {
+    this.sfxPreloads.clear();
+    this.musicPreloadedUrl = null;
+  }
+
+  /**
+   * Короткий звуковой эффект (например, выстрел оружия).
+   * `rate` ускоряет клип вместе с укороченной мобильной анимацией.
+   */
+  sfx(
+    url: string,
+    volume = 0.7,
+    options: { rate?: number } = {},
+  ): HTMLAudioElement | null {
     if (!this.enabled || typeof window === 'undefined') return null;
     try {
       const clip = new Audio(url);
       clip.volume = Math.min(1, Math.max(0, this.soundVolume * volume));
+      const rate = Number(options.rate);
+      if (Number.isFinite(rate) && rate > 0) clip.playbackRate = Math.min(4, Math.max(0.25, rate));
       clip.addEventListener('ended', () => {
         clip.src = '';
       });

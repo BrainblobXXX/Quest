@@ -12,10 +12,11 @@ import CoverPage from '@/components/screens/CoverPage';
 import InitialRoll from '@/components/screens/InitialRoll';
 import ErrorScreen from '@/components/screens/ErrorScreen';
 import { audio } from '@/lib/audio';
-import { trackFor } from '@/lib/music';
+import { tracksForVisited } from '@/lib/music';
 import { loadGame, loadIndex, type LoadProgress } from '@/lib/games';
 import { PackageError } from '@/lib/parse';
 import { newState } from '@/lib/engine';
+import { clearPreloadCache } from '@/lib/preload';
 import { applyAction } from '@/lib/actions';
 import { migrateState } from '@/lib/migrations';
 import { clearSave, loadSave, saveState, loadSettings, saveSettings } from '@/lib/storage';
@@ -186,8 +187,15 @@ export default function Page() {
     }
     const scene = game.scenes[state.scene];
     if (!scene) return;
-    const track = trackFor(game, scene);
-    if (track) audio.playMusic(`/api/games/${game.id}/${track}`);
+    const tracks = tracksForVisited(game, scene, state.visited);
+    const urls = tracks.map((track) =>
+      `/api/games/${encodeURIComponent(game.id)}/${track.split('/').map(encodeURIComponent).join('/')}`,
+    );
+    if (urls.length > 0) {
+      // Вход в danger-бой — единственное исключение из удержания трека.
+      const dangerCombat = scene.mood === 'danger' && Boolean(game.combat?.[scene.key]);
+      audio.playMusicPlaylist(urls, 1.5, dangerCombat);
+    }
   }, [game, state, initialRoll]);
 
   const startGame = useCallback(
@@ -196,6 +204,10 @@ export default function Page() {
       const token = loadToken.current + 1;
       loadToken.current = token;
       const startedAt = performance.now();
+
+      // Новая книга — новый набор ассетов: не тащим прогретые файлы прошлой.
+      clearPreloadCache();
+      audio.clearPreloads();
 
       setConfirmRestart(false);
       setLoading({ id, title: entry?.title ?? id, progress: { stage: 'mount' } });
@@ -269,6 +281,9 @@ export default function Page() {
       const entry = games.find((g) => g.id === id);
       const token = loadToken.current + 1;
       loadToken.current = token;
+      clearPreloadCache();
+      audio.clearPreloads();
+
       setConfirmRestart(false);
       setLoading({ id, title: entry?.title ?? id, progress: { stage: 'mount' } });
       setScreen('loading');
